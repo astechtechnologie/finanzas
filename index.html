@@ -233,7 +233,7 @@
       const select = document.getElementById('categoria');
       const categorias = obtenerCategorias();
       select.innerHTML = categorias.map(c => 
-        <option value="${c.nombre}">${c.emoji} ${c.nombre}</option>
+        `<option value="${c.nombre}">${c.emoji} ${c.nombre}</option>`
       ).join('');
     }
 
