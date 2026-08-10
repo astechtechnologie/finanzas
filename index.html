@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis Finanzas</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { font-family: system-ui, sans-serif; }
+  </style>
 </head>
 <body class="bg-gray-100 p-4 min-h-screen">
 
   <main class="max-w-md mx-auto space-y-6">
     
-    <!-- Título -->
     <h1 class="text-3xl font-bold text-center text-emerald-600">💰 Mis Finanzas</h1>
 
-    <!-- Resumen -->
     <section class="grid grid-cols-3 gap-2 text-center">
       <div class="bg-white p-3 rounded shadow">
         <p class="text-xs text-gray-500">Ingresos</p>
@@ -30,7 +30,6 @@
       </div>
     </section>
 
-    <!-- Formulario -->
     <form id="formTransaccion" class="bg-white p-4 rounded shadow space-y-3">
       <select id="tipo" required class="w-full p-2 border rounded">
         <option value="ingreso">Ingreso</option>
@@ -43,7 +42,6 @@
       </button>
     </form>
 
-    <!-- Lista de movimientos -->
     <section class="bg-white p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Movimientos</h2>
       <div id="listaTransacciones" class="space-y-2">
@@ -52,6 +50,90 @@
     </section>
 
   </main>
+
+  <!-- Todo el JavaScript aquí mismo -->
+  <script>
+    // ---------- storage ----------
+    const CLAVE = 'finanzas_v1';
+
+    function obtenerTransacciones() {
+      const datos = localStorage.getItem(CLAVE);
+      return datos ? JSON.parse(datos) : [];
+    }
+
+    function guardar(transacciones) {
+      localStorage.setItem(CLAVE, JSON.stringify(transacciones));
+    }
+
+    function agregarTransaccion(tipo, descripcion, monto) {
+      const transacciones = obtenerTransacciones();
+      transacciones.push({
+        id: Date.now(),
+        tipo,
+        descripcion,
+        monto: parseFloat(monto),
+        fecha: new Date().toISOString()
+      });
+      guardar(transacciones);
+    }
+
+    // ---------- ui y eventos ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('formTransaccion');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const tipo = document.getElementById('tipo').value;
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const monto = document.getElementById('monto').value;
+
+        if (!descripcion || !monto) return;
+
+        agregarTransaccion(tipo, descripcion, monto);
+        form.reset();
+        actualizarVista();
+      });
+
+      actualizarVista();
+    });
+
+    function actualizarVista() {
+      const transacciones = obtenerTransacciones();
+
+      let ingresos = 0, gastos = 0;
+      transacciones.forEach(t => {
+        if (t.tipo === 'ingreso') ingresos += t.monto;
+        else gastos += t.monto;
+      });
+
+      document.getElementById('totalIngresos').textContent = $${ingresos.toFixed(2)};
+      document.getElementById('totalGastos').textContent = $${gastos.toFixed(2)};
+      document.getElementById('balance').textContent = $${(ingresos - gastos).toFixed(2)};
+
+      const lista = document.getElementById('listaTransacciones');
+      if (transacciones.length === 0) {
+        lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos aún</p>';
+        return;
+      }
+
+      lista.innerHTML = transacciones
+        .sort((a, b) => b.id - a.id)
+        .map(t => `
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <span class="font-medium">${t.descripcion}</span>
+              <span class="text-xs text-gray-400 ml-2">${new Date(t.fecha).toLocaleDateString()}</span>
+            </div>
+            <span class="font-bold ${t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500'}">
+              ${t.tipo === 'ingreso' ? '+' : '-'}$${t.monto.toFixed(2)}
+            </span>
+          </div>
+        `).join('');
+    }
+  </script>
+
+</body>
+</html>
 
   <script src="js/app.js"></script>
 </body>
