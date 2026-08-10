@@ -1,9 +1,33 @@
-import { obtenerTransacciones, agregarTransaccion } from './storage.js';
+// ---------- storage ----------
+const CLAVE = 'finanzas_v1';
 
+function obtenerTransacciones() {
+  const datos = localStorage.getItem(CLAVE);
+  return datos ? JSON.parse(datos) : [];
+}
+
+function guardar(transacciones) {
+  localStorage.setItem(CLAVE, JSON.stringify(transacciones));
+}
+
+function agregarTransaccion(tipo, descripcion, monto) {
+  const transacciones = obtenerTransacciones();
+  transacciones.push({
+    id: Date.now(),
+    tipo,
+    descripcion,
+    monto: parseFloat(monto),
+    fecha: new Date().toISOString()
+  });
+  guardar(transacciones);
+}
+
+// ---------- ui y eventos ----------
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('formTransaccion').addEventListener('submit', (e) => {
+  const form = document.getElementById('formTransaccion');
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    
+
     const tipo = document.getElementById('tipo').value;
     const descripcion = document.getElementById('descripcion').value.trim();
     const monto = document.getElementById('monto').value;
@@ -11,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!descripcion || !monto) return;
 
     agregarTransaccion(tipo, descripcion, monto);
-    e.target.reset();
+    form.reset();
     actualizarVista();
   });
 
@@ -20,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function actualizarVista() {
   const transacciones = obtenerTransacciones();
-  
-  // Calcular totales
+
   let ingresos = 0, gastos = 0;
   transacciones.forEach(t => {
     if (t.tipo === 'ingreso') ingresos += t.monto;
@@ -32,7 +55,6 @@ function actualizarVista() {
   document.getElementById('totalGastos').textContent = $${gastos.toFixed(2)};
   document.getElementById('balance').textContent = $${(ingresos - gastos).toFixed(2)};
 
-  // Mostrar lista
   const lista = document.getElementById('listaTransacciones');
   if (transacciones.length === 0) {
     lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos aún</p>';
