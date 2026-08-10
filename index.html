@@ -6,6 +6,11 @@
   <title>Mis Finanzas</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --color-fondo: #f3f4f6;
@@ -29,223 +34,309 @@
     .tarjeta { background-color: var(--color-tarjeta); }
     .texto-secundario { color: var(--color-texto-secundario); }
   </style>
-  <link rel="manifest" href="manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('js/sw.js');
-  }
-</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
 </head>
 <body class="p-4 min-h-screen">
-  <main class="max-w-md mx-auto space-y-6">
-    <!-- Encabezado con título, botón de categorías y modo oscuro -->
-    <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-emerald-600">💰 Mis Finanzas</h1>
-      <div class="flex gap-2">
-        <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Gestionar categorías">🏷️</button>
-        <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
-      </div>
-    </div>
 
-    <!-- Panel de gestión de categorías (oculto por defecto) -->
-    <div id="panelCategorias" class="tarjeta p-4 rounded shadow hidden space-y-3">
-      <h2 class="font-semibold text-lg">🏷️ Mis categorías</h2>
-      <div id="listaCategorias" class="space-y-2 max-h-48 overflow-y-auto"></div>
-      <form id="formCategoria" class="space-y-2">
-        <div class="flex gap-2 items-end">
-          <input type="text" id="nombreCategoria" placeholder="Nueva categoría" required class="flex-1 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="w-16 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)] text-center">
-          <input type="color" id="colorCategoria" value="#10b981" class="w-10 h-10 p-1 border rounded bg-[var(--color-tarjeta)]">
-          <button type="submit" class="text-white px-3 py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">+</button>
-        </div>
-        <!-- Selector de emojis -->
-        <div class="grid grid-cols-8 gap-1">
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🍔';">🍔</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🚌';">🚌</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎮';">🎮</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '💡';">💡</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📦';">📦</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🏠';">🏠</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '❤️';">❤️</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎁';">🎁</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📚';">📚</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🐶';">🐶</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '✈️';">✈️</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎵';">🎵</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🏋️';">🏋️</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '💊';">💊</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎬';">🎬</span>
-  <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📱';">📱</span>
-</div>
-      </form>
-    </div>
-
-    <!-- Filtro por mes -->
-    <div class="tarjeta p-3 rounded shadow flex items-center gap-2">
-      <label for="filtroMes" class="text-sm font-medium texto-secundario">📅 Mes:</label>
-      <input type="month" id="filtroMes" class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-    </div>
-
-    <!-- Resumen -->
-    <section class="grid grid-cols-3 gap-2 text-center">
-      <div class="tarjeta p-3 rounded shadow">
-        <p class="text-xs texto-secundario">Ingresos</p>
-        <p id="totalIngresos" class="text-lg font-bold text-emerald-500">$0</p>
-      </div>
-      <div class="tarjeta p-3 rounded shadow">
-        <p class="text-xs texto-secundario">Gastos</p>
-        <p id="totalGastos" class="text-lg font-bold text-red-500">$0</p>
-      </div>
-      <div class="tarjeta p-3 rounded shadow">
-        <p class="text-xs texto-secundario">Balance</p>
-        <p id="balance" class="text-lg font-bold">$0</p>
-      </div>
-    </section>
-
-    <!-- Formulario de transacción -->
-    <form id="formTransaccion" class="tarjeta p-4 rounded shadow space-y-3">
+  <!-- Pantalla de login / registro -->
+  <div id="authScreen" class="max-w-md mx-auto space-y-4 hidden">
+    <h1 class="text-3xl font-bold text-center text-emerald-600">💰 Mis Finanzas</h1>
+    <div class="tarjeta p-4 rounded shadow space-y-3">
+      <h2 class="font-semibold text-lg">Iniciar sesión o registrarse</h2>
+      <input type="email" id="email" placeholder="Correo electrónico" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      <input type="password" id="password" placeholder="Contraseña (mín. 6 caracteres)" required minlength="6" class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
       <div class="grid grid-cols-2 gap-2">
-        <select id="tipo" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <option value="ingreso">Ingreso</option>
-          <option value="gasto" selected>Gasto</option>
-        </select>
-        <input type="date" id="fecha" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <button id="btnLogin" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">Iniciar sesión</button>
+        <button id="btnRegister" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">Registrarse</button>
       </div>
-      <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]"></select>
-      <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-      <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-      <button type="submit" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">
-        Agregar
-      </button>
-    </form>
+      <p id="authError" class="text-red-500 text-sm hidden"></p>
+    </div>
+  </div>
 
-    <!-- Gráfica de dona -->
-    <section class="tarjeta p-4 rounded shadow">
-      <h2 class="font-semibold mb-3">Gastos por categoría</h2>
-      <canvas id="graficaGastos" class="max-h-64"></canvas>
-    </section>
-
-    <!-- Lista de movimientos -->
-    <section class="tarjeta p-4 rounded shadow">
-      <h2 class="font-semibold mb-3">Movimientos</h2>
-      <div id="listaTransacciones" class="space-y-2">
-        <p class="texto-secundario text-center">No hay movimientos aún</p>
+  <!-- App principal (oculta hasta que se inicia sesión) -->
+  <div id="appScreen" class="hidden">
+    <main class="max-w-md mx-auto space-y-6">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-emerald-600">💰 Mis Finanzas</h1>
+        <div class="flex gap-2">
+          <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Gestionar categorías">🏷️</button>
+          <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
+          <button id="btnLogout" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cerrar sesión">🚪</button>
+        </div>
       </div>
-    </section>
-  </main>
+
+      <div id="panelCategorias" class="tarjeta p-4 rounded shadow hidden space-y-3">
+        <h2 class="font-semibold text-lg">🏷️ Mis categorías</h2>
+        <div id="listaCategorias" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        <form id="formCategoria" class="space-y-2">
+          <div class="flex gap-2 items-end">
+            <input type="text" id="nombreCategoria" placeholder="Nueva categoría" required class="flex-1 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+            <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="w-16 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)] text-center" readonly>
+            <input type="color" id="colorCategoria" value="#10b981" class="w-10 h-10 p-1 border rounded bg-[var(--color-tarjeta)]">
+            <button type="submit" class="text-white px-3 py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">+</button>
+          </div>
+          <div class="grid grid-cols-8 gap-1">
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🍔';">🍔</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🚌';">🚌</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎮';">🎮</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '💡';">💡</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📦';">📦</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🏠';">🏠</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '❤️';">❤️</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎁';">🎁</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📚';">📚</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🐶';">🐶</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '✈️';">✈️</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎵';">🎵</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🏋️';">🏋️</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '💊';">💊</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '🎬';">🎬</span>
+            <span class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" onclick="document.getElementById('emojiCategoria').value = '📱';">📱</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="tarjeta p-3 rounded shadow flex items-center gap-2">
+        <label for="filtroMes" class="text-sm font-medium texto-secundario">📅 Mes:</label>
+        <input type="month" id="filtroMes" class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      </div>
+
+      <section class="grid grid-cols-3 gap-2 text-center">
+        <div class="tarjeta p-3 rounded shadow">
+          <p class="text-xs texto-secundario">Ingresos</p>
+          <p id="totalIngresos" class="text-lg font-bold text-emerald-500">$0</p>
+        </div>
+        <div class="tarjeta p-3 rounded shadow">
+          <p class="text-xs texto-secundario">Gastos</p>
+          <p id="totalGastos" class="text-lg font-bold text-red-500">$0</p>
+        </div>
+        <div class="tarjeta p-3 rounded shadow">
+          <p class="text-xs texto-secundario">Balance</p>
+          <p id="balance" class="text-lg font-bold">$0</p>
+        </div>
+      </section>
+
+      <form id="formTransaccion" class="tarjeta p-4 rounded shadow space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="tipo" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+            <option value="ingreso">Ingreso</option>
+            <option value="gasto" selected>Gasto</option>
+          </select>
+          <input type="date" id="fecha" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        </div>
+        <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]"></select>
+        <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <button type="submit" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">
+          Agregar
+        </button>
+      </form>
+
+      <section class="tarjeta p-4 rounded shadow">
+        <h2 class="font-semibold mb-3">Gastos por categoría</h2>
+        <canvas id="graficaGastos" class="max-h-64"></canvas>
+      </section>
+
+      <section class="tarjeta p-4 rounded shadow">
+        <h2 class="font-semibold mb-3">Movimientos</h2>
+        <div id="listaTransacciones" class="space-y-2">
+          <p class="texto-secundario text-center">No hay movimientos este mes</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script>
-    // ---------- almacenamiento ----------
-    const CLAVE_TRANS = 'finanzas_v1';
-    const CLAVE_CAT = 'categorias_v1';
+    // --- CONFIGURACIÓN DE FIREBASE ---
+    
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAD94mJ0gFuFGvRwhhrn8qTFe3orsO_sDA",
+    authDomain: "finanzas-personales-a1ee9.firebaseapp.com",
+    projectId: "finanzas-personales-a1ee9",
+    storageBucket: "finanzas-personales-a1ee9.firebasestorage.app",
+    messagingSenderId: "253217416131",
+    appId: "1:253217416131:web:ce754c98c1e062f9c45376",
+    measurementId: "G-K645PYV7JP"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // --- VARIABLES GLOBALES ---
+    let usuarioActual = null;
+    let mesSeleccionado = obtenerMesActual();
+    let grafica = null;
     const CLAVE_TEMA = 'tema_oscuro';
 
-    // ---------- categorías ----------
-    function obtenerCategorias() {
-      const datos = localStorage.getItem(CLAVE_CAT);
-      if (datos) return JSON.parse(datos);
-      // Categorías predefinidas
-      const predefinidas = [
-        { id: 1, nombre: 'comida', emoji: '🍔', color: '#FF6384' },
-        { id: 2, nombre: 'transporte', emoji: '🚌', color: '#36A2EB' },
-        { id: 3, nombre: 'ocio', emoji: '🎮', color: '#FFCE56' },
-        { id: 4, nombre: 'servicios', emoji: '💡', color: '#4BC0C0' },
-        { id: 5, nombre: 'otros', emoji: '📦', color: '#9966FF' }
-      ];
-      guardarCategorias(predefinidas);
-      return predefinidas;
+    // --- AUTENTICACIÓN ---
+    function mostrarAuth() {
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('appScreen').classList.add('hidden');
     }
 
-    function guardarCategorias(cats) {
-      localStorage.setItem(CLAVE_CAT, JSON.stringify(cats));
+    function mostrarApp() {
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
     }
 
-    function agregarCategoria(nombre, emoji, color) {
-      const cats = obtenerCategorias();
-      const nueva = {
-        id: Date.now(),
-        nombre: nombre.trim().toLowerCase(),
-        emoji: emoji || '📌',
-        color: color
-      };
-      cats.push(nueva);
-      guardarCategorias(cats);
-      return nueva;
+    document.getElementById('btnLogin').addEventListener('click', function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) return;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(function(error) {
+          document.getElementById('authError').textContent = error.message;
+          document.getElementById('authError').classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('btnRegister').addEventListener('click', function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) return;
+      auth.createUserWithEmailAndPassword(email, password)
+        .catch(function(error) {
+          document.getElementById('authError').textContent = error.message;
+          document.getElementById('authError').classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', function() {
+      auth.signOut();
+    });
+
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        usuarioActual = user;
+        mostrarApp();
+        cargarDatosIniciales();
+      } else {
+        usuarioActual = null;
+        mostrarAuth();
+      }
+    });
+
+    // --- BASE DE DATOS ---
+    function coleccionRef() {
+      return 'usuarios/' + usuarioActual.uid + '/transacciones';
     }
 
-    function eliminarCategoria(id) {
-      let cats = obtenerCategorias();
-      cats = cats.filter(c => c.id !== id);
-      guardarCategorias(cats);
+    function coleccionCategoriasRef() {
+      return 'usuarios/' + usuarioActual.uid + '/categorias';
     }
 
-    // ---------- transacciones ----------
-    function obtenerTransacciones() {
-      const datos = localStorage.getItem(CLAVE_TRANS);
-      return datos ? JSON.parse(datos) : [];
-    }
-
-    function guardar(transacciones) {
-      localStorage.setItem(CLAVE_TRANS, JSON.stringify(transacciones));
+    function obtenerTransacciones(callback) {
+      db.collection(coleccionRef()).orderBy('fecha', 'desc').onSnapshot(function(snapshot) {
+        const transacciones = [];
+        snapshot.forEach(function(doc) {
+          transacciones.push(Object.assign({ id: doc.id }, doc.data()));
+        });
+        callback(transacciones);
+      });
     }
 
     function agregarTransaccion(tipo, categoria, descripcion, monto, fecha) {
-      const transacciones = obtenerTransacciones();
-      transacciones.push({
-        id: Date.now(),
+      db.collection(coleccionRef()).add({
         tipo: tipo,
         categoria: categoria,
         descripcion: descripcion,
         monto: parseFloat(monto),
         fecha: fecha
       });
-      guardar(transacciones);
     }
 
     function eliminarTransaccion(id) {
-      let transacciones = obtenerTransacciones();
-      transacciones = transacciones.filter(t => t.id !== id);
-      guardar(transacciones);
-      actualizarVista();
+      db.collection(coleccionRef()).doc(id).delete();
     }
 
-    // ---------- filtro ----------
+    function obtenerCategorias(callback) {
+      db.collection(coleccionCategoriasRef()).onSnapshot(function(snapshot) {
+        const categorias = [];
+        snapshot.forEach(function(doc) {
+          categorias.push(Object.assign({ id: doc.id }, doc.data()));
+        });
+        if (categorias.length === 0) {
+          // Crear categorías predefinidas para este usuario
+          const predefinidas = [
+            { nombre: 'comida', emoji: '🍔', color: '#FF6384' },
+            { nombre: 'transporte', emoji: '🚌', color: '#36A2EB' },
+            { nombre: 'ocio', emoji: '🎮', color: '#FFCE56' },
+            { nombre: 'servicios', emoji: '💡', color: '#4BC0C0' },
+            { nombre: 'otros', emoji: '📦', color: '#9966FF' }
+          ];
+          const batch = db.batch();
+          predefinidas.forEach(function(cat) {
+            const ref = db.collection(coleccionCategoriasRef()).doc();
+            batch.set(ref, cat);
+          });
+          batch.commit().then(function() {
+            // Se volverá a ejecutar el listener con los nuevos datos
+          });
+          return;
+        }
+        callback(categorias);
+      });
+    }
+
+    function agregarCategoria(nombre, emoji, color) {
+      db.collection(coleccionCategoriasRef()).add({
+        nombre: nombre.trim().toLowerCase(),
+        emoji: emoji || '📌',
+        color: color
+      });
+    }
+
+    function eliminarCategoria(id) {
+      db.collection(coleccionCategoriasRef()).doc(id).delete();
+    }
+
+    // --- FILTRO POR MES ---
     function obtenerMesActual() {
       const ahora = new Date();
       const año = ahora.getFullYear();
       const mes = String(ahora.getMonth() + 1).padStart(2, '0');
       return año + '-' + mes;
     }
-    let mesSeleccionado = obtenerMesActual();
 
-    // ---------- gráfica ----------
-    let grafica;
-
-    function actualizarGrafica(transaccionesFiltradas) {
-      const gastos = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
+    // --- GRÁFICA ---
+    function actualizarGrafica(transaccionesFiltradas, categoriasActuales) {
+      const gastos = transaccionesFiltradas.filter(function(t) { return t.tipo === 'gasto'; });
       const agrupado = {};
-      gastos.forEach(t => {
+      gastos.forEach(function(t) {
         if (!agrupado[t.categoria]) agrupado[t.categoria] = 0;
         agrupado[t.categoria] += t.monto;
       });
-
-      const categoriasNombres = Object.keys(agrupado);
+      const nombres = Object.keys(agrupado);
       const montos = Object.values(agrupado);
-
-      const categorias = obtenerCategorias();
-      const fondos = categoriasNombres.map(nombre => {
-        const cat = categorias.find(c => c.nombre === nombre);
+      const fondos = nombres.map(function(nombre) {
+        const cat = categoriasActuales.find(function(c) { return c.nombre === nombre; });
         return cat ? cat.color : '#CCCCCC';
       });
-
       if (grafica) grafica.destroy();
       const ctx = document.getElementById('graficaGastos').getContext('2d');
-      if (categoriasNombres.length === 0) { grafica = null; return; }
-
+      if (nombres.length === 0) { grafica = null; return; }
       grafica = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: categoriasNombres,
+          labels: nombres,
           datasets: [{ data: montos, backgroundColor: fondos }]
         },
         options: {
@@ -260,12 +351,12 @@
       });
     }
 
-    // ---------- ui ----------
+    // --- UI ---
+    let categoriasState = [];
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
-      const categorias = obtenerCategorias();
       var opciones = '';
-      categorias.forEach(function(c) {
+      categoriasState.forEach(function(c) {
         opciones += '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
       });
       select.innerHTML = opciones;
@@ -273,50 +364,47 @@
 
     function renderizarListaCategorias() {
       const contenedor = document.getElementById('listaCategorias');
-      const categorias = obtenerCategorias();
-      if (categorias.length === 0) {
+      if (categoriasState.length === 0) {
         contenedor.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
         return;
       }
-      var htmlCats = '';
-      categorias.forEach(function(c) {
-        htmlCats += '<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">' +
+      var html = '';
+      categoriasState.forEach(function(c) {
+        html += '<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">' +
           '<span>' + c.emoji + ' ' + c.nombre + '</span>' +
-          '<button onclick="if(confirm(\'¿Eliminar categoría ' + c.nombre + '?\')) { eliminarCategoria(' + c.id + '); renderizarListaCategorias(); llenarSelectCategorias(); actualizarVista(); }" class="text-red-400 hover:text-red-600">✕</button>' +
+          '<button onclick="if(confirm(\'¿Eliminar categoría ' + c.nombre + '?\')) { eliminarCategoria(\'' + c.id + '\'); }" class="text-red-400 hover:text-red-600">✕</button>' +
           '</div>';
       });
-      contenedor.innerHTML = htmlCats;
+      contenedor.innerHTML = html;
     }
 
-    function actualizarVista() {
-      const todas = obtenerTransacciones();
-      const transacciones = todas.filter(t => t.fecha.startsWith(mesSeleccionado));
-
+    function actualizarVista(transacciones) {
+      const filtradas = transacciones.filter(function(t) {
+        return t.fecha && t.fecha.startsWith(mesSeleccionado);
+      });
       let ingresos = 0, gastos = 0;
-      transacciones.forEach(t => {
+      filtradas.forEach(function(t) {
         if (t.tipo === 'ingreso') ingresos += t.monto;
         else gastos += t.monto;
       });
-
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       document.getElementById('balance').textContent = '$' + (ingresos - gastos).toFixed(2);
 
       const lista = document.getElementById('listaTransacciones');
-      if (transacciones.length === 0) {
+      if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
       } else {
-        transacciones.sort((a, b) => {
+        filtradas.sort(function(a, b) {
           if (a.fecha !== b.fecha) return b.fecha.localeCompare(a.fecha);
-          return b.id - a.id;
+          return (b.id < a.id) ? -1 : 1;
         });
         var html = '';
-        const categorias = obtenerCategorias();
-        transacciones.forEach(function(t) {
+        filtradas.forEach(function(t) {
           const signo = t.tipo === 'ingreso' ? '+' : '-';
           const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           const fechaFormateada = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          const cat = categorias.find(c => c.nombre === t.categoria);
+          const cat = categoriasState.find(function(c) { return c.nombre === t.categoria; });
           const catInfo = t.tipo === 'gasto' ? ' <span class="text-xs texto-secundario">(' + (cat ? cat.emoji + ' ' + t.categoria : t.categoria) + ')</span>' : '';
           html += '<div class="flex justify-between items-center border-b pb-2">' +
                     '<div class="flex-1">' +
@@ -325,27 +413,27 @@
                     '</div>' +
                     '<div class="flex items-center gap-2">' +
                       '<span class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</span>' +
-                      '<button onclick="eliminarTransaccion(' + t.id + ')" class="text-red-400 hover:text-red-600 text-lg leading-none" title="Eliminar">✕</button>' +
+                      '<button onclick="eliminarTransaccion(\'' + t.id + '\')" class="text-red-400 hover:text-red-600 text-lg leading-none" title="Eliminar">✕</button>' +
                     '</div>' +
                   '</div>';
         });
         lista.innerHTML = html;
       }
-
-      actualizarGrafica(transacciones);
+      actualizarGrafica(filtradas, categoriasState);
     }
 
-    function configurarSelectorEmojis() {
-      const opciones = document.querySelectorAll('.emoji-option');
-      const inputEmoji = document.getElementById('emojiCategoria');
-      opciones.forEach(function(span) {
-        span.addEventListener('click', function() {
-          inputEmoji.value = this.textContent;
+    function cargarDatosIniciales() {
+      obtenerCategorias(function(cats) {
+        categoriasState = cats;
+        llenarSelectCategorias();
+        renderizarListaCategorias();
+        obtenerTransacciones(function(transacciones) {
+          actualizarVista(transacciones);
         });
       });
     }
 
-    // ---------- modo oscuro ----------
+    // --- MODO OSCURO ---
     function aplicarTema(oscuro) {
       const html = document.documentElement;
       html.setAttribute('data-theme', oscuro ? 'dark' : 'light');
@@ -355,7 +443,6 @@
         grafica.update();
       }
     }
-
     function toggleTema() {
       const actual = document.documentElement.getAttribute('data-theme') === 'dark';
       const nuevo = !actual;
@@ -363,27 +450,19 @@
       aplicarTema(nuevo);
     }
 
-    // ---------- inicio ----------
+    // --- INICIO ---
     document.addEventListener('DOMContentLoaded', function() {
-      // Tema
       const temaGuardado = localStorage.getItem(CLAVE_TEMA) || 'light';
       aplicarTema(temaGuardado === 'dark');
       document.getElementById('toggleTema').addEventListener('click', toggleTema);
 
-      // Panel de categorías
       const btnCategorias = document.getElementById('btnCategorias');
       const panel = document.getElementById('panelCategorias');
       btnCategorias.addEventListener('click', function() {
         panel.classList.toggle('hidden');
-        if (!panel.classList.contains('hidden')) {
-          renderizarListaCategorias();
-        }
+        if (!panel.classList.contains('hidden')) renderizarListaCategorias();
       });
 
-      // Configurar selector de emojis
-      configurarSelectorEmojis();
-
-      // Formulario de categoría
       document.getElementById('formCategoria').addEventListener('submit', function(e) {
         e.preventDefault();
         const nombre = document.getElementById('nombreCategoria').value.trim();
@@ -391,29 +470,26 @@
         const color = document.getElementById('colorCategoria').value;
         if (!nombre) return;
         agregarCategoria(nombre, emoji, color);
-        renderizarListaCategorias();
-        llenarSelectCategorias();
         this.reset();
         document.getElementById('colorCategoria').value = '#10b981';
         document.getElementById('emojiCategoria').value = '';
       });
 
-      // Selector de mes
       const inputMes = document.getElementById('filtroMes');
       inputMes.value = mesSeleccionado;
       inputMes.addEventListener('change', function() {
         mesSeleccionado = inputMes.value;
-        actualizarVista();
+        if (usuarioActual) {
+          obtenerTransacciones(function(transacciones) {
+            actualizarVista(transacciones);
+          });
+        }
       });
 
-      // Fecha por defecto hoy
       const fechaInput = document.getElementById('fecha');
       fechaInput.value = new Date().toISOString().split('T')[0];
 
-      llenarSelectCategorias();
-
-      const form = document.getElementById('formTransaccion');
-      form.addEventListener('submit', function(e) {
+      document.getElementById('formTransaccion').addEventListener('submit', function(e) {
         e.preventDefault();
         const tipo = document.getElementById('tipo').value;
         const categoria = document.getElementById('categoria').value;
@@ -422,12 +498,9 @@
         const fecha = document.getElementById('fecha').value;
         if (!descripcion || !monto || !categoria || !fecha) return;
         agregarTransaccion(tipo, categoria, descripcion, monto, fecha);
-        form.reset();
+        this.reset();
         fechaInput.value = new Date().toISOString().split('T')[0];
-        actualizarVista();
       });
-
-      actualizarVista();
     });
   </script>
 </body>
