@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis Finanzas</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- NUEVO: Chart.js para la gráfica -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; }
@@ -15,6 +14,12 @@
 
   <main class="max-w-md mx-auto space-y-6">
     <h1 class="text-3xl font-bold text-center text-emerald-600">💰 Mis Finanzas</h1>
+
+    <!-- NUEVO: Filtro por mes -->
+    <div class="bg-white p-3 rounded shadow flex items-center gap-2">
+      <label for="filtroMes" class="text-sm font-medium text-gray-600">📅 Mes:</label>
+      <input type="month" id="filtroMes" class="w-full p-2 border rounded">
+    </div>
 
     <!-- Resumen -->
     <section class="grid grid-cols-3 gap-2 text-center">
@@ -32,14 +37,13 @@
       </div>
     </section>
 
-    <!-- Formulario (ahora con categoría) -->
+    <!-- Formulario -->
     <form id="formTransaccion" class="bg-white p-4 rounded shadow space-y-3">
       <select id="tipo" required class="w-full p-2 border rounded">
         <option value="ingreso">Ingreso</option>
         <option value="gasto" selected>Gasto</option>
       </select>
 
-      <!-- NUEVO: Selector de categoría -->
       <select id="categoria" required class="w-full p-2 border rounded">
         <option value="">Selecciona categoría</option>
         <option value="comida">🍔 Comida</option>
@@ -56,7 +60,7 @@
       </button>
     </form>
 
-    <!-- NUEVO: Contenedor de la gráfica de dona -->
+    <!-- Gráfica de dona -->
     <section class="bg-white p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Gastos por categoría</h2>
       <canvas id="graficaGastos" class="max-h-64"></canvas>
@@ -89,7 +93,7 @@
       transacciones.push({
         id: Date.now(),
         tipo: tipo,
-        categoria: categoria,   // NUEVO
+        categoria: categoria,
         descripcion: descripcion,
         monto: parseFloat(monto),
         fecha: new Date().toISOString()
@@ -97,15 +101,24 @@
       guardar(transacciones);
     }
 
+    // ---------- filtro por mes ----------
+    function obtenerMesActual() {
+      const ahora = new Date();
+      const año = ahora.getFullYear();
+      const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+      return ${año}-${mes};
+    }
+
+    // Variable que guarda el mes seleccionado (inicia con el mes actual)
+    let mesSeleccionado = obtenerMesActual();
+
     // ---------- gráfica ----------
-    let grafica; // variable para la instancia de Chart
+    let grafica;
 
-    function actualizarGrafica() {
-      const transacciones = obtenerTransacciones();
-      // Solo gastos
-      const gastos = transacciones.filter(t => t.tipo === 'gasto');
+    function actualizarGrafica(transaccionesFiltradas) {
+      // Solo gastos del mes seleccionado
+      const gastos = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
 
-      // Agrupar por categoría sumando montos
       const agrupado = {};
       gastos.forEach(t => {
         if (!agrupado[t.categoria]) {
@@ -117,7 +130,6 @@
       const categorias = Object.keys(agrupado);
       const montos = Object.values(agrupado);
 
-      // Colores para cada categoría
       const colores = {
         comida: '#FF6384',
         transporte: '#36A2EB',
@@ -128,7 +140,6 @@
 
       const fondos = categorias.map(cat => colores[cat] || '#CCCCCC');
 
-      // Si ya existe un gráfico, lo destruimos para dibujar de nuevo
       if (grafica) {
         grafica.destroy();
       }
@@ -136,7 +147,6 @@
       const ctx = document.getElementById('graficaGastos').getContext('2d');
 
       if (categorias.length === 0) {
-        // Sin gastos: mostramos mensaje en el canvas (opcional)
         grafica = null;
         return;
       }
@@ -163,7 +173,13 @@
 
     // ---------- ui ----------
     function actualizarVista() {
-      const transacciones = obtenerTransacciones();
+      const todas = obtenerTransacciones();
+
+      // Filtrar por el mes seleccionado
+      const transacciones = todas.filter(t => {
+        // t.fecha es ISO, ej: "2025-03-15T..."
+        return t.fecha.startsWith(mesSeleccionado);
+      });
 
       let ingresos = 0;
       let gastos = 0;
@@ -182,7 +198,7 @@
       // Lista de movimientos
       var lista = document.getElementById('listaTransacciones');
       if (transacciones.length === 0) {
-        lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos aún</p>';
+        lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos este mes</p>';
       } else {
         var html = '';
         transacciones.sort(function(a, b) { return b.id - a.id; });
@@ -190,7 +206,6 @@
           var signo = t.tipo === 'ingreso' ? '+' : '-';
           var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           var fecha = new Date(t.fecha).toLocaleDateString();
-          // Mostramos categoría si es gasto
           var catInfo = t.tipo === 'gasto' ? ' <span class="text-xs text-gray-400">(' + t.categoria + ')</span>' : '';
           html += '<div class="flex justify-between items-center border-b pb-2">' +
                     '<div>' +
@@ -203,12 +218,22 @@
         lista.innerHTML = html;
       }
 
-      // Actualizar la gráfica
-      actualizarGrafica();
+      // Actualizar gráfica con transacciones filtradas
+      actualizarGrafica(transacciones);
     }
 
     // ---------- eventos ----------
     document.addEventListener('DOMContentLoaded', function() {
+      // Configurar el input de mes
+      var inputMes = document.getElementById('filtroMes');
+      inputMes.value = mesSeleccionado; // pone el mes actual por defecto
+
+      inputMes.addEventListener('change', function() {
+        mesSeleccionado = inputMes.value;
+        actualizarVista();
+      });
+
+      // Formulario
       var form = document.getElementById('formTransaccion');
       form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -221,6 +246,7 @@
         form.reset();
         actualizarVista();
       });
+
       actualizarVista();
     });
   </script>
