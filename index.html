@@ -15,48 +15,33 @@
       --color-boton: #10b981;
       --color-boton-hover: #059669;
     }
-    
     [data-theme="dark"] {
       --color-fondo: #111827;
       --color-tarjeta: #1f2937;
       --color-texto: #f9fafb;
       --color-texto-secundario: #9ca3af;
-      --color-boton: #10b981;
-      --color-boton-hover: #059669;
     }
-    
     body {
       background-color: var(--color-fondo);
       color: var(--color-texto);
       font-family: system-ui, sans-serif;
     }
-    
-    .tarjeta {
-      background-color: var(--color-tarjeta);
-    }
-    
-    .texto-secundario {
-      color: var(--color-texto-secundario);
-    }
+    .tarjeta { background-color: var(--color-tarjeta); }
+    .texto-secundario { color: var(--color-texto-secundario); }
   </style>
 </head>
 <body class="p-4 min-h-screen">
   <main class="max-w-md mx-auto space-y-6">
-    <!-- Encabezado con título y botón de modo oscuro -->
     <div class="flex justify-between items-center">
       <h1 class="text-3xl font-bold text-emerald-600">💰 Mis Finanzas</h1>
-      <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-        🌙
-      </button>
+      <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
     </div>
 
-    <!-- Filtro por mes -->
     <div class="tarjeta p-3 rounded shadow flex items-center gap-2">
       <label for="filtroMes" class="text-sm font-medium texto-secundario">📅 Mes:</label>
       <input type="month" id="filtroMes" class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
     </div>
 
-    <!-- Resumen -->
     <section class="grid grid-cols-3 gap-2 text-center">
       <div class="tarjeta p-3 rounded shadow">
         <p class="text-xs texto-secundario">Ingresos</p>
@@ -72,12 +57,14 @@
       </div>
     </section>
 
-    <!-- Formulario -->
     <form id="formTransaccion" class="tarjeta p-4 rounded shadow space-y-3">
-      <select id="tipo" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-        <option value="ingreso">Ingreso</option>
-        <option value="gasto" selected>Gasto</option>
-      </select>
+      <div class="grid grid-cols-2 gap-2">
+        <select id="tipo" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+          <option value="ingreso">Ingreso</option>
+          <option value="gasto" selected>Gasto</option>
+        </select>
+        <input type="date" id="fecha" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      </div>
       <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
         <option value="">Selecciona categoría</option>
         <option value="comida">🍔 Comida</option>
@@ -93,13 +80,11 @@
       </button>
     </form>
 
-    <!-- Gráfica de dona -->
     <section class="tarjeta p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Gastos por categoría</h2>
       <canvas id="graficaGastos" class="max-h-64"></canvas>
     </section>
 
-    <!-- Lista de movimientos -->
     <section class="tarjeta p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Movimientos</h2>
       <div id="listaTransacciones" class="space-y-2">
@@ -109,7 +94,6 @@
   </main>
 
   <script>
-    // ---------- storage ----------
     const CLAVE = 'finanzas_v1';
     const CLAVE_TEMA = 'tema_oscuro';
 
@@ -122,20 +106,19 @@
       localStorage.setItem(CLAVE, JSON.stringify(transacciones));
     }
 
-    function agregarTransaccion(tipo, categoria, descripcion, monto) {
+    function agregarTransaccion(tipo, categoria, descripcion, monto, fecha) {
       const transacciones = obtenerTransacciones();
       transacciones.push({
         id: Date.now(),
-        tipo: tipo,
-        categoria: categoria,
-        descripcion: descripcion,
+        tipo,
+        categoria,
+        descripcion,
         monto: parseFloat(monto),
-        fecha: new Date().toISOString()
+        fecha: fecha // formato YYYY-MM-DD
       });
       guardar(transacciones);
     }
 
-    // 🗑️ Eliminar transacción
     function eliminarTransaccion(id) {
       let transacciones = obtenerTransacciones();
       transacciones = transacciones.filter(t => t.id !== id);
@@ -143,7 +126,6 @@
       actualizarVista();
     }
 
-    // ---------- filtro por mes ----------
     function obtenerMesActual() {
       const ahora = new Date();
       const año = ahora.getFullYear();
@@ -152,17 +134,13 @@
     }
 
     let mesSeleccionado = obtenerMesActual();
-
-    // ---------- gráfica ----------
     let grafica;
 
     function actualizarGrafica(transaccionesFiltradas) {
       const gastos = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
       const agrupado = {};
       gastos.forEach(t => {
-        if (!agrupado[t.categoria]) {
-          agrupado[t.categoria] = 0;
-        }
+        if (!agrupado[t.categoria]) agrupado[t.categoria] = 0;
         agrupado[t.categoria] += t.monto;
       });
 
@@ -177,42 +155,31 @@
       };
       const fondos = categorias.map(cat => colores[cat] || '#CCCCCC');
 
-      if (grafica) {
-        grafica.destroy();
-      }
-
+      if (grafica) grafica.destroy();
       const ctx = document.getElementById('graficaGastos').getContext('2d');
-      if (categorias.length === 0) {
-        grafica = null;
-        return;
-      }
+      if (categorias.length === 0) { grafica = null; return; }
 
       grafica = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: categorias,
-          datasets: [{
-            data: montos,
-            backgroundColor: fondos
-          }]
+          datasets: [{ data: montos, backgroundColor: fondos }]
         },
         options: {
           responsive: true,
           plugins: {
             legend: {
               position: 'bottom',
-              labels: {
-                color: getComputedStyle(document.documentElement).getPropertyValue('--color-texto')
-              }
+              labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--color-texto') }
             }
           }
         }
       });
     }
 
-    // ---------- ui ----------
     function actualizarVista() {
       const todas = obtenerTransacciones();
+      // Filtrar por mes: el string de fecha empieza por "YYYY-MM"
       const transacciones = todas.filter(t => t.fecha.startsWith(mesSeleccionado));
 
       let ingresos = 0, gastos = 0;
@@ -229,18 +196,23 @@
       if (transacciones.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
       } else {
+        // Ordenar por fecha descendente (más reciente primero) y luego por id
+        transacciones.sort((a, b) => {
+          if (a.fecha !== b.fecha) return b.fecha.localeCompare(a.fecha);
+          return b.id - a.id;
+        });
+
         let html = '';
-        transacciones.sort((a, b) => b.id - a.id);
         transacciones.forEach(t => {
           const signo = t.tipo === 'ingreso' ? '+' : '-';
           const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
-          const fecha = new Date(t.fecha).toLocaleDateString();
+          const fechaFormateada = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
           const catInfo = t.tipo === 'gasto' ? ` <span class="text-xs texto-secundario">(${t.categoria})</span>` : '';
           html += `
             <div class="flex justify-between items-center border-b pb-2">
               <div class="flex-1">
                 <span class="font-medium">${t.descripcion}</span>${catInfo}
-                <span class="text-xs texto-secundario ml-2">${fecha}</span>
+                <span class="text-xs texto-secundario ml-2">${fechaFormateada}</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-bold ${color}">${signo}$${t.monto.toFixed(2)}</span>
@@ -255,17 +227,11 @@
       actualizarGrafica(transacciones);
     }
 
-    // ---------- modo oscuro ----------
+    // Modo oscuro
     function aplicarTema(oscuro) {
       const html = document.documentElement;
-      if (oscuro) {
-        html.setAttribute('data-theme', 'dark');
-        document.getElementById('toggleTema').textContent = '☀️';
-      } else {
-        html.setAttribute('data-theme', 'light');
-        document.getElementById('toggleTema').textContent = '🌙';
-      }
-      // Actualizar color de la leyenda de la gráfica
+      html.setAttribute('data-theme', oscuro ? 'dark' : 'light');
+      document.getElementById('toggleTema').textContent = oscuro ? '☀️' : '🌙';
       if (grafica) {
         grafica.options.plugins.legend.labels.color = getComputedStyle(html).getPropertyValue('--color-texto');
         grafica.update();
@@ -279,23 +245,22 @@
       aplicarTema(nuevo);
     }
 
-    // ---------- eventos ----------
-    document.addEventListener('DOMContentLoaded', function() {
-      // Tema guardado
+    document.addEventListener('DOMContentLoaded', () => {
       const temaGuardado = localStorage.getItem(CLAVE_TEMA) || 'light';
       aplicarTema(temaGuardado === 'dark');
-
       document.getElementById('toggleTema').addEventListener('click', toggleTema);
 
-      // Filtro de mes
       const inputMes = document.getElementById('filtroMes');
       inputMes.value = mesSeleccionado;
-      inputMes.addEventListener('change', function() {
+      inputMes.addEventListener('change', () => {
         mesSeleccionado = inputMes.value;
         actualizarVista();
       });
 
-      // Formulario
+      // Fecha por defecto hoy
+      const fechaInput = document.getElementById('fecha');
+      fechaInput.value = new Date().toISOString().split('T')[0];
+
       const form = document.getElementById('formTransaccion');
       form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -303,9 +268,11 @@
         const categoria = document.getElementById('categoria').value;
         const descripcion = document.getElementById('descripcion').value.trim();
         const monto = document.getElementById('monto').value;
-        if (!descripcion || !monto || !categoria) return;
-        agregarTransaccion(tipo, categoria, descripcion, monto);
+        const fecha = document.getElementById('fecha').value;
+        if (!descripcion || !monto || !categoria || !fecha) return;
+        agregarTransaccion(tipo, categoria, descripcion, monto, fecha);
         form.reset();
+        fechaInput.value = new Date().toISOString().split('T')[0]; // reiniciar a hoy
         actualizarVista();
       });
 
