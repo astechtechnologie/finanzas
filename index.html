@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis Finanzas</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- NUEVO: Chart.js para la gráfica -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; }
   </style>
@@ -14,6 +16,7 @@
   <main class="max-w-md mx-auto space-y-6">
     <h1 class="text-3xl font-bold text-center text-emerald-600">💰 Mis Finanzas</h1>
 
+    <!-- Resumen -->
     <section class="grid grid-cols-3 gap-2 text-center">
       <div class="bg-white p-3 rounded shadow">
         <p class="text-xs text-gray-500">Ingresos</p>
@@ -29,11 +32,23 @@
       </div>
     </section>
 
+    <!-- Formulario (ahora con categoría) -->
     <form id="formTransaccion" class="bg-white p-4 rounded shadow space-y-3">
       <select id="tipo" required class="w-full p-2 border rounded">
         <option value="ingreso">Ingreso</option>
         <option value="gasto" selected>Gasto</option>
       </select>
+
+      <!-- NUEVO: Selector de categoría -->
+      <select id="categoria" required class="w-full p-2 border rounded">
+        <option value="">Selecciona categoría</option>
+        <option value="comida">🍔 Comida</option>
+        <option value="transporte">🚌 Transporte</option>
+        <option value="ocio">🎮 Ocio</option>
+        <option value="servicios">💡 Servicios</option>
+        <option value="otros">📦 Otros</option>
+      </select>
+
       <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded">
       <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded">
       <button type="submit" class="w-full bg-emerald-500 text-white py-2 rounded font-semibold hover:bg-emerald-600">
@@ -41,6 +56,13 @@
       </button>
     </form>
 
+    <!-- NUEVO: Contenedor de la gráfica de dona -->
+    <section class="bg-white p-4 rounded shadow">
+      <h2 class="font-semibold mb-3">Gastos por categoría</h2>
+      <canvas id="graficaGastos" class="max-h-64"></canvas>
+    </section>
+
+    <!-- Lista de movimientos -->
     <section class="bg-white p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Movimientos</h2>
       <div id="listaTransacciones" class="space-y-2">
@@ -50,6 +72,7 @@
   </main>
 
   <script>
+    // ---------- storage ----------
     const CLAVE = 'finanzas_v1';
 
     function obtenerTransacciones() {
@@ -61,11 +84,12 @@
       localStorage.setItem(CLAVE, JSON.stringify(transacciones));
     }
 
-    function agregarTransaccion(tipo, descripcion, monto) {
+    function agregarTransaccion(tipo, categoria, descripcion, monto) {
       const transacciones = obtenerTransacciones();
       transacciones.push({
         id: Date.now(),
         tipo: tipo,
+        categoria: categoria,   // NUEVO
         descripcion: descripcion,
         monto: parseFloat(monto),
         fecha: new Date().toISOString()
@@ -73,6 +97,71 @@
       guardar(transacciones);
     }
 
+    // ---------- gráfica ----------
+    let grafica; // variable para la instancia de Chart
+
+    function actualizarGrafica() {
+      const transacciones = obtenerTransacciones();
+      // Solo gastos
+      const gastos = transacciones.filter(t => t.tipo === 'gasto');
+
+      // Agrupar por categoría sumando montos
+      const agrupado = {};
+      gastos.forEach(t => {
+        if (!agrupado[t.categoria]) {
+          agrupado[t.categoria] = 0;
+        }
+        agrupado[t.categoria] += t.monto;
+      });
+
+      const categorias = Object.keys(agrupado);
+      const montos = Object.values(agrupado);
+
+      // Colores para cada categoría
+      const colores = {
+        comida: '#FF6384',
+        transporte: '#36A2EB',
+        ocio: '#FFCE56',
+        servicios: '#4BC0C0',
+        otros: '#9966FF'
+      };
+
+      const fondos = categorias.map(cat => colores[cat] || '#CCCCCC');
+
+      // Si ya existe un gráfico, lo destruimos para dibujar de nuevo
+      if (grafica) {
+        grafica.destroy();
+      }
+
+      const ctx = document.getElementById('graficaGastos').getContext('2d');
+
+      if (categorias.length === 0) {
+        // Sin gastos: mostramos mensaje en el canvas (opcional)
+        grafica = null;
+        return;
+      }
+
+      grafica = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: categorias,
+          datasets: [{
+            data: montos,
+            backgroundColor: fondos
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // ---------- ui ----------
     function actualizarVista() {
       const transacciones = obtenerTransacciones();
 
@@ -90,38 +179,45 @@
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       document.getElementById('balance').textContent = '$' + (ingresos - gastos).toFixed(2);
 
+      // Lista de movimientos
       var lista = document.getElementById('listaTransacciones');
       if (transacciones.length === 0) {
         lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos aún</p>';
-        return;
+      } else {
+        var html = '';
+        transacciones.sort(function(a, b) { return b.id - a.id; });
+        transacciones.forEach(function(t) {
+          var signo = t.tipo === 'ingreso' ? '+' : '-';
+          var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
+          var fecha = new Date(t.fecha).toLocaleDateString();
+          // Mostramos categoría si es gasto
+          var catInfo = t.tipo === 'gasto' ? ' <span class="text-xs text-gray-400">(' + t.categoria + ')</span>' : '';
+          html += '<div class="flex justify-between items-center border-b pb-2">' +
+                    '<div>' +
+                      '<span class="font-medium">' + t.descripcion + '</span>' + catInfo +
+                      '<span class="text-xs text-gray-400 ml-2">' + fecha + '</span>' +
+                    '</div>' +
+                    '<span class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</span>' +
+                  '</div>';
+        });
+        lista.innerHTML = html;
       }
 
-      var html = '';
-      transacciones.sort(function(a, b) { return b.id - a.id; });
-      transacciones.forEach(function(t) {
-        var signo = t.tipo === 'ingreso' ? '+' : '-';
-        var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
-        var fecha = new Date(t.fecha).toLocaleDateString();
-        html += '<div class="flex justify-between items-center border-b pb-2">' +
-                  '<div>' +
-                    '<span class="font-medium">' + t.descripcion + '</span>' +
-                    '<span class="text-xs text-gray-400 ml-2">' + fecha + '</span>' +
-                  '</div>' +
-                  '<span class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</span>' +
-                '</div>';
-      });
-      lista.innerHTML = html;
+      // Actualizar la gráfica
+      actualizarGrafica();
     }
 
+    // ---------- eventos ----------
     document.addEventListener('DOMContentLoaded', function() {
       var form = document.getElementById('formTransaccion');
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         var tipo = document.getElementById('tipo').value;
+        var categoria = document.getElementById('categoria').value;
         var descripcion = document.getElementById('descripcion').value.trim();
         var monto = document.getElementById('monto').value;
-        if (!descripcion || !monto) return;
-        agregarTransaccion(tipo, descripcion, monto);
+        if (!descripcion || !monto || !categoria) return;
+        agregarTransaccion(tipo, categoria, descripcion, monto);
         form.reset();
         actualizarVista();
       });
