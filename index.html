@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,44 +7,78 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; }
+    :root {
+      --color-fondo: #f3f4f6;
+      --color-tarjeta: #ffffff;
+      --color-texto: #1f2937;
+      --color-texto-secundario: #6b7280;
+      --color-boton: #10b981;
+      --color-boton-hover: #059669;
+    }
+    
+    [data-theme="dark"] {
+      --color-fondo: #111827;
+      --color-tarjeta: #1f2937;
+      --color-texto: #f9fafb;
+      --color-texto-secundario: #9ca3af;
+      --color-boton: #10b981;
+      --color-boton-hover: #059669;
+    }
+    
+    body {
+      background-color: var(--color-fondo);
+      color: var(--color-texto);
+      font-family: system-ui, sans-serif;
+    }
+    
+    .tarjeta {
+      background-color: var(--color-tarjeta);
+    }
+    
+    .texto-secundario {
+      color: var(--color-texto-secundario);
+    }
   </style>
 </head>
-<body class="bg-gray-100 p-4 min-h-screen">
-
+<body class="p-4 min-h-screen">
   <main class="max-w-md mx-auto space-y-6">
-    <h1 class="text-3xl font-bold text-center text-emerald-600">💰 Mis Finanzas</h1>
+    <!-- Encabezado con título y botón de modo oscuro -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-bold text-emerald-600">💰 Mis Finanzas</h1>
+      <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+        🌙
+      </button>
+    </div>
 
-    <!-- NUEVO: Filtro por mes -->
-    <div class="bg-white p-3 rounded shadow flex items-center gap-2">
-      <label for="filtroMes" class="text-sm font-medium text-gray-600">📅 Mes:</label>
-      <input type="month" id="filtroMes" class="w-full p-2 border rounded">
+    <!-- Filtro por mes -->
+    <div class="tarjeta p-3 rounded shadow flex items-center gap-2">
+      <label for="filtroMes" class="text-sm font-medium texto-secundario">📅 Mes:</label>
+      <input type="month" id="filtroMes" class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
     </div>
 
     <!-- Resumen -->
     <section class="grid grid-cols-3 gap-2 text-center">
-      <div class="bg-white p-3 rounded shadow">
-        <p class="text-xs text-gray-500">Ingresos</p>
+      <div class="tarjeta p-3 rounded shadow">
+        <p class="text-xs texto-secundario">Ingresos</p>
         <p id="totalIngresos" class="text-lg font-bold text-emerald-500">$0</p>
       </div>
-      <div class="bg-white p-3 rounded shadow">
-        <p class="text-xs text-gray-500">Gastos</p>
+      <div class="tarjeta p-3 rounded shadow">
+        <p class="text-xs texto-secundario">Gastos</p>
         <p id="totalGastos" class="text-lg font-bold text-red-500">$0</p>
       </div>
-      <div class="bg-white p-3 rounded shadow">
-        <p class="text-xs text-gray-500">Balance</p>
+      <div class="tarjeta p-3 rounded shadow">
+        <p class="text-xs texto-secundario">Balance</p>
         <p id="balance" class="text-lg font-bold">$0</p>
       </div>
     </section>
 
     <!-- Formulario -->
-    <form id="formTransaccion" class="bg-white p-4 rounded shadow space-y-3">
-      <select id="tipo" required class="w-full p-2 border rounded">
+    <form id="formTransaccion" class="tarjeta p-4 rounded shadow space-y-3">
+      <select id="tipo" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
         <option value="ingreso">Ingreso</option>
         <option value="gasto" selected>Gasto</option>
       </select>
-
-      <select id="categoria" required class="w-full p-2 border rounded">
+      <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
         <option value="">Selecciona categoría</option>
         <option value="comida">🍔 Comida</option>
         <option value="transporte">🚌 Transporte</option>
@@ -52,25 +86,24 @@
         <option value="servicios">💡 Servicios</option>
         <option value="otros">📦 Otros</option>
       </select>
-
-      <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded">
-      <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded">
-      <button type="submit" class="w-full bg-emerald-500 text-white py-2 rounded font-semibold hover:bg-emerald-600">
+      <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      <button type="submit" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">
         Agregar
       </button>
     </form>
 
     <!-- Gráfica de dona -->
-    <section class="bg-white p-4 rounded shadow">
+    <section class="tarjeta p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Gastos por categoría</h2>
       <canvas id="graficaGastos" class="max-h-64"></canvas>
     </section>
 
     <!-- Lista de movimientos -->
-    <section class="bg-white p-4 rounded shadow">
+    <section class="tarjeta p-4 rounded shadow">
       <h2 class="font-semibold mb-3">Movimientos</h2>
       <div id="listaTransacciones" class="space-y-2">
-        <p class="text-gray-400 text-center">No hay movimientos aún</p>
+        <p class="texto-secundario text-center">No hay movimientos aún</p>
       </div>
     </section>
   </main>
@@ -78,6 +111,7 @@
   <script>
     // ---------- storage ----------
     const CLAVE = 'finanzas_v1';
+    const CLAVE_TEMA = 'tema_oscuro';
 
     function obtenerTransacciones() {
       const datos = localStorage.getItem(CLAVE);
@@ -101,24 +135,29 @@
       guardar(transacciones);
     }
 
+    // 🗑️ Eliminar transacción
+    function eliminarTransaccion(id) {
+      let transacciones = obtenerTransacciones();
+      transacciones = transacciones.filter(t => t.id !== id);
+      guardar(transacciones);
+      actualizarVista();
+    }
+
     // ---------- filtro por mes ----------
     function obtenerMesActual() {
-  const ahora = new Date();
-  const año = ahora.getFullYear();
-  const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-  return `${año}-${mes}`;  // <-- con backticks
-}
+      const ahora = new Date();
+      const año = ahora.getFullYear();
+      const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+      return `${año}-${mes}`;
+    }
 
-    // Variable que guarda el mes seleccionado (inicia con el mes actual)
     let mesSeleccionado = obtenerMesActual();
 
     // ---------- gráfica ----------
     let grafica;
 
     function actualizarGrafica(transaccionesFiltradas) {
-      // Solo gastos del mes seleccionado
       const gastos = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
-
       const agrupado = {};
       gastos.forEach(t => {
         if (!agrupado[t.categoria]) {
@@ -129,7 +168,6 @@
 
       const categorias = Object.keys(agrupado);
       const montos = Object.values(agrupado);
-
       const colores = {
         comida: '#FF6384',
         transporte: '#36A2EB',
@@ -137,7 +175,6 @@
         servicios: '#4BC0C0',
         otros: '#9966FF'
       };
-
       const fondos = categorias.map(cat => colores[cat] || '#CCCCCC');
 
       if (grafica) {
@@ -145,7 +182,6 @@
       }
 
       const ctx = document.getElementById('graficaGastos').getContext('2d');
-
       if (categorias.length === 0) {
         grafica = null;
         return;
@@ -164,7 +200,10 @@
           responsive: true,
           plugins: {
             legend: {
-              position: 'bottom'
+              position: 'bottom',
+              labels: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--color-texto')
+              }
             }
           }
         }
@@ -174,73 +213,96 @@
     // ---------- ui ----------
     function actualizarVista() {
       const todas = obtenerTransacciones();
+      const transacciones = todas.filter(t => t.fecha.startsWith(mesSeleccionado));
 
-      // Filtrar por el mes seleccionado
-      const transacciones = todas.filter(t => {
-        // t.fecha es ISO, ej: "2025-03-15T..."
-        return t.fecha.startsWith(mesSeleccionado);
-      });
-
-      let ingresos = 0;
-      let gastos = 0;
-      transacciones.forEach(function(t) {
-        if (t.tipo === 'ingreso') {
-          ingresos += t.monto;
-        } else {
-          gastos += t.monto;
-        }
+      let ingresos = 0, gastos = 0;
+      transacciones.forEach(t => {
+        if (t.tipo === 'ingreso') ingresos += t.monto;
+        else gastos += t.monto;
       });
 
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       document.getElementById('balance').textContent = '$' + (ingresos - gastos).toFixed(2);
 
-      // Lista de movimientos
-      var lista = document.getElementById('listaTransacciones');
+      const lista = document.getElementById('listaTransacciones');
       if (transacciones.length === 0) {
-        lista.innerHTML = '<p class="text-gray-400 text-center">No hay movimientos este mes</p>';
+        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
       } else {
-        var html = '';
-        transacciones.sort(function(a, b) { return b.id - a.id; });
-        transacciones.forEach(function(t) {
-          var signo = t.tipo === 'ingreso' ? '+' : '-';
-          var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
-          var fecha = new Date(t.fecha).toLocaleDateString();
-          var catInfo = t.tipo === 'gasto' ? ' <span class="text-xs text-gray-400">(' + t.categoria + ')</span>' : '';
-          html += '<div class="flex justify-between items-center border-b pb-2">' +
-                    '<div>' +
-                      '<span class="font-medium">' + t.descripcion + '</span>' + catInfo +
-                      '<span class="text-xs text-gray-400 ml-2">' + fecha + '</span>' +
-                    '</div>' +
-                    '<span class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</span>' +
-                  '</div>';
+        let html = '';
+        transacciones.sort((a, b) => b.id - a.id);
+        transacciones.forEach(t => {
+          const signo = t.tipo === 'ingreso' ? '+' : '-';
+          const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
+          const fecha = new Date(t.fecha).toLocaleDateString();
+          const catInfo = t.tipo === 'gasto' ? ` <span class="text-xs texto-secundario">(${t.categoria})</span>` : '';
+          html += `
+            <div class="flex justify-between items-center border-b pb-2">
+              <div class="flex-1">
+                <span class="font-medium">${t.descripcion}</span>${catInfo}
+                <span class="text-xs texto-secundario ml-2">${fecha}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold ${color}">${signo}$${t.monto.toFixed(2)}</span>
+                <button onclick="eliminarTransaccion(${t.id})" class="text-red-400 hover:text-red-600 text-lg leading-none" title="Eliminar">✕</button>
+              </div>
+            </div>
+          `;
         });
         lista.innerHTML = html;
       }
 
-      // Actualizar gráfica con transacciones filtradas
       actualizarGrafica(transacciones);
+    }
+
+    // ---------- modo oscuro ----------
+    function aplicarTema(oscuro) {
+      const html = document.documentElement;
+      if (oscuro) {
+        html.setAttribute('data-theme', 'dark');
+        document.getElementById('toggleTema').textContent = '☀️';
+      } else {
+        html.setAttribute('data-theme', 'light');
+        document.getElementById('toggleTema').textContent = '🌙';
+      }
+      // Actualizar color de la leyenda de la gráfica
+      if (grafica) {
+        grafica.options.plugins.legend.labels.color = getComputedStyle(html).getPropertyValue('--color-texto');
+        grafica.update();
+      }
+    }
+
+    function toggleTema() {
+      const actual = document.documentElement.getAttribute('data-theme') === 'dark';
+      const nuevo = !actual;
+      localStorage.setItem(CLAVE_TEMA, nuevo ? 'dark' : 'light');
+      aplicarTema(nuevo);
     }
 
     // ---------- eventos ----------
     document.addEventListener('DOMContentLoaded', function() {
-      // Configurar el input de mes
-      var inputMes = document.getElementById('filtroMes');
-      inputMes.value = mesSeleccionado; // pone el mes actual por defecto
+      // Tema guardado
+      const temaGuardado = localStorage.getItem(CLAVE_TEMA) || 'light';
+      aplicarTema(temaGuardado === 'dark');
 
+      document.getElementById('toggleTema').addEventListener('click', toggleTema);
+
+      // Filtro de mes
+      const inputMes = document.getElementById('filtroMes');
+      inputMes.value = mesSeleccionado;
       inputMes.addEventListener('change', function() {
         mesSeleccionado = inputMes.value;
         actualizarVista();
       });
 
       // Formulario
-      var form = document.getElementById('formTransaccion');
+      const form = document.getElementById('formTransaccion');
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        var tipo = document.getElementById('tipo').value;
-        var categoria = document.getElementById('categoria').value;
-        var descripcion = document.getElementById('descripcion').value.trim();
-        var monto = document.getElementById('monto').value;
+        const tipo = document.getElementById('tipo').value;
+        const categoria = document.getElementById('categoria').value;
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const monto = document.getElementById('monto').value;
         if (!descripcion || !monto || !categoria) return;
         agregarTransaccion(tipo, categoria, descripcion, monto);
         form.reset();
@@ -250,6 +312,5 @@
       actualizarVista();
     });
   </script>
-
 </body>
 </html>
