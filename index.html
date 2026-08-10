@@ -34,7 +34,22 @@
   <main class="max-w-md mx-auto space-y-6">
     <div class="flex justify-between items-center">
       <h1 class="text-3xl font-bold text-emerald-600">💰 Mis Finanzas</h1>
-      <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
+      <div class="flex gap-2">
+        <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Gestionar categorías">🏷️</button>
+        <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
+      </div>
+    </div>
+
+    <!-- Panel de gestión de categorías (oculto por defecto) -->
+    <div id="panelCategorias" class="tarjeta p-4 rounded shadow hidden space-y-3">
+      <h2 class="font-semibold text-lg">🏷️ Mis categorías</h2>
+      <div id="listaCategorias" class="space-y-2 max-h-48 overflow-y-auto"></div>
+      <form id="formCategoria" class="flex gap-2 items-end">
+        <input type="text" id="nombreCategoria" placeholder="Nueva categoría" required class="flex-1 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="w-16 p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <input type="color" id="colorCategoria" value="#10b981" class="w-10 h-10 p-1 border rounded bg-[var(--color-tarjeta)]">
+        <button type="submit" class="text-white px-3 py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">+</button>
+      </form>
     </div>
 
     <div class="tarjeta p-3 rounded shadow flex items-center gap-2">
@@ -65,14 +80,7 @@
         </select>
         <input type="date" id="fecha" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
       </div>
-      <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-        <option value="">Selecciona categoría</option>
-        <option value="comida">🍔 Comida</option>
-        <option value="transporte">🚌 Transporte</option>
-        <option value="ocio">🎮 Ocio</option>
-        <option value="servicios">💡 Servicios</option>
-        <option value="otros">📦 Otros</option>
-      </select>
+      <select id="categoria" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]"></select>
       <input type="text" id="descripcion" placeholder="¿En qué gastaste?" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
       <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-2 border rounded bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
       <button type="submit" class="w-full text-white py-2 rounded font-semibold hover:opacity-90" style="background-color: var(--color-boton);">
@@ -94,16 +102,58 @@
   </main>
 
   <script>
-    const CLAVE = 'finanzas_v1';
+    // ---------- almacenamiento ----------
+    const CLAVE_TRANS = 'finanzas_v1';
+    const CLAVE_CAT = 'categorias_v1';
     const CLAVE_TEMA = 'tema_oscuro';
 
+    // ---------- categorías ----------
+    function obtenerCategorias() {
+      const datos = localStorage.getItem(CLAVE_CAT);
+      if (datos) return JSON.parse(datos);
+      // Categorías predefinidas
+      const predefinidas = [
+        { id: 1, nombre: 'comida', emoji: '🍔', color: '#FF6384' },
+        { id: 2, nombre: 'transporte', emoji: '🚌', color: '#36A2EB' },
+        { id: 3, nombre: 'ocio', emoji: '🎮', color: '#FFCE56' },
+        { id: 4, nombre: 'servicios', emoji: '💡', color: '#4BC0C0' },
+        { id: 5, nombre: 'otros', emoji: '📦', color: '#9966FF' }
+      ];
+      guardarCategorias(predefinidas);
+      return predefinidas;
+    }
+
+    function guardarCategorias(cats) {
+      localStorage.setItem(CLAVE_CAT, JSON.stringify(cats));
+    }
+
+    function agregarCategoria(nombre, emoji, color) {
+      const cats = obtenerCategorias();
+      const nueva = {
+        id: Date.now(),
+        nombre: nombre.trim().toLowerCase(),
+        emoji: emoji || '📌',
+        color: color
+      };
+      cats.push(nueva);
+      guardarCategorias(cats);
+      return nueva;
+    }
+
+    function eliminarCategoria(id) {
+      let cats = obtenerCategorias();
+      cats = cats.filter(c => c.id !== id);
+      guardarCategorias(cats);
+    }
+
+    // ---------- transacciones ----------
     function obtenerTransacciones() {
-      const datos = localStorage.getItem(CLAVE);
+      const datos = localStorage.getItem(CLAVE_TRANS);
       return datos ? JSON.parse(datos) : [];
     }
 
     function guardar(transacciones) {
-      localStorage.setItem(CLAVE, JSON.stringify(transacciones));
+      localStorage.setItem(CLAVE_TRANS, JSON.stringify(transacciones));
     }
 
     function agregarTransaccion(tipo, categoria, descripcion, monto, fecha) {
@@ -111,10 +161,10 @@
       transacciones.push({
         id: Date.now(),
         tipo,
-        categoria,
+        categoria, // nombre de la categoría
         descripcion,
         monto: parseFloat(monto),
-        fecha: fecha // formato YYYY-MM-DD
+        fecha
       });
       guardar(transacciones);
     }
@@ -126,14 +176,16 @@
       actualizarVista();
     }
 
+    // ---------- filtro ----------
     function obtenerMesActual() {
       const ahora = new Date();
       const año = ahora.getFullYear();
       const mes = String(ahora.getMonth() + 1).padStart(2, '0');
       return `${año}-${mes}`;
     }
-
     let mesSeleccionado = obtenerMesActual();
+
+    // ---------- gráfica ----------
     let grafica;
 
     function actualizarGrafica(transaccionesFiltradas) {
@@ -144,25 +196,24 @@
         agrupado[t.categoria] += t.monto;
       });
 
-      const categorias = Object.keys(agrupado);
+      const categoriasNombres = Object.keys(agrupado);
       const montos = Object.values(agrupado);
-      const colores = {
-        comida: '#FF6384',
-        transporte: '#36A2EB',
-        ocio: '#FFCE56',
-        servicios: '#4BC0C0',
-        otros: '#9966FF'
-      };
-      const fondos = categorias.map(cat => colores[cat] || '#CCCCCC');
+
+      // Obtener colores de las categorías actuales
+      const categorias = obtenerCategorias();
+      const fondos = categoriasNombres.map(nombre => {
+        const cat = categorias.find(c => c.nombre === nombre);
+        return cat ? cat.color : '#CCCCCC';
+      });
 
       if (grafica) grafica.destroy();
       const ctx = document.getElementById('graficaGastos').getContext('2d');
-      if (categorias.length === 0) { grafica = null; return; }
+      if (categoriasNombres.length === 0) { grafica = null; return; }
 
       grafica = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: categorias,
+          labels: categoriasNombres,
           datasets: [{ data: montos, backgroundColor: fondos }]
         },
         options: {
@@ -177,9 +228,32 @@
       });
     }
 
+    // ---------- ui ----------
+    function llenarSelectCategorias() {
+      const select = document.getElementById('categoria');
+      const categorias = obtenerCategorias();
+      select.innerHTML = categorias.map(c => 
+        <option value="${c.nombre}">${c.emoji} ${c.nombre}</option>
+      ).join('');
+    }
+
+    function renderizarListaCategorias() {
+      const contenedor = document.getElementById('listaCategorias');
+      const categorias = obtenerCategorias();
+      if (categorias.length === 0) {
+        contenedor.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
+        return;
+      }
+      contenedor.innerHTML = categorias.map(c => `
+        <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded">
+          <span>${c.emoji} ${c.nombre}</span>
+          <button onclick="if(confirm('¿Eliminar categoría ${c.nombre}?')) { eliminarCategoria(${c.id}); renderizarListaCategorias(); llenarSelectCategorias(); actualizarVista(); }" class="text-red-400 hover:text-red-600">✕</button>
+        </div>
+      `).join('');
+    }
+
     function actualizarVista() {
       const todas = obtenerTransacciones();
-      // Filtrar por mes: el string de fecha empieza por "YYYY-MM"
       const transacciones = todas.filter(t => t.fecha.startsWith(mesSeleccionado));
 
       let ingresos = 0, gastos = 0;
@@ -196,18 +270,18 @@
       if (transacciones.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
       } else {
-        // Ordenar por fecha descendente (más reciente primero) y luego por id
         transacciones.sort((a, b) => {
           if (a.fecha !== b.fecha) return b.fecha.localeCompare(a.fecha);
           return b.id - a.id;
         });
-
         let html = '';
+        const categorias = obtenerCategorias();
         transacciones.forEach(t => {
           const signo = t.tipo === 'ingreso' ? '+' : '-';
           const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           const fechaFormateada = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-          const catInfo = t.tipo === 'gasto' ? ` <span class="text-xs texto-secundario">(${t.categoria})</span>` : '';
+          const cat = categorias.find(c => c.nombre === t.categoria);
+          const catInfo = t.tipo === 'gasto' ? ` <span class="text-xs texto-secundario">(${cat ? cat.emoji + ' ' + t.categoria : t.categoria})</span>` : '';
           html += `
             <div class="flex justify-between items-center border-b pb-2">
               <div class="flex-1">
@@ -227,7 +301,7 @@
       actualizarGrafica(transacciones);
     }
 
-    // Modo oscuro
+    // ---------- modo oscuro ----------
     function aplicarTema(oscuro) {
       const html = document.documentElement;
       html.setAttribute('data-theme', oscuro ? 'dark' : 'light');
@@ -245,11 +319,37 @@
       aplicarTema(nuevo);
     }
 
+    // ---------- inicio ----------
     document.addEventListener('DOMContentLoaded', () => {
+      // Tema
       const temaGuardado = localStorage.getItem(CLAVE_TEMA) || 'light';
       aplicarTema(temaGuardado === 'dark');
       document.getElementById('toggleTema').addEventListener('click', toggleTema);
 
+      // Panel de categorías
+      const btnCategorias = document.getElementById('btnCategorias');
+      const panel = document.getElementById('panelCategorias');
+      btnCategorias.addEventListener('click', () => {
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          renderizarListaCategorias();
+        }
+      });
+
+      document.getElementById('formCategoria').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombreCategoria').value.trim();
+        const emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
+        const color = document.getElementById('colorCategoria').value;
+        if (!nombre) return;
+        agregarCategoria(nombre, emoji, color);
+        renderizarListaCategorias();
+        llenarSelectCategorias();
+        this.reset();
+        document.getElementById('colorCategoria').value = '#10b981';
+      });
+
+      // Selector de mes
       const inputMes = document.getElementById('filtroMes');
       inputMes.value = mesSeleccionado;
       inputMes.addEventListener('change', () => {
@@ -260,6 +360,8 @@
       // Fecha por defecto hoy
       const fechaInput = document.getElementById('fecha');
       fechaInput.value = new Date().toISOString().split('T')[0];
+
+      llenarSelectCategorias();
 
       const form = document.getElementById('formTransaccion');
       form.addEventListener('submit', function(e) {
@@ -272,7 +374,7 @@
         if (!descripcion || !monto || !categoria || !fecha) return;
         agregarTransaccion(tipo, categoria, descripcion, monto, fecha);
         form.reset();
-        fechaInput.value = new Date().toISOString().split('T')[0]; // reiniciar a hoy
+        fechaInput.value = new Date().toISOString().split('T')[0];
         actualizarVista();
       });
 
