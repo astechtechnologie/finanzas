@@ -1,7 +1,12 @@
-// Interfaz principal: navegación por vistas, modal, renderizado de inicio y categorías
 (function() {
   const App = window.App;
-  let mesSeleccionado = App.obtenerMesActual();
+
+  // Esperar a que App.obtenerMesActual esté definido
+  function getMes() {
+    return (typeof App.obtenerMesActual === 'function') ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+  }
+
+  let mesSeleccionado = getMes();
   let tipoTransaccion = 'ingreso';
 
   // Elementos del shell
@@ -16,16 +21,17 @@
   const modal = document.getElementById('modalTransaccion');
   const fab = document.getElementById('fabAgregar');
 
-  // Función para cambiar de vista
   function cambiarVista(nombreVista) {
     Object.values(vistas).forEach(v => v.classList.remove('activa'));
     vistas[nombreVista].classList.add('activa');
     navItems.forEach(item => item.classList.remove('active'));
     document.querySelector('[data-vista="' + nombreVista + '"]').classList.add('active');
-    tituloSeccion.textContent = nombreVista === 'inicio' ? 'Inicio' : nombreVista.charAt(0).toUpperCase() + nombreVista.slice(1);
+    const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes' };
+    tituloSeccion.textContent = titulos[nombreVista];
 
-    // Acciones al entrar a ciertas vistas
-    if (nombreVista === 'presupuesto') App.cargarPantallaPresupuesto();
+    if (nombreVista === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
+      App.cargarPantallaPresupuesto();
+    }
     if (nombreVista === 'categorias') renderizarListaCategorias();
   }
 
@@ -62,11 +68,10 @@
     document.getElementById('tabIngreso').classList.remove('active');
   });
 
-  // Fecha hoy
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-  // Renderizado de vista Inicio
   function actualizarInicio(transacciones) {
+    mesSeleccionado = getMes(); // refrescar por si cambió
     const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
     let ingresos = 0, gastos = 0;
     filtradas.forEach(t => t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto);
@@ -100,13 +105,11 @@
     App.actualizarGraficas(filtradas, App.categoriasState || []);
   }
 
-  // Llenar select de categorías (modal)
   function llenarSelectCategorias() {
     const select = document.getElementById('categoria');
     select.innerHTML = (App.categoriasState || []).map(c => '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>').join('');
   }
 
-  // Renderizar categorías en vista independiente
   function renderizarListaCategorias() {
     const contenedor = document.getElementById('listaCategorias');
     if (!App.categoriasState || App.categoriasState.length === 0) {
@@ -121,7 +124,6 @@
     ).join('');
   }
 
-  // Inicialización
   App.cargarDatosIniciales = function() {
     App.obtenerCategorias(cats => {
       App.categoriasState = cats;
@@ -130,8 +132,4 @@
       App.obtenerTransacciones(transacciones => actualizarInicio(transacciones));
     });
   };
-
-  // Para mantener sincronizado el mes, podemos agregar un input month en la vista inicio
-  // (no lo incluimos en el HTML por simplicidad, pero podemos añadir uno en el header)
-  // Por ahora, mes actual fijo. Si quieres cambiarlo, puedes agregar un selector.
 })();
