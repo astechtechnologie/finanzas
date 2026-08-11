@@ -29,7 +29,7 @@
       Object.values(vistas).forEach(v => v.classList.remove('activa'));
       vistas[clave].classList.add('activa');
       navItems.forEach(i => i.classList.remove('active'));
-      document.querySelector([data-vista="${nombre}"]).classList.add('active');
+      document.querySelector(`[data-vista="${nombre}"]`).classList.add('active');
       titulo.textContent = { inicio:'Inicio', presupuesto:'Presupuesto', categorias:'Categorías', ajustes:'Ajustes' }[clave];
       if (clave === 'presupuesto' && App.cargarPantallaPresupuesto) App.cargarPantallaPresupuesto();
       if (clave === 'categorias') renderizarListaCategorias();
