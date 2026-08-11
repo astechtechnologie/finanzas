@@ -52,11 +52,6 @@
       background-color: var(--color-gasto);
       color: white;
     }
-    .pestana-activa {
-      transform: scale(1.05);
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-      z-index: 10;
-    }
     canvas {
       max-height: 250px;
     }
@@ -190,7 +185,7 @@
   </div>
 
   <script>
-    // --- CONFIGURACIÓN DE FIREBASE (YA INCLUIDA) ---
+    // --- CONFIGURACIÓN DE FIREBASE ---
     const firebaseConfig = {
       apiKey: "AIzaSyAD94mJ0gFuFGvRwhhrn8qTFe3orsO_sDA",
       authDomain: "finanzas-personales-a1ee9.firebaseapp.com",
@@ -204,16 +199,15 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // --- VARIABLES GLOBALES ---
     let usuarioActual = null;
     let mesSeleccionado = obtenerMesActual();
     let graficaIngresosChart = null;
     let graficaGastosChart = null;
     let categoriasState = [];
     const CLAVE_TEMA = 'tema_oscuro';
-    let tipoSeleccionado = 'ingreso'; // por defecto
+    let tipoSeleccionado = 'ingreso';
 
-    // --- AUTENTICACIÓN (sin cambios en lógica) ---
+    // --- AUTENTICACIÓN ---
     function mostrarAuth() {
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('appScreen').classList.add('hidden');
@@ -222,48 +216,48 @@
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
     }
-    document.getElementById('btnLogin').addEventListener('click', () => {
+    document.getElementById('btnLogin').addEventListener('click', function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       if (!email || !password) return;
-      auth.signInWithEmailAndPassword(email, password).catch(e => {
+      auth.signInWithEmailAndPassword(email, password).catch(function(e) {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
       });
     });
-    document.getElementById('btnRegister').addEventListener('click', () => {
+    document.getElementById('btnRegister').addEventListener('click', function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       if (!email || !password) return;
-      auth.createUserWithEmailAndPassword(email, password).catch(e => {
+      auth.createUserWithEmailAndPassword(email, password).catch(function(e) {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
       });
     });
-    document.getElementById('btnLogout').addEventListener('click', () => auth.signOut());
-    auth.onAuthStateChanged(user => {
+    document.getElementById('btnLogout').addEventListener('click', function() { auth.signOut(); });
+    auth.onAuthStateChanged(function(user) {
       if (user) { usuarioActual = user; mostrarApp(); cargarDatosIniciales(); }
       else { usuarioActual = null; mostrarAuth(); }
     });
 
-    // --- BASE DE DATOS (sin cambios) ---
+    // --- BASE DE DATOS ---
     function coleccionRef() { return 'usuarios/' + usuarioActual.uid + '/transacciones'; }
     function coleccionCategoriasRef() { return 'usuarios/' + usuarioActual.uid + '/categorias'; }
     function obtenerTransacciones(callback) {
-      db.collection(coleccionRef()).orderBy('fecha', 'desc').onSnapshot(snap => {
+      db.collection(coleccionRef()).orderBy('fecha', 'desc').onSnapshot(function(snap) {
         const transacciones = [];
-        snap.forEach(doc => transacciones.push({ id: doc.id, ...doc.data() }));
+        snap.forEach(function(doc) { transacciones.push(Object.assign({ id: doc.id }, doc.data())); });
         callback(transacciones);
       });
     }
     function agregarTransaccion(tipo, categoria, descripcion, monto, fecha) {
-      db.collection(coleccionRef()).add({ tipo, categoria, descripcion, monto: parseFloat(monto), fecha });
+      db.collection(coleccionRef()).add({ tipo: tipo, categoria: categoria, descripcion: descripcion, monto: parseFloat(monto), fecha: fecha });
     }
     function eliminarTransaccion(id) { db.collection(coleccionRef()).doc(id).delete(); }
     function obtenerCategorias(callback) {
-      db.collection(coleccionCategoriasRef()).onSnapshot(snap => {
+      db.collection(coleccionCategoriasRef()).onSnapshot(function(snap) {
         const categorias = [];
-        snap.forEach(doc => categorias.push({ id: doc.id, ...doc.data() }));
+        snap.forEach(function(doc) { categorias.push(Object.assign({ id: doc.id }, doc.data())); });
         if (categorias.length === 0) {
           const predefinidas = [
             { nombre: 'comida', emoji: '🍔', color: '#FF6384' },
@@ -273,7 +267,7 @@
             { nombre: 'otros', emoji: '📦', color: '#9966FF' }
           ];
           const batch = db.batch();
-          predefinidas.forEach(cat => batch.set(db.collection(coleccionCategoriasRef()).doc(), cat));
+          predefinidas.forEach(function(cat) { batch.set(db.collection(coleccionCategoriasRef()).doc(), cat); });
           batch.commit();
           return;
         }
@@ -281,37 +275,36 @@
       });
     }
     function agregarCategoria(nombre, emoji, color) {
-      db.collection(coleccionCategoriasRef()).add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color });
+      db.collection(coleccionCategoriasRef()).add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color: color });
     }
     function eliminarCategoria(id) { db.collection(coleccionCategoriasRef()).doc(id).delete(); }
 
     // --- FILTRO POR MES ---
     function obtenerMesActual() {
       const ahora = new Date();
-      return ${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')};
+      return ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0');
     }
 
-    // --- GRÁFICAS (AHORA DOS) ---
+    // --- GRÁFICAS (DUAL) ---
     function actualizarGraficas(transaccionesFiltradas) {
-      const ingresosData = transaccionesFiltradas.filter(t => t.tipo === 'ingreso');
-      const gastosData = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
+      const ingresosData = transaccionesFiltradas.filter(function(t) { return t.tipo === 'ingreso'; });
+      const gastosData = transaccionesFiltradas.filter(function(t) { return t.tipo === 'gasto'; });
 
-      // Función helper
-      const agrupar = (datos) => {
+      function agrupar(datos) {
         const agg = {};
-        datos.forEach(t => {
+        datos.forEach(function(t) {
           if (!agg[t.categoria]) agg[t.categoria] = 0;
           agg[t.categoria] += t.monto;
         });
         return agg;
-      };
+      }
 
-      const dibujar = (ctxId, datos, chartVar, colorDefault) => {
+      function dibujar(ctxId, datos, chartVar, colorDefault) {
         const agg = agrupar(datos);
         const nombres = Object.keys(agg);
         const montos = Object.values(agg);
-        const fondos = nombres.map(nombre => {
-          const cat = categoriasState.find(c => c.nombre === nombre);
+        const fondos = nombres.map(function(nombre) {
+          const cat = categoriasState.find(function(c) { return c.nombre === nombre; });
           return cat ? cat.color : colorDefault;
         });
         if (chartVar) chartVar.destroy();
@@ -320,22 +313,21 @@
         return new Chart(ctx, {
           type: 'doughnut',
           data: { labels: nombres, datasets: [{ data: montos, backgroundColor: fondos }] },
-          options: {
-            responsive: true,
-            plugins: { legend: { display: false } }
-          }
+          options: { responsive: true, plugins: { legend: { display: false } } }
         });
-      };
+      }
 
       graficaIngresosChart = dibujar('graficaIngresos', ingresosData, graficaIngresosChart, '#10b981');
       graficaGastosChart = dibujar('graficaGastos', gastosData, graficaGastosChart, '#ef4444');
     }
 
-    // --- UI (mejorada) ---
+    // --- UI (CONCATENACIÓN) ---
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
-      let opciones = '';
-      categoriasState.forEach(c => opciones += <option value="${c.nombre}">${c.emoji} ${c.nombre}</option>);
+      var opciones = '';
+      categoriasState.forEach(function(c) {
+        opciones += '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
+      });
       select.innerHTML = opciones;
     }
 
@@ -345,20 +337,20 @@
         contenedor.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
         return;
       }
-      let html = '';
-      categoriasState.forEach(c => {
-        html += `<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-xl">
-          <span>${c.emoji} ${c.nombre}</span>
-          <button onclick="if(confirm('¿Eliminar categoría ${c.nombre}?')) eliminarCategoria('${c.id}')" class="text-red-400 hover:text-red-600">✕</button>
-        </div>`;
+      var html = '';
+      categoriasState.forEach(function(c) {
+        html += '<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-xl">' +
+          '<span>' + c.emoji + ' ' + c.nombre + '</span>' +
+          '<button onclick="if(confirm(\'¿Eliminar categoría ' + c.nombre + '?\')) eliminarCategoria(\'' + c.id + '\')" class="text-red-400 hover:text-red-600">✕</button>' +
+          '</div>';
       });
       contenedor.innerHTML = html;
     }
 
     function actualizarVista(transacciones) {
-      const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
+      const filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       let ingresos = 0, gastos = 0;
-      filtradas.forEach(t => t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto);
+      filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       const balance = ingresos - gastos;
@@ -366,44 +358,41 @@
       balanceEl.textContent = '$' + balance.toFixed(2);
       balanceEl.className = 'text-3xl font-extrabold ' + (balance >= 0 ? 'text-emerald-500' : 'text-red-500');
 
-      // Lista de movimientos como tarjetas
       const lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
       } else {
-        filtradas.sort((a, b) => (b.fecha + b.id).localeCompare(a.fecha + a.id));
-        let html = '';
-        filtradas.forEach(t => {
-          const cat = categoriasState.find(c => c.nombre === t.categoria);
+        filtradas.sort(function(a, b) { return (b.fecha + b.id).localeCompare(a.fecha + a.id); });
+        var html = '';
+        filtradas.forEach(function(t) {
+          const cat = categoriasState.find(function(c) { return c.nombre === t.categoria; });
           const emoji = cat ? cat.emoji : '📌';
           const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           const signo = t.tipo === 'ingreso' ? '+' : '-';
           const fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-          html += `
-          <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">
-            <div class="text-2xl">${emoji}</div>
-            <div class="flex-1">
-              <p class="font-medium">${t.descripcion}</p>
-              <p class="text-xs texto-secundario">${fecha} · ${t.categoria}</p>
-            </div>
-            <div class="text-right">
-              <p class="font-bold ${color}">${signo}$${t.monto.toFixed(2)}</p>
-              <button onclick="eliminarTransaccion('${t.id}')" class="text-xs text-red-400 hover:text-red-600">Eliminar</button>
-            </div>
-          </div>`;
+          html += '<div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">' +
+            '<div class="text-2xl">' + emoji + '</div>' +
+            '<div class="flex-1">' +
+              '<p class="font-medium">' + t.descripcion + '</p>' +
+              '<p class="text-xs texto-secundario">' + fecha + ' · ' + t.categoria + '</p>' +
+            '</div>' +
+            '<div class="text-right">' +
+              '<p class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</p>' +
+              '<button onclick="eliminarTransaccion(\'' + t.id + '\')" class="text-xs text-red-400 hover:text-red-600">Eliminar</button>' +
+            '</div>' +
+          '</div>';
         });
         lista.innerHTML = html;
       }
-
       actualizarGraficas(filtradas);
     }
 
     function cargarDatosIniciales() {
-      obtenerCategorias(cats => {
+      obtenerCategorias(function(cats) {
         categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
-        obtenerTransacciones(transacciones => actualizarVista(transacciones));
+        obtenerTransacciones(function(transacciones) { actualizarVista(transacciones); });
       });
     }
 
@@ -419,42 +408,42 @@
       aplicarTema(nuevo);
     }
 
-    // --- INICIO Y EVENTOS ---
-    document.addEventListener('DOMContentLoaded', () => {
+    // --- INICIO ---
+    document.addEventListener('DOMContentLoaded', function() {
       aplicarTema((localStorage.getItem(CLAVE_TEMA) || 'light') === 'dark');
       document.getElementById('toggleTema').addEventListener('click', toggleTema);
 
-      // Panel categorías
       const btnCat = document.getElementById('btnCategorias');
       const panelCat = document.getElementById('panelCategorias');
-      btnCat.addEventListener('click', () => {
+      btnCat.addEventListener('click', function() {
         panelCat.classList.toggle('hidden');
         if (!panelCat.classList.contains('hidden')) renderizarListaCategorias();
       });
-      document.getElementById('formCategoria').addEventListener('submit', e => {
+
+      document.getElementById('formCategoria').addEventListener('submit', function(e) {
         e.preventDefault();
         const nombre = document.getElementById('nombreCategoria').value.trim();
         const emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
         const color = document.getElementById('colorCategoria').value;
         if (!nombre) return;
         agregarCategoria(nombre, emoji, color);
-        e.target.reset();
+        this.reset();
         document.getElementById('colorCategoria').value = '#10b981';
         document.getElementById('emojiCategoria').value = '';
       });
 
-      // Pestañas ingreso/gasto
+      // Pestañas
       const tabIngreso = document.getElementById('tabIngreso');
       const tabGasto = document.getElementById('tabGasto');
       const btnAgregar = document.getElementById('btnAgregar');
-      tabIngreso.addEventListener('click', () => {
+      tabIngreso.addEventListener('click', function() {
         tipoSeleccionado = 'ingreso';
         tabIngreso.className = 'flex-1 py-2 rounded-l-xl font-semibold bg-emerald-500 text-white';
         tabGasto.className = 'flex-1 py-2 rounded-r-xl font-semibold bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
         btnAgregar.textContent = 'Agregar ingreso';
         btnAgregar.className = 'w-full py-3 rounded-xl font-bold text-white bg-emerald-500 hover:opacity-90';
       });
-      tabGasto.addEventListener('click', () => {
+      tabGasto.addEventListener('click', function() {
         tipoSeleccionado = 'gasto';
         tabGasto.className = 'flex-1 py-2 rounded-r-xl font-semibold bg-red-500 text-white';
         tabIngreso.className = 'flex-1 py-2 rounded-l-xl font-semibold bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
@@ -462,20 +451,17 @@
         btnAgregar.className = 'w-full py-3 rounded-xl font-bold text-white bg-red-500 hover:opacity-90';
       });
 
-      // Filtro mes
       const inputMes = document.getElementById('filtroMes');
       inputMes.value = mesSeleccionado;
-      inputMes.addEventListener('change', () => {
+      inputMes.addEventListener('change', function() {
         mesSeleccionado = inputMes.value;
-        if (usuarioActual) obtenerTransacciones(t => actualizarVista(t));
+        if (usuarioActual) obtenerTransacciones(function(t) { actualizarVista(t); });
       });
 
-      // Fecha hoy
       const fechaInput = document.getElementById('fecha');
       fechaInput.value = new Date().toISOString().split('T')[0];
 
-      // Formulario transacción
-      document.getElementById('formTransaccion').addEventListener('submit', e => {
+      document.getElementById('formTransaccion').addEventListener('submit', function(e) {
         e.preventDefault();
         const categoria = document.getElementById('categoria').value;
         const descripcion = document.getElementById('descripcion').value.trim();
@@ -483,9 +469,8 @@
         const fecha = document.getElementById('fecha').value;
         if (!descripcion || !monto || !categoria || !fecha) return;
         agregarTransaccion(tipoSeleccionado, categoria, descripcion, monto, fecha);
-        e.target.reset();
+        this.reset();
         fechaInput.value = new Date().toISOString().split('T')[0];
-        // Mantener pestaña activa
         if (tipoSeleccionado === 'ingreso') tabIngreso.click(); else tabGasto.click();
       });
     });
