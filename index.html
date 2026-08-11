@@ -51,15 +51,14 @@
     <main class="vistas-container">
       <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
-        <!-- Resumen, gráficas, lista -->
         <div class="resumen-grid">
           <div class="resumen-card ingreso-card"><span>Ingresos</span><strong id="totalIngresos">$0</strong></div>
           <div class="resumen-card gasto-card"><span>Gastos</span><strong id="totalGastos">$0</strong></div>
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
         <div class="charts-grid">
-          <canvas id="graficaIngresos"></canvas>
-          <canvas id="graficaGastos"></canvas>
+          <div><canvas id="graficaIngresos"></canvas></div>
+          <div><canvas id="graficaGastos"></canvas></div>
         </div>
         <div class="movimientos-container">
           <h2>Movimientos</h2>
@@ -71,7 +70,9 @@
 
       <!-- Vista Presupuesto -->
       <div id="vistaPresupuesto" class="vista">
-        <!-- El contenido se genera dinámicamente igual que antes -->
+        <div id="contenidoPresupuesto" class="presupuesto-container">
+          <!-- Se rellena dinámicamente -->
+        </div>
       </div>
 
       <!-- Vista Categorías -->
@@ -86,7 +87,14 @@
             <button type="submit" class="btn btn-primario">+</button>
           </form>
           <div class="emoji-grid">
-            <!-- emojis igual que antes -->
+            <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📦'">📦</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
+            <span onclick="document.getElementById('emojiCategoria').value='❤️'">❤️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
           </div>
         </div>
       </div>
@@ -117,18 +125,10 @@
 
     <!-- Barra de navegación inferior -->
     <nav class="bottom-nav">
-      <button class="nav-item active" data-vista="vistaInicio">
-        <svg>...</svg> Inicio
-      </button>
-      <button class="nav-item" data-vista="vistaPresupuesto">
-        <svg>...</svg> Presupuesto
-      </button>
-      <button class="nav-item" data-vista="vistaCategorias">
-        <svg>...</svg> Categorías
-      </button>
-      <button class="nav-item" data-vista="vistaAjustes">
-        <svg>...</svg> Ajustes
-      </button>
+      <button class="nav-item active" data-vista="vistaInicio">🏠<span>Inicio</span></button>
+      <button class="nav-item" data-vista="vistaPresupuesto">💵<span>Presupuesto</span></button>
+      <button class="nav-item" data-vista="vistaCategorias">🏷️<span>Categorías</span></button>
+      <button class="nav-item" data-vista="vistaAjustes">⚙️<span>Ajustes</span></button>
     </nav>
 
     <!-- Modal para agregar transacción -->
@@ -149,10 +149,9 @@
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts de la aplicación (orden importante) -->
   <script src="js/firebase-config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>
