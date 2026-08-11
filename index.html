@@ -82,31 +82,12 @@
       background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
     }
-    .progress-bar {
-      height: 8px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.05);
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
-      border-radius: 8px;
-      box-shadow: 0 0 8px currentColor;
-    }
-    canvas {
-      max-height: 220px;
-    }
-    /* Animación de entrada para paneles */
+    canvas { max-height: 220px; }
+    .panel-animado { animation: fadeInUp 0.3s ease; }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .panel-animado {
-      animation: fadeInUp 0.3s ease;
-    }
-    /* Scrollbar estilizado */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
@@ -121,7 +102,7 @@
 <body class="flex items-center justify-center">
   <div class="w-full max-w-lg mx-auto space-y-5">
 
-    <!-- PANTALLA DE AUTENTICACIÓN -->
+    <!-- PANTALLA DE AUTENTICACIÓN (sin cambios) -->
     <div id="authScreen" class="hidden space-y-6">
       <div class="text-center">
         <h1 class="text-4xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">💰 Mis Finanzas</h1>
@@ -146,27 +127,15 @@
 
     <!-- APP PRINCIPAL -->
     <div id="appScreen" class="hidden space-y-5">
-      <!-- Cabecera -->
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">💰 Finanzas</h1>
         <div class="flex gap-1.5">
-          <button id="btnPresupuesto" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Presupuesto mensual">💵</button>
+          <button id="btnIrPresupuesto" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Presupuesto mensual">💵</button>
           <button id="btnCategorias" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl">🏷️</button>
           <button id="btnCambiarPassword" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Cambiar contraseña">🔐</button>
           <button id="toggleTema" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl">🌙</button>
           <button id="btnLogout" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Cerrar sesión">🚪</button>
         </div>
-      </div>
-
-      <!-- Panel de presupuesto (oculto) -->
-      <div id="panelPresupuesto" class="tarjeta p-4 hidden space-y-3 panel-animado">
-        <h2 class="font-bold text-lg">💵 Presupuesto mensual</h2>
-        <p class="text-sm texto-secundario">Define un límite máximo de gastos para este mes.</p>
-        <div class="flex gap-2">
-          <input type="number" id="inputLimite" placeholder="Ej: 500.00" step="0.01" class="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
-          <button id="btnGuardarLimite" class="btn btn-primario">Guardar</button>
-        </div>
-        <p id="presupuestoInfo" class="text-xs texto-secundario"></p>
       </div>
 
       <!-- Panel de cambio de contraseña (oculto) -->
@@ -231,16 +200,6 @@
       <div class="tarjeta p-5 text-center">
         <p class="text-sm texto-secundario font-medium">Balance del mes</p>
         <p id="balance" class="text-4xl font-extrabold mt-1"></p>
-        <div id="contenedorPresupuesto" class="mt-4 hidden">
-          <div class="flex justify-between text-xs texto-secundario mb-1.5">
-            <span>Presupuesto</span>
-            <span id="textoPresupuesto"></span>
-          </div>
-          <div class="progress-bar">
-            <div id="barraProgreso" class="progress-fill"></div>
-          </div>
-          <p id="alertaPresupuesto" class="text-xs mt-2 hidden font-medium"></p>
-        </div>
       </div>
 
       <!-- GRÁFICAS -->
@@ -255,7 +214,7 @@
         </div>
       </div>
 
-      <!-- FORMULARIO CON PESTAÑAS -->
+      <!-- FORMULARIO -->
       <div class="tarjeta p-5 space-y-4">
         <div class="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
           <button id="tabIngreso" class="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white dark:bg-gray-700 shadow-sm">Ingreso</button>
@@ -276,6 +235,60 @@
         <div id="listaTransacciones" class="space-y-2.5"></div>
       </div>
     </div>
+
+    <!-- PANTALLA DE PRESUPUESTO (independiente) -->
+    <div id="presupuestoScreen" class="hidden space-y-5">
+      <div class="flex items-center gap-3 mb-2">
+        <button id="btnVolverDePresupuesto" class="text-2xl p-2 rounded-full hover:bg-white/10">←</button>
+        <h1 class="text-2xl font-extrabold flex-1">💵 Presupuesto</h1>
+      </div>
+
+      <!-- Mes actual (el del filtro) -->
+      <div class="tarjeta p-5 space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="font-bold text-lg" id="tituloMesPresupuesto"></h2>
+          <span class="text-sm texto-secundario" id="diasRestantes"></span>
+        </div>
+
+        <!-- Medidor circular -->
+        <div class="flex justify-center">
+          <canvas id="graficaPresupuesto" class="max-h-48"></canvas>
+        </div>
+
+        <!-- Métricas -->
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div>
+            <p class="text-xs texto-secundario">Gasto actual</p>
+            <p id="gastoActualPresupuesto" class="text-xl font-bold text-red-500"></p>
+          </div>
+          <div>
+            <p class="text-xs texto-secundario">Límite</p>
+            <p id="limitePresupuestoValor" class="text-xl font-bold"></p>
+          </div>
+          <div>
+            <p class="text-xs texto-secundario">Promedio diario</p>
+            <p id="promedioDiario" class="text-lg font-semibold"></p>
+          </div>
+          <div>
+            <p class="text-xs texto-secundario">Proyección</p>
+            <p id="proyeccionMensual" class="text-lg font-semibold"></p>
+          </div>
+        </div>
+
+        <!-- Configurar límite -->
+        <div class="flex gap-2 items-end">
+          <input type="number" id="inputLimitePresupuesto" placeholder="Nuevo límite" step="0.01" class="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <button id="btnGuardarLimitePresupuesto" class="btn btn-primario">Guardar</button>
+        </div>
+      </div>
+
+      <!-- Historial -->
+      <div class="tarjeta p-5">
+        <h2 class="font-bold text-lg mb-3">📋 Historial reciente</h2>
+        <div id="historialPresupuesto" class="space-y-2 text-sm"></div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -297,12 +310,12 @@
     let mesSeleccionado = obtenerMesActual();
     let graficaIngresosChart = null;
     let graficaGastosChart = null;
+    let graficaPresupuestoChart = null;
     let categoriasState = [];
     const CLAVE_TEMA = 'tema_oscuro';
     let tipoSeleccionado = 'ingreso';
-    let limitePresupuesto = 0;
 
-    // --- MOSTRAR/OCULTAR CONTRASEÑA ---
+    // --- HELPERS GENERALES ---
     function togglePasswordVisibility() {
       const passInput = document.getElementById('password');
       const toggleIcon = document.getElementById('togglePassword');
@@ -315,14 +328,21 @@
       }
     }
 
-    // --- AUTENTICACIÓN (sin cambios lógicos) ---
+    function obtenerMesActual() {
+      const ahora = new Date();
+      return ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0');
+    }
+
+    // --- AUTENTICACIÓN ---
     function mostrarAuth() {
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('presupuestoScreen').classList.add('hidden');
     }
     function mostrarApp() {
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
+      document.getElementById('presupuestoScreen').classList.add('hidden');
     }
 
     document.getElementById('btnLogin').addEventListener('click', () => {
@@ -412,91 +432,19 @@
       });
     });
 
-    // --- PRESUPUESTO ---
-    function cargarPresupuesto() {
-      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').get().then(doc => {
-        if (doc.exists) {
-          limitePresupuesto = doc.data().limite || 0;
-          document.getElementById('inputLimite').value = limitePresupuesto;
-          document.getElementById('presupuestoInfo').textContent = 'Límite actual: $' + limitePresupuesto.toFixed(2);
-        } else {
-          limitePresupuesto = 0;
-          document.getElementById('presupuestoInfo').textContent = 'No has configurado un límite.';
-        }
-        actualizarBarraProgreso();
-      });
-    }
-
-    function guardarPresupuesto(limite) {
-      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').set({ limite }).then(() => {
-        limitePresupuesto = limite;
-        document.getElementById('presupuestoInfo').textContent = 'Límite actual: $' + limite.toFixed(2);
-        actualizarBarraProgreso();
-      });
-    }
-
-    document.getElementById('btnPresupuesto').addEventListener('click', () => {
-      const panel = document.getElementById('panelPresupuesto');
-      panel.classList.toggle('hidden');
-      if (!panel.classList.contains('hidden')) {
-        document.getElementById('inputLimite').value = limitePresupuesto || '';
-      }
+    // --- NAVEGACIÓN A PRESUPUESTO ---
+    document.getElementById('btnIrPresupuesto').addEventListener('click', () => {
+      document.getElementById('appScreen').classList.add('hidden');
+      document.getElementById('presupuestoScreen').classList.remove('hidden');
+      cargarPantallaPresupuesto();
     });
 
-    document.getElementById('btnGuardarLimite').addEventListener('click', () => {
-      const valor = parseFloat(document.getElementById('inputLimite').value);
-      if (isNaN(valor) || valor < 0) {
-        alert('Ingresa un valor válido.');
-        return;
-      }
-      guardarPresupuesto(valor);
+    document.getElementById('btnVolverDePresupuesto').addEventListener('click', () => {
+      document.getElementById('presupuestoScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
     });
 
-    function actualizarBarraProgreso() {
-      const gastosText = document.getElementById('totalGastos').textContent.replace('$', '');
-      const gastos = parseFloat(gastosText) || 0;
-      const contenedor = document.getElementById('contenedorPresupuesto');
-      const barra = document.getElementById('barraProgreso');
-      const texto = document.getElementById('textoPresupuesto');
-      const alerta = document.getElementById('alertaPresupuesto');
-
-      if (limitePresupuesto <= 0) {
-        contenedor.classList.add('hidden');
-        return;
-      }
-      contenedor.classList.remove('hidden');
-      const porcentaje = (gastos / limitePresupuesto) * 100;
-      barra.style.width = Math.min(porcentaje, 100) + '%';
-      texto.textContent = '$' + gastos.toFixed(2) + ' / $' + limitePresupuesto.toFixed(2);
-
-      if (porcentaje < 50) {
-        barra.style.backgroundColor = '#10b981';
-        barra.style.boxShadow = '0 0 8px #10b981';
-      } else if (porcentaje < 80) {
-        barra.style.backgroundColor = '#f59e0b';
-        barra.style.boxShadow = '0 0 8px #f59e0b';
-      } else if (porcentaje < 100) {
-        barra.style.backgroundColor = '#f97316';
-        barra.style.boxShadow = '0 0 8px #f97316';
-      } else {
-        barra.style.backgroundColor = '#ef4444';
-        barra.style.boxShadow = '0 0 8px #ef4444';
-      }
-
-      if (porcentaje >= 100) {
-        alerta.textContent = '⚠️ ¡Has superado el límite de gastos!';
-        alerta.classList.remove('hidden');
-        alerta.className = 'text-xs mt-2 font-bold text-red-500';
-      } else if (porcentaje >= 80) {
-        alerta.textContent = '⚠️ Estás cerca del límite (' + porcentaje.toFixed(0) + '%)';
-        alerta.classList.remove('hidden');
-        alerta.className = 'text-xs mt-2 font-bold text-orange-500';
-      } else {
-        alerta.classList.add('hidden');
-      }
-    }
-
-    // --- BASE DE DATOS (sin cambios) ---
+    // --- BASE DE DATOS (transacciones y categorías) ---
     function coleccionRef() { return 'usuarios/' + usuarioActual.uid + '/transacciones'; }
     function coleccionCategoriasRef() { return 'usuarios/' + usuarioActual.uid + '/categorias'; }
     function obtenerTransacciones(callback) {
@@ -535,12 +483,39 @@
     }
     function eliminarCategoria(id) { db.collection(coleccionCategoriasRef()).doc(id).delete(); }
 
-    function obtenerMesActual() {
-      const ahora = new Date();
-      return ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0');
+    // --- PRESUPUESTO (Firestore) ---
+    function obtenerLimiteMes(mes, callback) {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(mes).get().then(doc => {
+        callback(doc.exists ? doc.data().limite : 0);
+      });
     }
 
-    // --- GRÁFICAS ---
+    function guardarLimiteMes(mes, limite, callback) {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(mes).set({ limite }).then(callback);
+    }
+
+    function obtenerHistorialPresupuestos(callback) {
+      const meses = [];
+      const fecha = new Date();
+      for (let i = 2; i >= 0; i--) {
+        const d = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
+        const mesStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        meses.push(mesStr);
+      }
+      const refs = meses.map(m => db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(m).get());
+      Promise.all(refs).then(docs => {
+        const historial = [];
+        docs.forEach((doc, idx) => {
+          historial.push({
+            mes: meses[idx],
+            limite: doc.exists ? doc.data().limite : 0
+          });
+        });
+        callback(historial);
+      });
+    }
+
+    // --- GRÁFICAS PRINCIPALES ---
     function actualizarGraficas(transaccionesFiltradas) {
       const ingresosData = transaccionesFiltradas.filter(t => t.tipo === 'ingreso');
       const gastosData = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
@@ -576,7 +551,7 @@
       graficaGastosChart = dibujar('graficaGastos', gastosData, graficaGastosChart, '#ef4444');
     }
 
-    // --- UI (mejorada visualmente) ---
+    // --- UI PRINCIPAL ---
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       var opciones = '';
@@ -612,8 +587,6 @@
       const balanceEl = document.getElementById('balance');
       balanceEl.textContent = '$' + balance.toFixed(2);
       balanceEl.className = 'text-4xl font-extrabold mt-1 ' + (balance >= 0 ? 'text-emerald-500' : 'text-red-500');
-
-      actualizarBarraProgreso();
 
       const lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
@@ -652,14 +625,116 @@
         renderizarListaCategorias();
         obtenerTransacciones(transacciones => actualizarVista(transacciones));
       });
-      cargarPresupuesto();
     }
+
+    // --- PANTALLA DE PRESUPUESTO ---
+    function cargarPantallaPresupuesto() {
+      // Mostrar mes actual
+      const partes = mesSeleccionado.split('-');
+      const nombreMes = new Date(partes[0], partes[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      document.getElementById('tituloMesPresupuesto').textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+
+      // Días restantes
+      const ahora = new Date();
+      const finMes = new Date(partes[0], partes[1], 0).getDate();
+      const diaActual = (ahora.getFullYear() == partes[0] && (ahora.getMonth() + 1) == partes[1]) ? ahora.getDate() : 0;
+      const diasRest = Math.max(0, finMes - diaActual);
+      document.getElementById('diasRestantes').textContent = diasRest + ' días restantes';
+
+      // Obtener gastos reales del mes
+      obtenerTransacciones(transacciones => {
+        const gastos = transacciones.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesSeleccionado))
+                                     .reduce((sum, t) => sum + t.monto, 0);
+        obtenerLimiteMes(mesSeleccionado, limite => {
+          document.getElementById('gastoActualPresupuesto').textContent = '$' + gastos.toFixed(2);
+          document.getElementById('limitePresupuestoValor').textContent = '$' + limite.toFixed(2);
+          document.getElementById('inputLimitePresupuesto').value = limite;
+
+          const porcentaje = limite > 0 ? (gastos / limite) * 100 : 0;
+          dibujarGraficaPresupuesto(porcentaje);
+
+          // Promedio diario
+          const diasTranscurridos = diaActual > 0 ? diaActual : finMes;
+          const promedio = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
+          document.getElementById('promedioDiario').textContent = '$' + promedio.toFixed(2);
+
+          // Proyección
+          const proyeccion = promedio * finMes;
+          document.getElementById('proyeccionMensual').textContent = '$' + proyeccion.toFixed(2);
+          if (limite > 0 && proyeccion > limite) {
+            document.getElementById('proyeccionMensual').className = 'text-lg font-semibold text-red-500';
+          } else {
+            document.getElementById('proyeccionMensual').className = 'text-lg font-semibold text-emerald-500';
+          }
+        });
+      });
+
+      // Cargar historial
+      obtenerHistorialPresupuestos(historial => {
+        const contenedorHistorial = document.getElementById('historialPresupuesto');
+        // Para cada mes del historial, necesitamos el gasto real (ya lo tenemos en la app principal pero no aquí; podemos obtener transacciones de esos meses extra)
+        // Para simplificar, haremos una consulta adicional por cada mes. Optimización: obtener todas las transacciones de una vez y filtrar.
+        obtenerTransacciones(todas => {
+          var html = '';
+          historial.forEach(item => {
+            const gastosMes = todas.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(item.mes))
+                                  .reduce((sum, t) => sum + t.monto, 0);
+            const cumplio = item.limite > 0 ? gastosMes <= item.limite : true;
+            const color = cumplio ? 'text-emerald-500' : 'text-red-500';
+            const nombreMesHist = new Date(item.mes.split('-')[0], item.mes.split('-')[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+            html += '<div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">' +
+              '<span class="font-medium">' + nombreMesHist + '</span>' +
+              '<div class="text-right">' +
+                '<span class="font-bold ' + color + '">$' + gastosMes.toFixed(2) + '</span>' +
+                '<span class="text-xs texto-secundario ml-2"> / $' + (item.limite || 0).toFixed(2) + '</span>' +
+              '</div>' +
+              '</div>';
+          });
+          contenedorHistorial.innerHTML = html || '<p class="texto-secundario text-center">Sin datos</p>';
+        });
+      });
+    }
+
+    function dibujarGraficaPresupuesto(porcentaje) {
+      if (graficaPresupuestoChart) graficaPresupuestoChart.destroy();
+      const ctx = document.getElementById('graficaPresupuesto').getContext('2d');
+      const porcentajeValido = Math.min(porcentaje, 100);
+      const color = porcentaje < 50 ? '#10b981' : porcentaje < 80 ? '#f59e0b' : porcentaje < 100 ? '#f97316' : '#ef4444';
+      graficaPresupuestoChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [porcentajeValido, 100 - porcentajeValido],
+            backgroundColor: [color, '#e5e7eb'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          cutout: '80%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          }
+        }
+      });
+    }
+
+    document.getElementById('btnGuardarLimitePresupuesto').addEventListener('click', () => {
+      const nuevoLimite = parseFloat(document.getElementById('inputLimitePresupuesto').value);
+      if (isNaN(nuevoLimite) || nuevoLimite < 0) {
+        alert('Ingresa un valor válido.');
+        return;
+      }
+      guardarLimiteMes(mesSeleccionado, nuevoLimite, () => {
+        cargarPantallaPresupuesto();
+      });
+    });
 
     // --- MODO OSCURO ---
     function aplicarTema(oscuro) {
       document.documentElement.setAttribute('data-theme', oscuro ? 'dark' : 'light');
       document.getElementById('toggleTema').textContent = oscuro ? '☀️' : '🌙';
-      // Regenerar gráficas con nuevos colores de borde
       if (usuarioActual) {
         obtenerTransacciones(transacciones => {
           const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
@@ -698,7 +773,7 @@
         document.getElementById('emojiCategoria').value = '';
       });
 
-      // Pestañas mejoradas
+      // Pestañas
       const tabIngreso = document.getElementById('tabIngreso');
       const tabGasto = document.getElementById('tabGasto');
       const btnAgregar = document.getElementById('btnAgregar');
