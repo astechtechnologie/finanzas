@@ -177,7 +177,9 @@
       }
 
       // Gráfico de tendencia
-      App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
+      if (typeof App.actualizarGraficaTendencia === 'function') {
+        App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
+      }
     }
 
     function llenarSelectCategorias() {
@@ -189,22 +191,35 @@
       }).join('');
     }
 
+    // NUEVA VERSIÓN de renderizarListaCategorias
     function renderizarListaCategorias() {
       var cont = document.getElementById('listaCategorias');
       if (!cont) return;
       if (!App.categoriasState || App.categoriasState.length === 0) {
-        cont.innerHTML = '<p class="texto-secundario">No hay categorías</p>';
+        cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
         return;
       }
-      cont.innerHTML = App.categoriasState.map(function(c) {
-        return '<div class="cat-item">' +
-          '<span>' + c.emoji + ' ' + c.nombre + ' <small>(' + c.tipo + ')</small></span>' +
-          '<button class="btn-delete" data-id="' + c.id + '">✕</button>' +
-          '</div>';
-      }).join('');
-      cont.querySelectorAll('.btn-delete').forEach(function(b) {
+      var html = '';
+      App.categoriasState.forEach(function(c) {
+        html += '<div class="cat-card">' +
+          '<div class="cat-info">' +
+            '<span class="cat-emoji">' + c.emoji + '</span>' +
+            '<div class="cat-detalles">' +
+              '<span class="cat-nombre">' + c.nombre + '</span>' +
+              '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
+        '</div>';
+      });
+      cont.innerHTML = html;
+
+      // Eventos de eliminar
+      cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
         b.addEventListener('click', function() {
-          App.eliminarCategoria(this.dataset.id);
+          if (confirm('¿Eliminar esta categoría?')) {
+            App.eliminarCategoria(this.dataset.id);
+          }
         });
       });
     }
@@ -218,7 +233,7 @@
       });
     };
 
-    // Formulario de categoría
+    // Evento del formulario de categoría (NUEVA VERSIÓN con limpieza)
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
@@ -231,6 +246,7 @@
         App.agregarCategoria(nombre, emoji, color, tipo);
         formCat.reset();
         document.getElementById('colorCategoria').value = '#10b981';
+        document.getElementById('emojiCategoria').value = '';
       });
     }
   });
