@@ -19,7 +19,7 @@
 </head>
 <body>
 
-  <!-- PANTALLA DE LOGIN (sin shell) -->
+  <!-- PANTALLA DE LOGIN -->
   <div id="authScreen" class="hidden fullscreen-center">
     <div class="auth-container">
       <h1 class="app-logo">💰 Mis Finanzas</h1>
@@ -42,12 +42,14 @@
   <!-- APP SHELL -->
   <div id="appShell" class="hidden app-shell">
 
-    <!-- Header dinámico -->
+    <!-- Header con filtro de mes -->
     <header class="app-header">
       <h1 id="tituloSeccion" class="titulo-seccion">Inicio</h1>
+      <div class="header-actions">
+        <input type="month" id="filtroMesHeader" class="input-mes">
+      </div>
     </header>
 
-    <!-- Contenido dinámico (vistas) -->
     <main class="vistas-container">
       <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
@@ -56,23 +58,20 @@
           <div class="resumen-card gasto-card"><span>Gastos</span><strong id="totalGastos">$0</strong></div>
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
-        <div class="charts-grid">
-          <div><canvas id="graficaIngresos"></canvas></div>
-          <div><canvas id="graficaGastos"></canvas></div>
+        <div class="tendencia-container tarjeta p-4 mb-4">
+          <h3 class="text-sm font-semibold mb-2">📊 Tendencia últimos meses</h3>
+          <canvas id="graficaTendencia" class="max-h-32"></canvas>
         </div>
         <div class="movimientos-container">
           <h2>Movimientos</h2>
           <div id="listaTransacciones"></div>
         </div>
-        <!-- FAB -->
         <button id="fabAgregar" class="fab">+</button>
       </div>
 
       <!-- Vista Presupuesto -->
       <div id="vistaPresupuesto" class="vista">
-        <div id="contenidoPresupuesto" class="presupuesto-container">
-          <!-- Se rellena dinámicamente -->
-        </div>
+        <div id="contenidoPresupuesto" class="presupuesto-container"></div>
       </div>
 
       <!-- Vista Categorías -->
@@ -84,6 +83,7 @@
             <input type="text" id="nombreCategoria" placeholder="Nombre" required>
             <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" readonly>
             <input type="color" id="colorCategoria" value="#10b981">
+            <select id="tipoCategoria"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option></select>
             <button type="submit" class="btn btn-primario">+</button>
           </form>
           <div class="emoji-grid">
@@ -95,6 +95,8 @@
             <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
             <span onclick="document.getElementById('emojiCategoria').value='❤️'">❤️</span>
             <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💼'">💼</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
           </div>
         </div>
       </div>
@@ -111,14 +113,18 @@
             <span>Cambiar contraseña</span>
             <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
           </div>
-          <div id="panelCambioPassword" class="hidden">
-            <input type="password" id="currentPassword" placeholder="Contraseña actual">
-            <input type="password" id="newPassword" placeholder="Nueva contraseña">
-            <button id="btnUpdatePassword" class="btn btn-primario">Actualizar</button>
+          <div id="panelCambioPassword" class="hidden mt-2">
+            <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
+            <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
+            <button id="btnUpdatePassword" class="btn btn-primario w-full mt-2">Actualizar</button>
             <p id="passwordError" class="error-text hidden"></p>
             <p id="passwordSuccess" class="success-text hidden"></p>
           </div>
-          <button id="btnLogout" class="btn btn-peligro w-full">Cerrar sesión</button>
+          <div class="ajuste-item">
+            <span>Exportar movimientos (CSV)</span>
+            <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
+          </div>
+          <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
         </div>
       </div>
     </main>
@@ -131,7 +137,7 @@
       <button class="nav-item" data-vista="vistaAjustes">⚙️<span>Ajustes</span></button>
     </nav>
 
-    <!-- Modal para agregar transacción -->
+    <!-- Modal AGREGAR transacción -->
     <div id="modalTransaccion" class="modal hidden">
       <div class="modal-content">
         <h2>Nueva transacción</h2>
@@ -139,19 +145,35 @@
           <button id="tabIngreso" class="tab active">Ingreso</button>
           <button id="tabGasto" class="tab">Gasto</button>
         </div>
-        <input type="date" id="fecha">
-        <select id="categoria"></select>
-        <input type="text" id="descripcion" placeholder="Descripción">
-        <input type="number" id="monto" placeholder="Monto">
+        <input type="date" id="fecha" class="input-field">
+        <select id="categoria" class="input-field"></select>
+        <input type="text" id="descripcion" placeholder="Descripción" class="input-field">
+        <input type="number" id="monto" placeholder="Monto" class="input-field">
         <div class="modal-buttons">
           <button id="btnCancelarModal" class="btn btn-outline">Cancelar</button>
           <button id="btnGuardarModal" class="btn btn-primario">Guardar</button>
         </div>
       </div>
     </div>
+
+    <!-- Modal EDITAR transacción -->
+    <div id="modalEditarTransaccion" class="modal hidden">
+      <div class="modal-content">
+        <h2>Editar transacción</h2>
+        <input type="date" id="fechaEditar" class="input-field">
+        <select id="categoriaEditar" class="input-field"></select>
+        <input type="text" id="descripcionEditar" placeholder="Descripción" class="input-field">
+        <input type="number" id="montoEditar" placeholder="Monto" class="input-field">
+        <input type="hidden" id="idTransaccionEditar">
+        <div class="modal-buttons">
+          <button id="btnCancelarEditar" class="btn btn-outline">Cancelar</button>
+          <button id="btnGuardarEditar" class="btn btn-primario">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Scripts de la aplicación (orden importante) -->
+  <!-- Scripts -->
   <script src="js/firebase-config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>
