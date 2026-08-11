@@ -295,4 +295,30 @@ body {
   color: var(--primario);
   font-weight: 600;
 }
-/* ... resto de estilos ... */
+/* Asegurar que la barra de navegación no se superponga con otros elementos y sea cliqueable */
+.bottom-nav {
+  pointer-events: auto;
+  z-index: 50;
+}
+
+.nav-item {
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Corregir posible superposición del main o contenedor de vistas */
+.vistas-container {
+  pointer-events: auto;
+}
+
+/* Asegurar que el FAB también esté por encima y sea cliqueable */
+.fab {
+  z-index: 60;
+  pointer-events: auto;
+}
+
+/* Modal */
+.modal {
+  z-index: 100;
+}
