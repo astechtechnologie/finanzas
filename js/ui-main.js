@@ -5,12 +5,10 @@
     return (typeof App.obtenerMesActual === 'function') ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
   }
 
-  // Esperar a que el DOM esté listo
   document.addEventListener('DOMContentLoaded', function() {
     let mesSeleccionado = getMes();
     let tipoTransaccion = 'ingreso';
 
-    // Elementos del shell
     const vistas = {
       inicio: document.getElementById('vistaInicio'),
       presupuesto: document.getElementById('vistaPresupuesto'),
@@ -22,15 +20,11 @@
     const modal = document.getElementById('modalTransaccion');
     const fab = document.getElementById('fabAgregar');
 
-    // Verificar que los elementos principales existen
     if (!vistas.inicio || !fab || !modal) {
       console.error('Elementos del shell no encontrados');
       return;
     }
 
-    /**
-     * Normaliza el nombre de vista desde el dataset (ej: "vistaInicio" -> "inicio")
-     */
     function normalizarVista(nombreVista) {
       return nombreVista.replace('vista', '').toLowerCase();
     }
@@ -43,27 +37,24 @@
         return;
       }
 
-      // Ocultar todas las vistas y mostrar la seleccionada
       Object.values(vistas).forEach(v => v.classList.remove('activa'));
       vista.classList.add('activa');
 
-      // Actualizar botones de navegación
       navItems.forEach(item => item.classList.remove('active'));
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
 
-      // Actualizar título
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes' };
       tituloSeccion.textContent = titulos[clave];
 
-      // Acciones adicionales al cambiar a ciertas vistas
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
       }
-      if (clave === 'categorias') renderizarListaCategorias();
+      if (clave === 'categorias') {
+        renderizarListaCategorias();
+      }
     }
 
-    // Asignar eventos a los botones de la barra inferior
     navItems.forEach(item => {
       item.addEventListener('click', function() {
         const vista = this.dataset.vista;
@@ -71,17 +62,15 @@
       });
     });
 
-    // FAB (botón flotante) para abrir modal
+    // FAB y Modal
     fab.addEventListener('click', function() {
       modal.classList.remove('hidden');
     });
 
-    // Modal: Cancelar
     document.getElementById('btnCancelarModal').addEventListener('click', function() {
       modal.classList.add('hidden');
     });
 
-    // Modal: Guardar transacción
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       const categoria = document.getElementById('categoria').value;
       const descripcion = document.getElementById('descripcion').value.trim();
@@ -94,7 +83,6 @@
       document.getElementById('monto').value = '';
     });
 
-    // Modal: Pestañas Ingreso/Gasto
     document.getElementById('tabIngreso').addEventListener('click', function() {
       tipoTransaccion = 'ingreso';
       this.classList.add('active');
@@ -106,11 +94,10 @@
       document.getElementById('tabIngreso').classList.remove('active');
     });
 
-    // Fecha por defecto en el modal
     const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
-    // ========== FUNCIONES DE RENDERIZADO ==========
+    // ========== RENDERIZADO ==========
     function actualizarInicio(transacciones) {
       mesSeleccionado = getMes();
       const filtradas = transacciones.filter(function(t) {
@@ -176,7 +163,6 @@
       }).join('');
     }
 
-    // Exponer cargarDatosIniciales globalmente
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
@@ -188,7 +174,7 @@
       });
     };
 
-    // Evento para el formulario de categoría (vista categorías)
+    // Formulario de categoría (vista categorías)
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
