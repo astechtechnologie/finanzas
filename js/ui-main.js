@@ -32,10 +32,7 @@
     function cambiarVista(nombreVista) {
       const clave = normalizarVista(nombreVista);
       const vista = vistas[clave];
-      if (!vista) {
-        console.error('Vista no encontrada:', clave);
-        return;
-      }
+      if (!vista) return;
 
       Object.values(vistas).forEach(v => v.classList.remove('activa'));
       vista.classList.add('activa');
@@ -50,28 +47,19 @@
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
       }
-      if (clave === 'categorias') {
-        renderizarListaCategorias();
-      }
+      if (clave === 'categorias') renderizarListaCategorias();
     }
 
     navItems.forEach(item => {
       item.addEventListener('click', function() {
-        const vista = this.dataset.vista;
-        cambiarVista(vista);
+        cambiarVista(this.dataset.vista);
       });
     });
 
     // FAB y Modal
-    fab.addEventListener('click', function() {
-      modal.classList.remove('hidden');
-    });
-
-    document.getElementById('btnCancelarModal').addEventListener('click', function() {
-      modal.classList.add('hidden');
-    });
-
-    document.getElementById('btnGuardarModal').addEventListener('click', function() {
+    fab.addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('btnCancelarModal').addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('btnGuardarModal').addEventListener('click', () => {
       const categoria = document.getElementById('categoria').value;
       const descripcion = document.getElementById('descripcion').value.trim();
       const monto = document.getElementById('monto').value;
@@ -83,31 +71,30 @@
       document.getElementById('monto').value = '';
     });
 
-    document.getElementById('tabIngreso').addEventListener('click', function() {
+    // Pestañas del modal
+    const tabIngreso = document.getElementById('tabIngreso');
+    const tabGasto = document.getElementById('tabGasto');
+    tabIngreso.addEventListener('click', () => {
       tipoTransaccion = 'ingreso';
-      this.classList.add('active');
-      document.getElementById('tabGasto').classList.remove('active');
+      tabIngreso.classList.add('active');
+      tabGasto.classList.remove('active');
+      llenarSelectCategorias();
     });
-    document.getElementById('tabGasto').addEventListener('click', function() {
+    tabGasto.addEventListener('click', () => {
       tipoTransaccion = 'gasto';
-      this.classList.add('active');
-      document.getElementById('tabIngreso').classList.remove('active');
+      tabGasto.classList.add('active');
+      tabIngreso.classList.remove('active');
+      llenarSelectCategorias();
     });
 
-    const fechaInput = document.getElementById('fecha');
-    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // ========== RENDERIZADO ==========
+    // Renderizado de inicio
     function actualizarInicio(transacciones) {
       mesSeleccionado = getMes();
-      const filtradas = transacciones.filter(function(t) {
-        return t.fecha && t.fecha.startsWith(mesSeleccionado);
-      });
+      const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
       let ingresos = 0, gastos = 0;
-      filtradas.forEach(function(t) {
-        if (t.tipo === 'ingreso') ingresos += t.monto;
-        else gastos += t.monto;
-      });
+      filtradas.forEach(t => t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto);
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       const balance = ingresos - gastos;
@@ -122,32 +109,31 @@
       }
       let html = '';
       const cats = App.categoriasState || [];
-      filtradas.sort(function(a, b) { return (b.fecha + b.id).localeCompare(a.fecha + a.id); });
-      filtradas.forEach(function(t) {
-        const cat = cats.find(function(c) { return c.nombre === t.categoria; });
+      filtradas.sort((a,b) => (b.fecha+b.id).localeCompare(a.fecha+a.id));
+      filtradas.forEach(t => {
+        const cat = cats.find(c => c.nombre === t.categoria);
         const emoji = cat ? cat.emoji : '📌';
         const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
         html += '<div class="movimiento-item">' +
           '<span class="emoji">' + emoji + '</span>' +
-          '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + new Date(t.fecha + 'T00:00:00').toLocaleDateString() + '</small></div>' +
+          '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + new Date(t.fecha+'T00:00:00').toLocaleDateString() + '</small></div>' +
           '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + t.monto.toFixed(2) + '</span>' +
           '<button onclick="App.eliminarTransaccion(\'' + t.id + '\')" class="btn-delete">✕</button>' +
           '</div>';
       });
       lista.innerHTML = html;
-      if (typeof App.actualizarGraficas === 'function') {
-        App.actualizarGraficas(filtradas, App.categoriasState || []);
-      }
+      App.actualizarGraficas(filtradas, App.categoriasState || []);
     }
 
+    // Llenar select según tipo de transacción
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       if (!select) return;
-      select.innerHTML = (App.categoriasState || []).map(function(c) {
-        return '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
-      }).join('');
+      const filtradas = (App.categoriasState || []).filter(c => c.tipo === tipoTransaccion);
+      select.innerHTML = filtradas.map(c => '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>').join('');
     }
 
+    // Renderizar lista de categorías en la vista correspondiente
     function renderizarListaCategorias() {
       const contenedor = document.getElementById('listaCategorias');
       if (!contenedor) return;
@@ -155,35 +141,41 @@
         contenedor.innerHTML = '<p class="texto-secundario">No hay categorías</p>';
         return;
       }
-      contenedor.innerHTML = App.categoriasState.map(function(c) {
-        return '<div class="cat-item">' +
-          '<span>' + c.emoji + ' ' + c.nombre + '</span>' +
+      contenedor.innerHTML = App.categoriasState.map(c =>
+        '<div class="cat-item">' +
+          '<span>' + c.emoji + ' ' + c.nombre + ' <small>(' + c.tipo + ')</small></span>' +
           '<button onclick="App.eliminarCategoria(\'' + c.id + '\')" class="btn-delete">✕</button>' +
-          '</div>';
-      }).join('');
+        '</div>'
+      ).join('');
     }
 
     App.cargarDatosIniciales = function() {
-      App.obtenerCategorias(function(cats) {
+      App.obtenerCategorias(cats => {
         App.categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
-        App.obtenerTransacciones(function(transacciones) {
-          actualizarInicio(transacciones);
-        });
+        App.obtenerTransacciones(transacciones => actualizarInicio(transacciones));
       });
     };
 
-    // Formulario de categoría (vista categorías)
-    var formCat = document.getElementById('formCategoria');
+    // Formulario de categoría (vista categorías) ahora con tipo
+    const formCat = document.getElementById('formCategoria');
+    if (formCat) {
+      // Añadir un select para el tipo (ingreso/gasto) en el formulario
+      const tipoSelect = document.createElement('select');
+      tipoSelect.id = 'tipoCategoria';
+      tipoSelect.innerHTML = '<option value="gasto">Gasto</option><option value="ingreso">Ingreso</option>';
+      formCat.insertBefore(tipoSelect, formCat.querySelector('button'));
+    }
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
         e.preventDefault();
-        var nombre = document.getElementById('nombreCategoria').value.trim();
-        var emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
-        var color = document.getElementById('colorCategoria').value;
+        const nombre = document.getElementById('nombreCategoria').value.trim();
+        const emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
+        const color = document.getElementById('colorCategoria').value;
+        const tipo = document.getElementById('tipoCategoria') ? document.getElementById('tipoCategoria').value : 'gasto';
         if (!nombre) return;
-        App.agregarCategoria(nombre, emoji, color);
+        App.agregarCategoria(nombre, emoji, color, tipo);
         this.reset();
         document.getElementById('colorCategoria').value = '#10b981';
         document.getElementById('emojiCategoria').value = '';
