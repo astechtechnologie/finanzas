@@ -44,16 +44,17 @@
       border-radius: 1rem;
     }
     .texto-secundario { color: var(--color-texto-secundario); }
-    .btn-ingreso {
-      background-color: var(--color-ingreso);
-      color: white;
-    }
-    .btn-gasto {
-      background-color: var(--color-gasto);
-      color: white;
-    }
-    canvas {
-      max-height: 250px;
+    .btn-ingreso { background-color: var(--color-ingreso); color: white; }
+    .btn-gasto { background-color: var(--color-gasto); color: white; }
+    canvas { max-height: 250px; }
+    .relative { position: relative; }
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      user-select: none;
     }
   </style>
   <script>
@@ -64,7 +65,7 @@
 </head>
 <body class="flex items-center justify-center">
   <div class="w-full max-w-lg mx-auto space-y-6">
-    
+
     <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="authScreen" class="hidden space-y-6">
       <div class="text-center">
@@ -74,12 +75,17 @@
       <div class="tarjeta p-6 space-y-4">
         <h2 class="text-xl font-bold">Iniciar sesión o registrarse</h2>
         <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-        <input type="password" id="password" placeholder="Contraseña (mín. 6 caracteres)" minlength="6" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <div class="relative">
+          <input type="password" id="password" placeholder="Contraseña" minlength="6" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)] pr-10">
+          <span id="togglePassword" class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <button id="btnLogin" class="btn-ingreso py-3 rounded-xl font-semibold hover:opacity-90">Iniciar sesión</button>
           <button id="btnRegister" class="bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:opacity-90">Registrarse</button>
         </div>
+        <button id="btnResetPassword" class="w-full text-sm text-blue-500 hover:underline">¿Olvidaste tu contraseña?</button>
         <p id="authError" class="text-red-400 text-sm hidden"></p>
+        <p id="authSuccess" class="text-emerald-500 text-sm hidden"></p>
       </div>
     </div>
 
@@ -90,9 +96,20 @@
         <h1 class="text-3xl font-bold text-emerald-500">💰 Finanzas</h1>
         <div class="flex gap-2">
           <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🏷️</button>
+          <button id="btnCambiarPassword" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cambiar contraseña">🔐</button>
           <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
           <button id="btnLogout" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cerrar sesión">🚪</button>
         </div>
+      </div>
+
+      <!-- Panel de cambio de contraseña (oculto) -->
+      <div id="panelCambioPassword" class="tarjeta p-4 hidden space-y-3">
+        <h2 class="font-bold text-lg">🔐 Cambiar contraseña</h2>
+        <input type="password" id="currentPassword" placeholder="Contraseña actual" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <input type="password" id="newPassword" placeholder="Nueva contraseña (mín. 6 caracteres)" minlength="6" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+        <button id="btnUpdatePassword" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:opacity-90">Actualizar contraseña</button>
+        <p id="passwordError" class="text-red-400 text-sm hidden"></p>
+        <p id="passwordSuccess" class="text-emerald-500 text-sm hidden"></p>
       </div>
 
       <!-- Panel de categorías (oculto) -->
@@ -207,6 +224,19 @@
     const CLAVE_TEMA = 'tema_oscuro';
     let tipoSeleccionado = 'ingreso';
 
+    // --- MOSTRAR/OCULTAR CONTRASEÑA ---
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('togglePassword');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+      } else {
+        passInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+      }
+    }
+
     // --- AUTENTICACIÓN ---
     function mostrarAuth() {
       document.getElementById('authScreen').classList.remove('hidden');
@@ -216,6 +246,7 @@
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
     }
+
     document.getElementById('btnLogin').addEventListener('click', function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -223,8 +254,10 @@
       auth.signInWithEmailAndPassword(email, password).catch(function(e) {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
+        document.getElementById('authSuccess').classList.add('hidden');
       });
     });
+
     document.getElementById('btnRegister').addEventListener('click', function() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -232,12 +265,77 @@
       auth.createUserWithEmailAndPassword(email, password).catch(function(e) {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
+        document.getElementById('authSuccess').classList.add('hidden');
       });
     });
+
+    // Restablecer contraseña (envía correo)
+    document.getElementById('btnResetPassword').addEventListener('click', function() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        document.getElementById('authError').textContent = 'Ingresa tu correo electrónico.';
+        document.getElementById('authError').classList.remove('hidden');
+        return;
+      }
+      auth.sendPasswordResetEmail(email).then(function() {
+        document.getElementById('authSuccess').textContent = 'Correo de restablecimiento enviado. Revisa tu bandeja de entrada.';
+        document.getElementById('authSuccess').classList.remove('hidden');
+        document.getElementById('authError').classList.add('hidden');
+      }).catch(function(e) {
+        document.getElementById('authError').textContent = e.message;
+        document.getElementById('authError').classList.remove('hidden');
+        document.getElementById('authSuccess').classList.add('hidden');
+      });
+    });
+
     document.getElementById('btnLogout').addEventListener('click', function() { auth.signOut(); });
+
     auth.onAuthStateChanged(function(user) {
       if (user) { usuarioActual = user; mostrarApp(); cargarDatosIniciales(); }
       else { usuarioActual = null; mostrarAuth(); }
+    });
+
+    // --- CAMBIO DE CONTRASEÑA ---
+    document.getElementById('btnCambiarPassword').addEventListener('click', function() {
+      document.getElementById('panelCambioPassword').classList.toggle('hidden');
+      document.getElementById('passwordError').classList.add('hidden');
+      document.getElementById('passwordSuccess').classList.add('hidden');
+      document.getElementById('currentPassword').value = '';
+      document.getElementById('newPassword').value = '';
+    });
+
+    document.getElementById('btnUpdatePassword').addEventListener('click', function() {
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      if (!currentPassword || !newPassword) {
+        document.getElementById('passwordError').textContent = 'Ambos campos son obligatorios.';
+        document.getElementById('passwordError').classList.remove('hidden');
+        return;
+      }
+      if (newPassword.length < 6) {
+        document.getElementById('passwordError').textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        document.getElementById('passwordError').classList.remove('hidden');
+        return;
+      }
+
+      // Reautenticar al usuario con su contraseña actual
+      const credential = firebase.auth.EmailAuthProvider.credential(usuarioActual.email, currentPassword);
+      usuarioActual.reauthenticateWithCredential(credential).then(function() {
+        // Cambiar a la nueva contraseña
+        return usuarioActual.updatePassword(newPassword);
+      }).then(function() {
+        document.getElementById('passwordSuccess').textContent = 'Contraseña actualizada correctamente.';
+        document.getElementById('passwordSuccess').classList.remove('hidden');
+        document.getElementById('passwordError').classList.add('hidden');
+        setTimeout(function() {
+          document.getElementById('panelCambioPassword').classList.add('hidden');
+          document.getElementById('passwordSuccess').classList.add('hidden');
+        }, 2000);
+      }).catch(function(e) {
+        document.getElementById('passwordError').textContent = e.message;
+        document.getElementById('passwordError').classList.remove('hidden');
+        document.getElementById('passwordSuccess').classList.add('hidden');
+      });
     });
 
     // --- BASE DE DATOS ---
