@@ -322,3 +322,36 @@ body {
 .modal {
   z-index: 100;
 }
+/* Presupuesto */
+.presupuesto-cat-card {
+  background: var(--tarjeta);
+  border: var(--borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: var(--sombra-sm);
+}
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+.btn-editar-limite, .btn-eliminar-cat {
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+}
+.btn-editar-limite:hover { background: var(--primario); color: white; border-color: var(--primario); }
+.btn-eliminar-cat:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
+
+/* Ajuste para formulario de categoría con select de tipo */
+#formCategoria select {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--nav-border);
+  background: var(--tarjeta);
+  color: var(--texto);
+}
