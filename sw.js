@@ -1,13 +1,18 @@
-const CACHE_NAME = 'finanzas-v4';
+const CACHE_NAME = 'finanzas-v5';
+
 self.addEventListener('install', e => self.skipWaiting());
+
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
   );
   self.clients.claim();
 });
+
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  // Solo manejar solicitudes http/https
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) return;
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(response => {
