@@ -1,3 +1,4 @@
+// Interfaz principal: navegación por vistas, modal, renderizado de inicio y categorías
 (function() {
   const App = window.App;
   let mesSeleccionado = App.obtenerMesActual();
@@ -15,28 +16,27 @@
   const modal = document.getElementById('modalTransaccion');
   const fab = document.getElementById('fabAgregar');
 
-  // Navegación
+  // Función para cambiar de vista
   function cambiarVista(nombreVista) {
     Object.values(vistas).forEach(v => v.classList.remove('activa'));
     vistas[nombreVista].classList.add('activa');
     navItems.forEach(item => item.classList.remove('active'));
-    document.querySelector([data-vista="vista${capitalize(nombreVista)}"]).classList.add('active');
+    document.querySelector('[data-vista="' + nombreVista + '"]').classList.add('active');
     tituloSeccion.textContent = nombreVista === 'inicio' ? 'Inicio' : nombreVista.charAt(0).toUpperCase() + nombreVista.slice(1);
 
+    // Acciones al entrar a ciertas vistas
     if (nombreVista === 'presupuesto') App.cargarPantallaPresupuesto();
     if (nombreVista === 'categorias') renderizarListaCategorias();
   }
 
-  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
   navItems.forEach(item => {
     item.addEventListener('click', () => {
-      const vista = item.dataset.vista.replace('vista', '').toLowerCase();
+      const vista = item.dataset.vista;
       cambiarVista(vista);
     });
   });
 
-  // Modal
+  // FAB y Modal
   fab.addEventListener('click', () => modal.classList.remove('hidden'));
   document.getElementById('btnCancelarModal').addEventListener('click', () => modal.classList.add('hidden'));
   document.getElementById('btnGuardarModal').addEventListener('click', () => {
@@ -65,7 +65,7 @@
   // Fecha hoy
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-  // Renderizado de vista Inicio (resumen + gráficas + lista)
+  // Renderizado de vista Inicio
   function actualizarInicio(transacciones) {
     const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
     let ingresos = 0, gastos = 0;
@@ -89,12 +89,12 @@
       const cat = cats.find(c => c.nombre === t.categoria);
       const emoji = cat ? cat.emoji : '📌';
       const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
-      html += `<div class="movimiento-item">
-        <span class="emoji">${emoji}</span>
-        <div class="descripcion"><strong>${t.descripcion}</strong><small>${new Date(t.fecha+'T00:00:00').toLocaleDateString()}</small></div>
-        <span class="${color} font-bold">${t.tipo === 'ingreso' ? '+' : '-'}$${t.monto.toFixed(2)}</span>
-        <button onclick="App.eliminarTransaccion('${t.id}')" class="btn-delete">✕</button>
-      </div>`;
+      html += '<div class="movimiento-item">' +
+        '<span class="emoji">' + emoji + '</span>' +
+        '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + new Date(t.fecha+'T00:00:00').toLocaleDateString() + '</small></div>' +
+        '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + t.monto.toFixed(2) + '</span>' +
+        '<button onclick="App.eliminarTransaccion(\'' + t.id + '\')" class="btn-delete">✕</button>' +
+        '</div>';
     });
     lista.innerHTML = html;
     App.actualizarGraficas(filtradas, App.categoriasState || []);
@@ -103,22 +103,22 @@
   // Llenar select de categorías (modal)
   function llenarSelectCategorias() {
     const select = document.getElementById('categoria');
-    select.innerHTML = (App.categoriasState || []).map(c => <option value="${c.nombre}">${c.emoji} ${c.nombre}</option>).join('');
+    select.innerHTML = (App.categoriasState || []).map(c => '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>').join('');
   }
 
-  // Categorías (vista independiente)
+  // Renderizar categorías en vista independiente
   function renderizarListaCategorias() {
     const contenedor = document.getElementById('listaCategorias');
     if (!App.categoriasState || App.categoriasState.length === 0) {
       contenedor.innerHTML = '<p class="texto-secundario">No hay categorías</p>';
       return;
     }
-    contenedor.innerHTML = App.categoriasState.map(c => `
-      <div class="cat-item">
-        <span>${c.emoji} ${c.nombre}</span>
-        <button onclick="App.eliminarCategoria('${c.id}')" class="btn-delete">✕</button>
-      </div>
-    `).join('');
+    contenedor.innerHTML = App.categoriasState.map(c => 
+      '<div class="cat-item">' +
+        '<span>' + c.emoji + ' ' + c.nombre + '</span>' +
+        '<button onclick="App.eliminarCategoria(\'' + c.id + '\')" class="btn-delete">✕</button>' +
+      '</div>'
+    ).join('');
   }
 
   // Inicialización
@@ -131,8 +131,7 @@
     });
   };
 
-  // Filtro mes desde la vista inicio (podemos añadir un selector pequeño)
-  // Por simplicidad, mantendremos el filtro en la cabecera o como botón extra.
-  // Agregaremos un input month en la vista inicio (oculto o integrado)
-  // Para no complicar, lo dejamos como input tipo month en la parte superior.
+  // Para mantener sincronizado el mes, podemos agregar un input month en la vista inicio
+  // (no lo incluimos en el HTML por simplicidad, pero podemos añadir uno en el header)
+  // Por ahora, mes actual fijo. Si quieres cambiarlo, puedes agregar un selector.
 })();
