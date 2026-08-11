@@ -6,17 +6,15 @@
   // Helpers para mostrar pantallas
   App.mostrarAuth = function() {
     document.getElementById('authScreen').classList.remove('hidden');
-    document.getElementById('appScreen').classList.add('hidden');
-    document.getElementById('presupuestoScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.add('hidden');
   };
   App.mostrarApp = function() {
     document.getElementById('authScreen').classList.add('hidden');
-    document.getElementById('appScreen').classList.remove('hidden');
-    document.getElementById('presupuestoScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.remove('hidden');
   };
 
-  // Login
   document.addEventListener('DOMContentLoaded', function() {
+    // Login
     document.getElementById('btnLogin').addEventListener('click', () => {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -59,18 +57,13 @@
       });
     });
 
-    // Logout
+    // Logout (ahora en vista Ajustes)
     document.getElementById('btnLogout').addEventListener('click', () => auth.signOut());
 
-    // Cambio de contraseña (se gestiona en ui-main.js o aquí)
-    // Lo dejamos en ui-main.js para mantener coherencia, pero podemos escuchar el clic desde aquí
-    document.getElementById('btnCambiarPassword').addEventListener('click', () => {
+    // Cambio de contraseña (ahora en vista Ajustes con nuevo ID)
+    document.getElementById('btnCambiarPasswordAjustes').addEventListener('click', () => {
       const panel = document.getElementById('panelCambioPassword');
       panel.classList.toggle('hidden');
-      document.getElementById('passwordError').classList.add('hidden');
-      document.getElementById('passwordSuccess').classList.add('hidden');
-      document.getElementById('currentPassword').value = '';
-      document.getElementById('newPassword').value = '';
     });
 
     document.getElementById('btnUpdatePassword').addEventListener('click', () => {
@@ -105,10 +98,10 @@
       });
     });
 
-    // Toggle visibilidad contraseña
+    // Toggle visibilidad contraseña en login
     window.togglePasswordVisibility = function() {
       const passInput = document.getElementById('password');
-      const toggleIcon = document.getElementById('togglePassword');
+      const toggleIcon = document.querySelector('.toggle-password');
       if (passInput.type === 'password') {
         passInput.type = 'text';
         toggleIcon.textContent = '🙈';
