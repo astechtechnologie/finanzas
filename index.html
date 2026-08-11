@@ -7,68 +7,110 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      --color-fondo: #f3f4f6;
-      --color-tarjeta: #ffffff;
-      --color-texto: #1f2937;
-      --color-texto-secundario: #6b7280;
+      --color-fondo: #f8fafc;
+      --color-tarjeta: rgba(255,255,255,0.9);
+      --color-texto: #0f172a;
+      --color-texto-secundario: #475569;
       --color-boton: #10b981;
       --color-boton-hover: #059669;
       --color-ingreso: #10b981;
       --color-gasto: #ef4444;
-      --sombra: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --sombra-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --sombra: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --sombra-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+      --borde: 1px solid rgba(0,0,0,0.05);
     }
     [data-theme="dark"] {
-      --color-fondo: #0f172a;
-      --color-tarjeta: #1e293b;
+      --color-fondo: #0b1120;
+      --color-tarjeta: rgba(30,41,59,0.8);
       --color-texto: #f1f5f9;
       --color-texto-secundario: #94a3b8;
-      --sombra: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -2px rgba(0,0,0,0.4);
+      --sombra-sm: 0 1px 2px rgba(0,0,0,0.2);
+      --sombra: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+      --sombra-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -4px rgba(0,0,0,0.3);
+      --borde: 1px solid rgba(255,255,255,0.05);
     }
-    * { transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; }
+    * {
+      transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    }
     body {
-      background-color: var(--color-fondo);
+      background: var(--color-fondo);
       color: var(--color-texto);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 1rem;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
     .tarjeta {
-      background-color: var(--color-tarjeta);
+      background: var(--color-tarjeta);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       box-shadow: var(--sombra);
-      border-radius: 1rem;
+      border: var(--borde);
+      border-radius: 1.25rem;
     }
     .texto-secundario { color: var(--color-texto-secundario); }
-    .btn-ingreso { background-color: var(--color-ingreso); color: white; }
-    .btn-gasto { background-color: var(--color-gasto); color: white; }
-    canvas { max-height: 250px; }
-    .relative { position: relative; }
-    .toggle-password {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      user-select: none;
+      border: none;
+      transition: all 0.2s ease;
     }
-    /* Barra de progreso */
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--sombra-lg);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn-primario {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    .btn-peligro {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
     .progress-bar {
-      height: 10px;
-      border-radius: 10px;
-      background: #e5e7eb;
+      height: 8px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.05);
       overflow: hidden;
     }
     .progress-fill {
       height: 100%;
       width: 0%;
-      transition: width 0.5s ease, background-color 0.5s ease;
-      border-radius: 10px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
+      border-radius: 8px;
+      box-shadow: 0 0 8px currentColor;
     }
+    canvas {
+      max-height: 220px;
+    }
+    /* Animación de entrada para paneles */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-animado {
+      animation: fadeInUp 0.3s ease;
+    }
+    /* Scrollbar estilizado */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
@@ -77,162 +119,161 @@
   </script>
 </head>
 <body class="flex items-center justify-center">
-  <div class="w-full max-w-lg mx-auto space-y-6">
+  <div class="w-full max-w-lg mx-auto space-y-5">
 
     <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="authScreen" class="hidden space-y-6">
       <div class="text-center">
-        <h1 class="text-4xl font-extrabold text-emerald-500">💰 Mis Finanzas</h1>
+        <h1 class="text-4xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">💰 Mis Finanzas</h1>
         <p class="texto-secundario mt-2">Controla tus ingresos y gastos</p>
       </div>
-      <div class="tarjeta p-6 space-y-4">
-        <h2 class="text-xl font-bold">Iniciar sesión o registrarse</h2>
-        <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      <div class="tarjeta p-6 space-y-5">
+        <h2 class="text-xl font-bold">Iniciar sesión</h2>
+        <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3.5 border-0 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
         <div class="relative">
-          <input type="password" id="password" placeholder="Contraseña" minlength="6" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)] pr-10">
-          <span id="togglePassword" class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+          <input type="password" id="password" placeholder="Contraseña" minlength="6" class="w-full p-3.5 pr-12 border-0 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <span id="togglePassword" class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-xl" onclick="togglePasswordVisibility()">👁️</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <button id="btnLogin" class="btn-ingreso py-3 rounded-xl font-semibold hover:opacity-90">Iniciar sesión</button>
-          <button id="btnRegister" class="bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:opacity-90">Registrarse</button>
+          <button id="btnLogin" class="btn btn-primario">Iniciar sesión</button>
+          <button id="btnRegister" class="btn bg-emerald-500 text-white">Registrarse</button>
         </div>
-        <button id="btnResetPassword" class="w-full text-sm text-blue-500 hover:underline">¿Olvidaste tu contraseña?</button>
+        <button id="btnResetPassword" class="w-full text-sm text-blue-500 hover:underline text-center">¿Olvidaste tu contraseña?</button>
         <p id="authError" class="text-red-400 text-sm hidden"></p>
         <p id="authSuccess" class="text-emerald-500 text-sm hidden"></p>
       </div>
     </div>
 
     <!-- APP PRINCIPAL -->
-    <div id="appScreen" class="hidden space-y-6">
+    <div id="appScreen" class="hidden space-y-5">
       <!-- Cabecera -->
       <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-emerald-500">💰 Finanzas</h1>
-        <div class="flex gap-2">
-          <button id="btnPresupuesto" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Presupuesto mensual">💵</button>
-          <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🏷️</button>
-          <button id="btnCambiarPassword" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cambiar contraseña">🔐</button>
-          <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
-          <button id="btnLogout" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cerrar sesión">🚪</button>
+        <h1 class="text-3xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">💰 Finanzas</h1>
+        <div class="flex gap-1.5">
+          <button id="btnPresupuesto" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Presupuesto mensual">💵</button>
+          <button id="btnCategorias" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl">🏷️</button>
+          <button id="btnCambiarPassword" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Cambiar contraseña">🔐</button>
+          <button id="toggleTema" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl">🌙</button>
+          <button id="btnLogout" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 text-xl" title="Cerrar sesión">🚪</button>
         </div>
       </div>
 
       <!-- Panel de presupuesto (oculto) -->
-      <div id="panelPresupuesto" class="tarjeta p-4 hidden space-y-3">
+      <div id="panelPresupuesto" class="tarjeta p-4 hidden space-y-3 panel-animado">
         <h2 class="font-bold text-lg">💵 Presupuesto mensual</h2>
         <p class="text-sm texto-secundario">Define un límite máximo de gastos para este mes.</p>
         <div class="flex gap-2">
-          <input type="number" id="inputLimite" placeholder="Ej: 500.00" step="0.01" class="flex-1 p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <button id="btnGuardarLimite" class="bg-emerald-500 text-white px-4 py-3 rounded-xl font-semibold hover:opacity-90">Guardar</button>
+          <input type="number" id="inputLimite" placeholder="Ej: 500.00" step="0.01" class="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <button id="btnGuardarLimite" class="btn btn-primario">Guardar</button>
         </div>
         <p id="presupuestoInfo" class="text-xs texto-secundario"></p>
       </div>
 
       <!-- Panel de cambio de contraseña (oculto) -->
-      <div id="panelCambioPassword" class="tarjeta p-4 hidden space-y-3">
+      <div id="panelCambioPassword" class="tarjeta p-4 hidden space-y-3 panel-animado">
         <h2 class="font-bold text-lg">🔐 Cambiar contraseña</h2>
-        <input type="password" id="currentPassword" placeholder="Contraseña actual" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-        <input type="password" id="newPassword" placeholder="Nueva contraseña (mín. 6 caracteres)" minlength="6" class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-        <button id="btnUpdatePassword" class="w-full bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:opacity-90">Actualizar contraseña</button>
+        <input type="password" id="currentPassword" placeholder="Contraseña actual" class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+        <input type="password" id="newPassword" placeholder="Nueva contraseña (mín. 6 caracteres)" minlength="6" class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+        <button id="btnUpdatePassword" class="btn btn-primario w-full">Actualizar contraseña</button>
         <p id="passwordError" class="text-red-400 text-sm hidden"></p>
         <p id="passwordSuccess" class="text-emerald-500 text-sm hidden"></p>
       </div>
 
       <!-- Panel de categorías (oculto) -->
-      <div id="panelCategorias" class="tarjeta p-4 hidden space-y-3">
+      <div id="panelCategorias" class="tarjeta p-4 hidden space-y-3 panel-animado">
         <h2 class="font-bold text-lg">🏷️ Mis categorías</h2>
         <div id="listaCategorias" class="space-y-2 max-h-48 overflow-y-auto"></div>
         <form id="formCategoria" class="space-y-2">
           <div class="flex gap-2 items-end">
-            <input type="text" id="nombreCategoria" placeholder="Nombre" required class="flex-1 p-2 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-            <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="w-16 p-2 border rounded-xl bg-[var(--color-tarjeta)] text-center" readonly>
-            <input type="color" id="colorCategoria" value="#10b981" class="w-10 h-10 p-1 border rounded-xl">
-            <button type="submit" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold hover:opacity-90">+</button>
+            <input type="text" id="nombreCategoria" placeholder="Nombre" required class="flex-1 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+            <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="w-14 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl text-center" readonly>
+            <input type="color" id="colorCategoria" value="#10b981" class="w-10 h-10 p-1 rounded-xl border-0 cursor-pointer">
+            <button type="submit" class="btn btn-primario px-4 py-2">+</button>
           </div>
           <div class="grid grid-cols-8 gap-1">
-            <span onclick="document.getElementById('emojiCategoria').value='🍔'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🍔</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🚌'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🚌</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎮'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🎮</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💡'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">💡</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📦'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">📦</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🏠'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🏠</span>
-            <span onclick="document.getElementById('emojiCategoria').value='❤️'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">❤️</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎁'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🎁</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📚'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">📚</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🐶'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🐶</span>
-            <span onclick="document.getElementById('emojiCategoria').value='✈️'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">✈️</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎵'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🎵</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🏋️'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🏋️</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💊'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">💊</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎬'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">🎬</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📱'" class="cursor-pointer text-center p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700">📱</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🍔'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🍔</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🚌'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🚌</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎮'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🎮</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💡'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">💡</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📦'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">📦</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏠'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🏠</span>
+            <span onclick="document.getElementById('emojiCategoria').value='❤️'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">❤️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎁'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🎁</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📚'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">📚</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🐶'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🐶</span>
+            <span onclick="document.getElementById('emojiCategoria').value='✈️'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">✈️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎵'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🎵</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏋️'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🏋️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💊'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">💊</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎬'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🎬</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📱'" class="cursor-pointer text-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">📱</span>
           </div>
         </form>
       </div>
 
       <!-- Filtro por mes -->
-      <div class="tarjeta p-3 flex items-center gap-2">
-        <label for="filtroMes" class="text-sm font-medium texto-secundario">📅</label>
-        <input type="month" id="filtroMes" class="flex-1 p-2 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+      <div class="tarjeta px-4 py-3 flex items-center gap-2">
+        <span class="text-sm font-medium texto-secundario">📅</span>
+        <input type="month" id="filtroMes" class="flex-1 p-2 bg-transparent border-0 focus:ring-0 outline-none font-medium">
       </div>
 
-      <!-- RESUMEN MEJORADO -->
+      <!-- RESUMEN -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="tarjeta p-4 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white">
-          <p class="text-sm opacity-90">Ingresos</p>
-          <p id="totalIngresos" class="text-2xl font-extrabold">$0</p>
+        <div class="tarjeta p-5 bg-gradient-to-br from-emerald-400 to-emerald-600 text-white border-0">
+          <p class="text-sm opacity-90 font-medium">Ingresos</p>
+          <p id="totalIngresos" class="text-3xl font-extrabold mt-1">$0</p>
         </div>
-        <div class="tarjeta p-4 bg-gradient-to-br from-red-400 to-red-600 text-white">
-          <p class="text-sm opacity-90">Gastos</p>
-          <p id="totalGastos" class="text-2xl font-extrabold">$0</p>
+        <div class="tarjeta p-5 bg-gradient-to-br from-red-400 to-red-600 text-white border-0">
+          <p class="text-sm opacity-90 font-medium">Gastos</p>
+          <p id="totalGastos" class="text-3xl font-extrabold mt-1">$0</p>
         </div>
       </div>
-      <div class="tarjeta p-4 text-center">
-        <p class="text-sm texto-secundario">Balance del mes</p>
-        <p id="balance" class="text-3xl font-extrabold"></p>
-        <!-- BARRA DE PROGRESO DEL PRESUPUESTO -->
-        <div id="contenedorPresupuesto" class="mt-3 hidden">
-          <div class="flex justify-between text-xs texto-secundario mb-1">
+      <div class="tarjeta p-5 text-center">
+        <p class="text-sm texto-secundario font-medium">Balance del mes</p>
+        <p id="balance" class="text-4xl font-extrabold mt-1"></p>
+        <div id="contenedorPresupuesto" class="mt-4 hidden">
+          <div class="flex justify-between text-xs texto-secundario mb-1.5">
             <span>Presupuesto</span>
             <span id="textoPresupuesto"></span>
           </div>
           <div class="progress-bar">
             <div id="barraProgreso" class="progress-fill"></div>
           </div>
-          <p id="alertaPresupuesto" class="text-xs mt-1 hidden"></p>
+          <p id="alertaPresupuesto" class="text-xs mt-2 hidden font-medium"></p>
         </div>
       </div>
 
-      <!-- GRÁFICAS (Ingresos y Gastos) -->
+      <!-- GRÁFICAS -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="tarjeta p-3">
+        <div class="tarjeta p-4">
           <h3 class="text-sm font-semibold text-emerald-500 mb-2 text-center">📈 Ingresos</h3>
-          <canvas id="graficaIngresos" class="max-h-40"></canvas>
+          <canvas id="graficaIngresos" class="max-h-44"></canvas>
         </div>
-        <div class="tarjeta p-3">
+        <div class="tarjeta p-4">
           <h3 class="text-sm font-semibold text-red-500 mb-2 text-center">📉 Gastos</h3>
-          <canvas id="graficaGastos" class="max-h-40"></canvas>
+          <canvas id="graficaGastos" class="max-h-44"></canvas>
         </div>
       </div>
 
       <!-- FORMULARIO CON PESTAÑAS -->
-      <div class="tarjeta p-4 space-y-4">
-        <div class="flex gap-0">
-          <button id="tabIngreso" class="flex-1 py-2 rounded-l-xl font-semibold bg-emerald-500 text-white">Ingreso</button>
-          <button id="tabGasto" class="flex-1 py-2 rounded-r-xl font-semibold bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300">Gasto</button>
+      <div class="tarjeta p-5 space-y-4">
+        <div class="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
+          <button id="tabIngreso" class="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white dark:bg-gray-700 shadow-sm">Ingreso</button>
+          <button id="tabGasto" class="flex-1 py-2.5 rounded-lg font-semibold text-sm text-gray-500 dark:text-gray-400">Gasto</button>
         </div>
         <form id="formTransaccion" class="space-y-3">
-          <input type="date" id="fecha" required class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <select id="categoria" required class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]"></select>
-          <input type="text" id="descripcion" placeholder="Descripción" required class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
-          <button type="submit" id="btnAgregar" class="w-full py-3 rounded-xl font-bold text-white bg-emerald-500 hover:opacity-90">Agregar ingreso</button>
+          <input type="date" id="fecha" required class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <select id="categoria" required class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+          <input type="text" id="descripcion" placeholder="Descripción" required class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="number" id="monto" placeholder="Monto" step="0.01" required class="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+          <button type="submit" id="btnAgregar" class="btn btn-primario w-full">Agregar ingreso</button>
         </form>
       </div>
 
       <!-- LISTA DE MOVIMIENTOS -->
-      <div class="tarjeta p-4">
-        <h2 class="font-bold text-lg mb-3">📋 Movimientos</h2>
-        <div id="listaTransacciones" class="space-y-3"></div>
+      <div class="tarjeta p-5">
+        <h2 class="font-bold text-lg mb-4">📋 Movimientos</h2>
+        <div id="listaTransacciones" class="space-y-2.5"></div>
       </div>
     </div>
   </div>
@@ -274,7 +315,7 @@
       }
     }
 
-    // --- AUTENTICACIÓN ---
+    // --- AUTENTICACIÓN (sin cambios lógicos) ---
     function mostrarAuth() {
       document.getElementById('authScreen').classList.remove('hidden');
       document.getElementById('appScreen').classList.add('hidden');
@@ -284,55 +325,55 @@
       document.getElementById('appScreen').classList.remove('hidden');
     }
 
-    document.getElementById('btnLogin').addEventListener('click', function() {
+    document.getElementById('btnLogin').addEventListener('click', () => {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       if (!email || !password) return;
-      auth.signInWithEmailAndPassword(email, password).catch(function(e) {
+      auth.signInWithEmailAndPassword(email, password).catch(e => {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
         document.getElementById('authSuccess').classList.add('hidden');
       });
     });
 
-    document.getElementById('btnRegister').addEventListener('click', function() {
+    document.getElementById('btnRegister').addEventListener('click', () => {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       if (!email || !password) return;
-      auth.createUserWithEmailAndPassword(email, password).catch(function(e) {
+      auth.createUserWithEmailAndPassword(email, password).catch(e => {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
         document.getElementById('authSuccess').classList.add('hidden');
       });
     });
 
-    document.getElementById('btnResetPassword').addEventListener('click', function() {
+    document.getElementById('btnResetPassword').addEventListener('click', () => {
       const email = document.getElementById('email').value.trim();
       if (!email) {
         document.getElementById('authError').textContent = 'Ingresa tu correo electrónico.';
         document.getElementById('authError').classList.remove('hidden');
         return;
       }
-      auth.sendPasswordResetEmail(email).then(function() {
+      auth.sendPasswordResetEmail(email).then(() => {
         document.getElementById('authSuccess').textContent = 'Correo de restablecimiento enviado. Revisa tu bandeja de entrada.';
         document.getElementById('authSuccess').classList.remove('hidden');
         document.getElementById('authError').classList.add('hidden');
-      }).catch(function(e) {
+      }).catch(e => {
         document.getElementById('authError').textContent = e.message;
         document.getElementById('authError').classList.remove('hidden');
         document.getElementById('authSuccess').classList.add('hidden');
       });
     });
 
-    document.getElementById('btnLogout').addEventListener('click', function() { auth.signOut(); });
+    document.getElementById('btnLogout').addEventListener('click', () => auth.signOut());
 
-    auth.onAuthStateChanged(function(user) {
+    auth.onAuthStateChanged(user => {
       if (user) { usuarioActual = user; mostrarApp(); cargarDatosIniciales(); }
       else { usuarioActual = null; mostrarAuth(); }
     });
 
     // --- CAMBIO DE CONTRASEÑA ---
-    document.getElementById('btnCambiarPassword').addEventListener('click', function() {
+    document.getElementById('btnCambiarPassword').addEventListener('click', () => {
       document.getElementById('panelCambioPassword').classList.toggle('hidden');
       document.getElementById('passwordError').classList.add('hidden');
       document.getElementById('passwordSuccess').classList.add('hidden');
@@ -340,7 +381,7 @@
       document.getElementById('newPassword').value = '';
     });
 
-    document.getElementById('btnUpdatePassword').addEventListener('click', function() {
+    document.getElementById('btnUpdatePassword').addEventListener('click', () => {
       const currentPassword = document.getElementById('currentPassword').value;
       const newPassword = document.getElementById('newPassword').value;
       if (!currentPassword || !newPassword) {
@@ -353,19 +394,18 @@
         document.getElementById('passwordError').classList.remove('hidden');
         return;
       }
-
       const credential = firebase.auth.EmailAuthProvider.credential(usuarioActual.email, currentPassword);
-      usuarioActual.reauthenticateWithCredential(credential).then(function() {
+      usuarioActual.reauthenticateWithCredential(credential).then(() => {
         return usuarioActual.updatePassword(newPassword);
-      }).then(function() {
+      }).then(() => {
         document.getElementById('passwordSuccess').textContent = 'Contraseña actualizada correctamente.';
         document.getElementById('passwordSuccess').classList.remove('hidden');
         document.getElementById('passwordError').classList.add('hidden');
-        setTimeout(function() {
+        setTimeout(() => {
           document.getElementById('panelCambioPassword').classList.add('hidden');
           document.getElementById('passwordSuccess').classList.add('hidden');
         }, 2000);
-      }).catch(function(e) {
+      }).catch(e => {
         document.getElementById('passwordError').textContent = e.message;
         document.getElementById('passwordError').classList.remove('hidden');
         document.getElementById('passwordSuccess').classList.add('hidden');
@@ -374,7 +414,7 @@
 
     // --- PRESUPUESTO ---
     function cargarPresupuesto() {
-      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').get().then(function(doc) {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').get().then(doc => {
         if (doc.exists) {
           limitePresupuesto = doc.data().limite || 0;
           document.getElementById('inputLimite').value = limitePresupuesto;
@@ -388,20 +428,22 @@
     }
 
     function guardarPresupuesto(limite) {
-      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').set({
-        limite: limite
-      }).then(function() {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').set({ limite }).then(() => {
         limitePresupuesto = limite;
         document.getElementById('presupuestoInfo').textContent = 'Límite actual: $' + limite.toFixed(2);
         actualizarBarraProgreso();
       });
     }
 
-    document.getElementById('btnPresupuesto').addEventListener('click', function() {
-      document.getElementById('panelPresupuesto').classList.toggle('hidden');
+    document.getElementById('btnPresupuesto').addEventListener('click', () => {
+      const panel = document.getElementById('panelPresupuesto');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        document.getElementById('inputLimite').value = limitePresupuesto || '';
+      }
     });
 
-    document.getElementById('btnGuardarLimite').addEventListener('click', function() {
+    document.getElementById('btnGuardarLimite').addEventListener('click', () => {
       const valor = parseFloat(document.getElementById('inputLimite').value);
       if (isNaN(valor) || valor < 0) {
         alert('Ingresa un valor válido.');
@@ -410,7 +452,6 @@
       guardarPresupuesto(valor);
     });
 
-    // --- BARRA DE PROGRESO ---
     function actualizarBarraProgreso() {
       const gastosText = document.getElementById('totalGastos').textContent.replace('$', '');
       const gastos = parseFloat(gastosText) || 0;
@@ -428,49 +469,51 @@
       barra.style.width = Math.min(porcentaje, 100) + '%';
       texto.textContent = '$' + gastos.toFixed(2) + ' / $' + limitePresupuesto.toFixed(2);
 
-      // Color de la barra según porcentaje
       if (porcentaje < 50) {
-        barra.style.backgroundColor = '#10b981'; // verde
+        barra.style.backgroundColor = '#10b981';
+        barra.style.boxShadow = '0 0 8px #10b981';
       } else if (porcentaje < 80) {
-        barra.style.backgroundColor = '#f59e0b'; // amarillo
+        barra.style.backgroundColor = '#f59e0b';
+        barra.style.boxShadow = '0 0 8px #f59e0b';
       } else if (porcentaje < 100) {
-        barra.style.backgroundColor = '#f97316'; // naranja
+        barra.style.backgroundColor = '#f97316';
+        barra.style.boxShadow = '0 0 8px #f97316';
       } else {
-        barra.style.backgroundColor = '#ef4444'; // rojo
+        barra.style.backgroundColor = '#ef4444';
+        barra.style.boxShadow = '0 0 8px #ef4444';
       }
 
-      // Alerta
       if (porcentaje >= 100) {
         alerta.textContent = '⚠️ ¡Has superado el límite de gastos!';
         alerta.classList.remove('hidden');
-        alerta.className = 'text-xs mt-1 text-red-500 font-bold';
+        alerta.className = 'text-xs mt-2 font-bold text-red-500';
       } else if (porcentaje >= 80) {
-        alerta.textContent = '⚠️ Estás cerca del límite de gastos (' + porcentaje.toFixed(0) + '%)';
+        alerta.textContent = '⚠️ Estás cerca del límite (' + porcentaje.toFixed(0) + '%)';
         alerta.classList.remove('hidden');
-        alerta.className = 'text-xs mt-1 text-orange-500 font-bold';
+        alerta.className = 'text-xs mt-2 font-bold text-orange-500';
       } else {
         alerta.classList.add('hidden');
       }
     }
 
-    // --- BASE DE DATOS ---
+    // --- BASE DE DATOS (sin cambios) ---
     function coleccionRef() { return 'usuarios/' + usuarioActual.uid + '/transacciones'; }
     function coleccionCategoriasRef() { return 'usuarios/' + usuarioActual.uid + '/categorias'; }
     function obtenerTransacciones(callback) {
-      db.collection(coleccionRef()).orderBy('fecha', 'desc').onSnapshot(function(snap) {
+      db.collection(coleccionRef()).orderBy('fecha', 'desc').onSnapshot(snap => {
         const transacciones = [];
-        snap.forEach(function(doc) { transacciones.push(Object.assign({ id: doc.id }, doc.data())); });
+        snap.forEach(doc => transacciones.push(Object.assign({ id: doc.id }, doc.data())));
         callback(transacciones);
       });
     }
     function agregarTransaccion(tipo, categoria, descripcion, monto, fecha) {
-      db.collection(coleccionRef()).add({ tipo: tipo, categoria: categoria, descripcion: descripcion, monto: parseFloat(monto), fecha: fecha });
+      db.collection(coleccionRef()).add({ tipo, categoria, descripcion, monto: parseFloat(monto), fecha });
     }
     function eliminarTransaccion(id) { db.collection(coleccionRef()).doc(id).delete(); }
     function obtenerCategorias(callback) {
-      db.collection(coleccionCategoriasRef()).onSnapshot(function(snap) {
+      db.collection(coleccionCategoriasRef()).onSnapshot(snap => {
         const categorias = [];
-        snap.forEach(function(doc) { categorias.push(Object.assign({ id: doc.id }, doc.data())); });
+        snap.forEach(doc => categorias.push(Object.assign({ id: doc.id }, doc.data())));
         if (categorias.length === 0) {
           const predefinidas = [
             { nombre: 'comida', emoji: '🍔', color: '#FF6384' },
@@ -480,7 +523,7 @@
             { nombre: 'otros', emoji: '📦', color: '#9966FF' }
           ];
           const batch = db.batch();
-          predefinidas.forEach(function(cat) { batch.set(db.collection(coleccionCategoriasRef()).doc(), cat); });
+          predefinidas.forEach(cat => batch.set(db.collection(coleccionCategoriasRef()).doc(), cat));
           batch.commit();
           return;
         }
@@ -488,24 +531,23 @@
       });
     }
     function agregarCategoria(nombre, emoji, color) {
-      db.collection(coleccionCategoriasRef()).add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color: color });
+      db.collection(coleccionCategoriasRef()).add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color });
     }
     function eliminarCategoria(id) { db.collection(coleccionCategoriasRef()).doc(id).delete(); }
 
-    // --- FILTRO POR MES ---
     function obtenerMesActual() {
       const ahora = new Date();
       return ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0');
     }
 
-    // --- GRÁFICAS (DUAL) ---
+    // --- GRÁFICAS ---
     function actualizarGraficas(transaccionesFiltradas) {
-      const ingresosData = transaccionesFiltradas.filter(function(t) { return t.tipo === 'ingreso'; });
-      const gastosData = transaccionesFiltradas.filter(function(t) { return t.tipo === 'gasto'; });
+      const ingresosData = transaccionesFiltradas.filter(t => t.tipo === 'ingreso');
+      const gastosData = transaccionesFiltradas.filter(t => t.tipo === 'gasto');
 
       function agrupar(datos) {
         const agg = {};
-        datos.forEach(function(t) {
+        datos.forEach(t => {
           if (!agg[t.categoria]) agg[t.categoria] = 0;
           agg[t.categoria] += t.monto;
         });
@@ -516,8 +558,8 @@
         const agg = agrupar(datos);
         const nombres = Object.keys(agg);
         const montos = Object.values(agg);
-        const fondos = nombres.map(function(nombre) {
-          const cat = categoriasState.find(function(c) { return c.nombre === nombre; });
+        const fondos = nombres.map(nombre => {
+          const cat = categoriasState.find(c => c.nombre === nombre);
           return cat ? cat.color : colorDefault;
         });
         if (chartVar) chartVar.destroy();
@@ -525,8 +567,8 @@
         if (nombres.length === 0) return null;
         return new Chart(ctx, {
           type: 'doughnut',
-          data: { labels: nombres, datasets: [{ data: montos, backgroundColor: fondos }] },
-          options: { responsive: true, plugins: { legend: { display: false } } }
+          data: { labels: nombres, datasets: [{ data: montos, backgroundColor: fondos, borderWidth: 2, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-tarjeta').trim() || '#ffffff' }] },
+          options: { responsive: true, plugins: { legend: { display: false } }, cutout: '65%' }
         });
       }
 
@@ -534,11 +576,11 @@
       graficaGastosChart = dibujar('graficaGastos', gastosData, graficaGastosChart, '#ef4444');
     }
 
-    // --- UI (CONCATENACIÓN) ---
+    // --- UI (mejorada visualmente) ---
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       var opciones = '';
-      categoriasState.forEach(function(c) {
+      categoriasState.forEach(c => {
         opciones += '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
       });
       select.innerHTML = opciones;
@@ -551,50 +593,50 @@
         return;
       }
       var html = '';
-      categoriasState.forEach(function(c) {
-        html += '<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded-xl">' +
-          '<span>' + c.emoji + ' ' + c.nombre + '</span>' +
-          '<button onclick="if(confirm(\'¿Eliminar categoría ' + c.nombre + '?\')) eliminarCategoria(\'' + c.id + '\')" class="text-red-400 hover:text-red-600">✕</button>' +
+      categoriasState.forEach(c => {
+        html += '<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2.5 rounded-xl">' +
+          '<span class="font-medium">' + c.emoji + ' ' + c.nombre + '</span>' +
+          '<button onclick="if(confirm(\'¿Eliminar categoría ' + c.nombre + '?\')) eliminarCategoria(\'' + c.id + '\')" class="text-red-400 hover:text-red-600 text-lg leading-none">✕</button>' +
           '</div>';
       });
       contenedor.innerHTML = html;
     }
 
     function actualizarVista(transacciones) {
-      const filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+      const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
       let ingresos = 0, gastos = 0;
-      filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
+      filtradas.forEach(t => t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto);
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       const balance = ingresos - gastos;
       const balanceEl = document.getElementById('balance');
       balanceEl.textContent = '$' + balance.toFixed(2);
-      balanceEl.className = 'text-3xl font-extrabold ' + (balance >= 0 ? 'text-emerald-500' : 'text-red-500');
+      balanceEl.className = 'text-4xl font-extrabold mt-1 ' + (balance >= 0 ? 'text-emerald-500' : 'text-red-500');
 
-      // Actualizar barra de presupuesto después de calcular gastos
       actualizarBarraProgreso();
 
       const lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
-        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
+        lista.innerHTML = '<p class="texto-secundario text-center py-4">No hay movimientos este mes</p>';
       } else {
-        filtradas.sort(function(a, b) { return (b.fecha + b.id).localeCompare(a.fecha + a.id); });
+        filtradas.sort((a, b) => (b.fecha + b.id).localeCompare(a.fecha + a.id));
         var html = '';
-        filtradas.forEach(function(t) {
-          const cat = categoriasState.find(function(c) { return c.nombre === t.categoria; });
+        filtradas.forEach(t => {
+          const cat = categoriasState.find(c => c.nombre === t.categoria);
           const emoji = cat ? cat.emoji : '📌';
-          const color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
+          const colorBorde = t.tipo === 'ingreso' ? 'border-emerald-400' : 'border-red-400';
+          const colorTexto = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           const signo = t.tipo === 'ingreso' ? '+' : '-';
           const fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-          html += '<div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">' +
+          html += '<div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border-l-4 ' + colorBorde + '">' +
             '<div class="text-2xl">' + emoji + '</div>' +
             '<div class="flex-1">' +
               '<p class="font-medium">' + t.descripcion + '</p>' +
               '<p class="text-xs texto-secundario">' + fecha + ' · ' + t.categoria + '</p>' +
             '</div>' +
             '<div class="text-right">' +
-              '<p class="font-bold ' + color + '">' + signo + '$' + t.monto.toFixed(2) + '</p>' +
-              '<button onclick="eliminarTransaccion(\'' + t.id + '\')" class="text-xs text-red-400 hover:text-red-600">Eliminar</button>' +
+              '<p class="font-bold ' + colorTexto + '">' + signo + '$' + t.monto.toFixed(2) + '</p>' +
+              '<button onclick="eliminarTransaccion(\'' + t.id + '\')" class="text-xs text-red-400 hover:text-red-600 mt-1">Eliminar</button>' +
             '</div>' +
           '</div>';
         });
@@ -604,11 +646,11 @@
     }
 
     function cargarDatosIniciales() {
-      obtenerCategorias(function(cats) {
+      obtenerCategorias(cats => {
         categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
-        obtenerTransacciones(function(transacciones) { actualizarVista(transacciones); });
+        obtenerTransacciones(transacciones => actualizarVista(transacciones));
       });
       cargarPresupuesto();
     }
@@ -617,6 +659,13 @@
     function aplicarTema(oscuro) {
       document.documentElement.setAttribute('data-theme', oscuro ? 'dark' : 'light');
       document.getElementById('toggleTema').textContent = oscuro ? '☀️' : '🌙';
+      // Regenerar gráficas con nuevos colores de borde
+      if (usuarioActual) {
+        obtenerTransacciones(transacciones => {
+          const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesSeleccionado));
+          actualizarGraficas(filtradas);
+        });
+      }
     }
     function toggleTema() {
       const actual = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -626,59 +675,59 @@
     }
 
     // --- INICIO ---
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', () => {
       aplicarTema((localStorage.getItem(CLAVE_TEMA) || 'light') === 'dark');
       document.getElementById('toggleTema').addEventListener('click', toggleTema);
 
       const btnCat = document.getElementById('btnCategorias');
       const panelCat = document.getElementById('panelCategorias');
-      btnCat.addEventListener('click', function() {
+      btnCat.addEventListener('click', () => {
         panelCat.classList.toggle('hidden');
         if (!panelCat.classList.contains('hidden')) renderizarListaCategorias();
       });
 
-      document.getElementById('formCategoria').addEventListener('submit', function(e) {
+      document.getElementById('formCategoria').addEventListener('submit', e => {
         e.preventDefault();
         const nombre = document.getElementById('nombreCategoria').value.trim();
         const emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
         const color = document.getElementById('colorCategoria').value;
         if (!nombre) return;
         agregarCategoria(nombre, emoji, color);
-        this.reset();
+        e.target.reset();
         document.getElementById('colorCategoria').value = '#10b981';
         document.getElementById('emojiCategoria').value = '';
       });
 
-      // Pestañas
+      // Pestañas mejoradas
       const tabIngreso = document.getElementById('tabIngreso');
       const tabGasto = document.getElementById('tabGasto');
       const btnAgregar = document.getElementById('btnAgregar');
-      tabIngreso.addEventListener('click', function() {
+      tabIngreso.addEventListener('click', () => {
         tipoSeleccionado = 'ingreso';
-        tabIngreso.className = 'flex-1 py-2 rounded-l-xl font-semibold bg-emerald-500 text-white';
-        tabGasto.className = 'flex-1 py-2 rounded-r-xl font-semibold bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+        tabIngreso.className = 'flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white dark:bg-gray-700 shadow-sm';
+        tabGasto.className = 'flex-1 py-2.5 rounded-lg font-semibold text-sm text-gray-500 dark:text-gray-400';
         btnAgregar.textContent = 'Agregar ingreso';
-        btnAgregar.className = 'w-full py-3 rounded-xl font-bold text-white bg-emerald-500 hover:opacity-90';
+        btnAgregar.className = 'btn btn-primario w-full';
       });
-      tabGasto.addEventListener('click', function() {
+      tabGasto.addEventListener('click', () => {
         tipoSeleccionado = 'gasto';
-        tabGasto.className = 'flex-1 py-2 rounded-r-xl font-semibold bg-red-500 text-white';
-        tabIngreso.className = 'flex-1 py-2 rounded-l-xl font-semibold bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+        tabGasto.className = 'flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white dark:bg-gray-700 shadow-sm';
+        tabIngreso.className = 'flex-1 py-2.5 rounded-lg font-semibold text-sm text-gray-500 dark:text-gray-400';
         btnAgregar.textContent = 'Agregar gasto';
-        btnAgregar.className = 'w-full py-3 rounded-xl font-bold text-white bg-red-500 hover:opacity-90';
+        btnAgregar.className = 'btn btn-peligro w-full';
       });
 
       const inputMes = document.getElementById('filtroMes');
       inputMes.value = mesSeleccionado;
-      inputMes.addEventListener('change', function() {
+      inputMes.addEventListener('change', () => {
         mesSeleccionado = inputMes.value;
-        if (usuarioActual) obtenerTransacciones(function(t) { actualizarVista(t); });
+        if (usuarioActual) obtenerTransacciones(t => actualizarVista(t));
       });
 
       const fechaInput = document.getElementById('fecha');
       fechaInput.value = new Date().toISOString().split('T')[0];
 
-      document.getElementById('formTransaccion').addEventListener('submit', function(e) {
+      document.getElementById('formTransaccion').addEventListener('submit', e => {
         e.preventDefault();
         const categoria = document.getElementById('categoria').value;
         const descripcion = document.getElementById('descripcion').value.trim();
@@ -686,7 +735,7 @@
         const fecha = document.getElementById('fecha').value;
         if (!descripcion || !monto || !categoria || !fecha) return;
         agregarTransaccion(tipoSeleccionado, categoria, descripcion, monto, fecha);
-        this.reset();
+        e.target.reset();
         fechaInput.value = new Date().toISOString().split('T')[0];
         if (tipoSeleccionado === 'ingreso') tabIngreso.click(); else tabGasto.click();
       });
