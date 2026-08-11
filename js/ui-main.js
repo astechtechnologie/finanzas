@@ -22,27 +22,48 @@
     const modal = document.getElementById('modalTransaccion');
     const fab = document.getElementById('fabAgregar');
 
-    // Verificar que todos los elementos existen
+    // Verificar que los elementos principales existen
     if (!vistas.inicio || !fab || !modal) {
       console.error('Elementos del shell no encontrados');
       return;
     }
 
+    /**
+     * Normaliza el nombre de vista desde el dataset (ej: "vistaInicio" -> "inicio")
+     */
+    function normalizarVista(nombreVista) {
+      return nombreVista.replace('vista', '').toLowerCase();
+    }
+
     function cambiarVista(nombreVista) {
+      const clave = normalizarVista(nombreVista);
+      const vista = vistas[clave];
+      if (!vista) {
+        console.error('Vista no encontrada:', clave);
+        return;
+      }
+
+      // Ocultar todas las vistas y mostrar la seleccionada
       Object.values(vistas).forEach(v => v.classList.remove('activa'));
-      vistas[nombreVista].classList.add('activa');
+      vista.classList.add('activa');
+
+      // Actualizar botones de navegación
       navItems.forEach(item => item.classList.remove('active'));
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
-      const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes' };
-      tituloSeccion.textContent = titulos[nombreVista];
 
-      if (nombreVista === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
+      // Actualizar título
+      const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes' };
+      tituloSeccion.textContent = titulos[clave];
+
+      // Acciones adicionales al cambiar a ciertas vistas
+      if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
       }
-      if (nombreVista === 'categorias') renderizarListaCategorias();
+      if (clave === 'categorias') renderizarListaCategorias();
     }
 
+    // Asignar eventos a los botones de la barra inferior
     navItems.forEach(item => {
       item.addEventListener('click', function() {
         const vista = this.dataset.vista;
@@ -50,15 +71,17 @@
       });
     });
 
-    // FAB y Modal
+    // FAB (botón flotante) para abrir modal
     fab.addEventListener('click', function() {
       modal.classList.remove('hidden');
     });
 
+    // Modal: Cancelar
     document.getElementById('btnCancelarModal').addEventListener('click', function() {
       modal.classList.add('hidden');
     });
 
+    // Modal: Guardar transacción
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       const categoria = document.getElementById('categoria').value;
       const descripcion = document.getElementById('descripcion').value.trim();
@@ -71,23 +94,23 @@
       document.getElementById('monto').value = '';
     });
 
+    // Modal: Pestañas Ingreso/Gasto
     document.getElementById('tabIngreso').addEventListener('click', function() {
       tipoTransaccion = 'ingreso';
       this.classList.add('active');
       document.getElementById('tabGasto').classList.remove('active');
     });
-
     document.getElementById('tabGasto').addEventListener('click', function() {
       tipoTransaccion = 'gasto';
       this.classList.add('active');
       document.getElementById('tabIngreso').classList.remove('active');
     });
 
-    // Fecha hoy en el modal
+    // Fecha por defecto en el modal
     const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
-    // Funciones de actualización de la interfaz
+    // ========== FUNCIONES DE RENDERIZADO ==========
     function actualizarInicio(transacciones) {
       mesSeleccionado = getMes();
       const filtradas = transacciones.filter(function(t) {
@@ -125,7 +148,9 @@
           '</div>';
       });
       lista.innerHTML = html;
-      App.actualizarGraficas(filtradas, App.categoriasState || []);
+      if (typeof App.actualizarGraficas === 'function') {
+        App.actualizarGraficas(filtradas, App.categoriasState || []);
+      }
     }
 
     function llenarSelectCategorias() {
@@ -151,7 +176,7 @@
       }).join('');
     }
 
-    // Exponer cargarDatosIniciales
+    // Exponer cargarDatosIniciales globalmente
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
@@ -163,7 +188,7 @@
       });
     };
 
-    // Evento para el formulario de categoría (si se usa en la vista categorías)
+    // Evento para el formulario de categoría (vista categorías)
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
