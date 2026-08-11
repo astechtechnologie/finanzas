@@ -1,22 +1,10 @@
-// Pantalla de presupuesto (por categorías)
+// Pantalla de presupuesto (por categorías) – se carga al activar la vista "presupuesto"
 (function() {
   const App = window.App;
 
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('btnIrPresupuesto').addEventListener('click', () => {
-      document.getElementById('appScreen').classList.add('hidden');
-      document.getElementById('presupuestoScreen').classList.remove('hidden');
-      App.cargarPantallaPresupuesto();
-    });
-
-    document.getElementById('btnVolverDePresupuesto').addEventListener('click', () => {
-      document.getElementById('presupuestoScreen').classList.add('hidden');
-      document.getElementById('appScreen').classList.remove('hidden');
-    });
-  });
-
+  // Esta función es llamada desde ui-main.js al cambiar a la vista presupuesto
   App.cargarPantallaPresupuesto = function() {
-    const mes = App.getMesSeleccionado();
+    const mes = App.obtenerMesActual();
     const partes = mes.split('-');
     const nombreMes = new Date(partes[0], partes[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     document.getElementById('tituloMesPresupuesto').textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
@@ -66,20 +54,19 @@
         const gastoCat = gastosPorCategoria[c.nombre] || 0;
         const porcentajeCat = limiteCat > 0 ? (gastoCat / limiteCat) * 100 : 0;
         const colorBarra = porcentajeCat >= 100 ? '#ef4444' : porcentajeCat >= 80 ? '#f97316' : '#10b981';
-        html +=
-          '<div>' +
-            '<div class="flex items-center justify-between mb-1">' +
-              '<span class="font-medium text-sm">' + c.emoji + ' ' + c.nombre + '</span>' +
-              '<span class="text-xs texto-secundario">$' + gastoCat.toFixed(2) + ' / $' + limiteCat.toFixed(2) + '</span>' +
+        html += '<div>' +
+          '<div class="flex items-center justify-between mb-1">' +
+            '<span class="font-medium text-sm">' + c.emoji + ' ' + c.nombre + '</span>' +
+            '<span class="text-xs texto-secundario">$' + gastoCat.toFixed(2) + ' / $' + limiteCat.toFixed(2) + '</span>' +
+          '</div>' +
+          '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(porcentajeCat, 100) + '%; background-color:' + colorBarra + '; box-shadow:0 0 8px ' + colorBarra + ';"></div></div>' +
+          '<div class="flex items-center justify-between mt-1">' +
+            '<span class="text-xs texto-secundario">' + porcentajeCat.toFixed(0) + '% usado</span>' +
+            '<div class="flex items-center gap-1">' +
+              '<input type="number" class="w-20 text-xs p-1 bg-gray-50 dark:bg-gray-800 rounded-lg text-right" placeholder="Límite" value="' + (limiteCat || '') + '" onchange="App.actualizarLimiteCategoria(\'' + c.nombre + '\', this.value)">' +
             '</div>' +
-            '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(porcentajeCat, 100) + '%; background-color:' + colorBarra + '; box-shadow:0 0 8px ' + colorBarra + ';"></div></div>' +
-            '<div class="flex items-center justify-between mt-1">' +
-              '<span class="text-xs texto-secundario">' + porcentajeCat.toFixed(0) + '% usado</span>' +
-              '<div class="flex items-center gap-1">' +
-                '<input type="number" class="w-20 text-xs p-1 bg-gray-50 dark:bg-gray-800 rounded-lg text-right" placeholder="Límite" value="' + (limiteCat || '') + '" onchange="App.actualizarLimiteCategoria(\'' + c.nombre + '\', this.value)">' +
-              '</div>' +
-            '</div>' +
-          '</div>';
+          '</div>' +
+        '</div>';
       });
       contenedor.innerHTML = html || '<p class="texto-secundario text-center">No hay categorías</p>';
 
@@ -111,7 +98,7 @@
       alert('Ingresa un valor válido.');
       return;
     }
-    App.guardarLimiteCategoria(App.getMesSeleccionado(), categoria, nuevoLimite, () => {
+    App.guardarLimiteCategoria(App.obtenerMesActual(), categoria, nuevoLimite, () => {
       App.cargarPantallaPresupuesto();
     });
   };
