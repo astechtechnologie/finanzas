@@ -22,18 +22,20 @@
     return db.collection('usuarios/' + uid() + '/transacciones').doc(id).delete();
   };
 
-  // Categorías
+  // Categorías (ahora con campo 'tipo': 'ingreso' o 'gasto')
   App.obtenerCategorias = function(callback) {
     return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(snap => {
       const categorias = [];
       snap.forEach(doc => categorias.push(Object.assign({ id: doc.id }, doc.data())));
       if (categorias.length === 0) {
         const predefinidas = [
-          { nombre: 'comida', emoji: '🍔', color: '#FF6384' },
-          { nombre: 'transporte', emoji: '🚌', color: '#36A2EB' },
-          { nombre: 'ocio', emoji: '🎮', color: '#FFCE56' },
-          { nombre: 'servicios', emoji: '💡', color: '#4BC0C0' },
-          { nombre: 'otros', emoji: '📦', color: '#9966FF' }
+          { nombre: 'salario', emoji: '💼', color: '#10b981', tipo: 'ingreso' },
+          { nombre: 'freelance', emoji: '💻', color: '#34d399', tipo: 'ingreso' },
+          { nombre: 'comida', emoji: '🍔', color: '#FF6384', tipo: 'gasto' },
+          { nombre: 'transporte', emoji: '🚌', color: '#36A2EB', tipo: 'gasto' },
+          { nombre: 'ocio', emoji: '🎮', color: '#FFCE56', tipo: 'gasto' },
+          { nombre: 'servicios', emoji: '💡', color: '#4BC0C0', tipo: 'gasto' },
+          { nombre: 'otros', emoji: '📦', color: '#9966FF', tipo: 'gasto' }
         ];
         const batch = db.batch();
         predefinidas.forEach(cat => batch.set(db.collection('usuarios/' + uid() + '/categorias').doc(), cat));
@@ -44,15 +46,20 @@
     });
   };
 
-  App.agregarCategoria = function(nombre, emoji, color) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color });
+  App.agregarCategoria = function(nombre, emoji, color, tipo) {
+    return db.collection('usuarios/' + uid() + '/categorias').add({
+      nombre: nombre.trim().toLowerCase(),
+      emoji: emoji || '📌',
+      color: color || '#10b981',
+      tipo: tipo || 'gasto'
+    });
   };
 
   App.eliminarCategoria = function(id) {
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
   };
 
-  // Presupuestos (por categoría)
+  // Presupuestos (por categoría de gasto)
   App.obtenerLimitesCategorias = function(mes, callback) {
     db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes).get().then(doc => {
       const limites = doc.exists ? (doc.data().categorias || {}) : {};
