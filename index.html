@@ -56,6 +56,19 @@
       cursor: pointer;
       user-select: none;
     }
+    /* Barra de progreso */
+    .progress-bar {
+      height: 10px;
+      border-radius: 10px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.5s ease, background-color 0.5s ease;
+      border-radius: 10px;
+    }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
@@ -95,11 +108,23 @@
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-emerald-500">💰 Finanzas</h1>
         <div class="flex gap-2">
+          <button id="btnPresupuesto" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Presupuesto mensual">💵</button>
           <button id="btnCategorias" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🏷️</button>
           <button id="btnCambiarPassword" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cambiar contraseña">🔐</button>
           <button id="toggleTema" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">🌙</button>
           <button id="btnLogout" class="text-2xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" title="Cerrar sesión">🚪</button>
         </div>
+      </div>
+
+      <!-- Panel de presupuesto (oculto) -->
+      <div id="panelPresupuesto" class="tarjeta p-4 hidden space-y-3">
+        <h2 class="font-bold text-lg">💵 Presupuesto mensual</h2>
+        <p class="text-sm texto-secundario">Define un límite máximo de gastos para este mes.</p>
+        <div class="flex gap-2">
+          <input type="number" id="inputLimite" placeholder="Ej: 500.00" step="0.01" class="flex-1 p-3 border rounded-xl bg-[var(--color-tarjeta)] text-[var(--color-texto)]">
+          <button id="btnGuardarLimite" class="bg-emerald-500 text-white px-4 py-3 rounded-xl font-semibold hover:opacity-90">Guardar</button>
+        </div>
+        <p id="presupuestoInfo" class="text-xs texto-secundario"></p>
       </div>
 
       <!-- Panel de cambio de contraseña (oculto) -->
@@ -164,6 +189,17 @@
       <div class="tarjeta p-4 text-center">
         <p class="text-sm texto-secundario">Balance del mes</p>
         <p id="balance" class="text-3xl font-extrabold"></p>
+        <!-- BARRA DE PROGRESO DEL PRESUPUESTO -->
+        <div id="contenedorPresupuesto" class="mt-3 hidden">
+          <div class="flex justify-between text-xs texto-secundario mb-1">
+            <span>Presupuesto</span>
+            <span id="textoPresupuesto"></span>
+          </div>
+          <div class="progress-bar">
+            <div id="barraProgreso" class="progress-fill"></div>
+          </div>
+          <p id="alertaPresupuesto" class="text-xs mt-1 hidden"></p>
+        </div>
       </div>
 
       <!-- GRÁFICAS (Ingresos y Gastos) -->
@@ -223,6 +259,7 @@
     let categoriasState = [];
     const CLAVE_TEMA = 'tema_oscuro';
     let tipoSeleccionado = 'ingreso';
+    let limitePresupuesto = 0;
 
     // --- MOSTRAR/OCULTAR CONTRASEÑA ---
     function togglePasswordVisibility() {
@@ -269,7 +306,6 @@
       });
     });
 
-    // Restablecer contraseña (envía correo)
     document.getElementById('btnResetPassword').addEventListener('click', function() {
       const email = document.getElementById('email').value.trim();
       if (!email) {
@@ -318,10 +354,8 @@
         return;
       }
 
-      // Reautenticar al usuario con su contraseña actual
       const credential = firebase.auth.EmailAuthProvider.credential(usuarioActual.email, currentPassword);
       usuarioActual.reauthenticateWithCredential(credential).then(function() {
-        // Cambiar a la nueva contraseña
         return usuarioActual.updatePassword(newPassword);
       }).then(function() {
         document.getElementById('passwordSuccess').textContent = 'Contraseña actualizada correctamente.';
@@ -337,6 +371,87 @@
         document.getElementById('passwordSuccess').classList.add('hidden');
       });
     });
+
+    // --- PRESUPUESTO ---
+    function cargarPresupuesto() {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').get().then(function(doc) {
+        if (doc.exists) {
+          limitePresupuesto = doc.data().limite || 0;
+          document.getElementById('inputLimite').value = limitePresupuesto;
+          document.getElementById('presupuestoInfo').textContent = 'Límite actual: $' + limitePresupuesto.toFixed(2);
+        } else {
+          limitePresupuesto = 0;
+          document.getElementById('presupuestoInfo').textContent = 'No has configurado un límite.';
+        }
+        actualizarBarraProgreso();
+      });
+    }
+
+    function guardarPresupuesto(limite) {
+      db.collection('usuarios').doc(usuarioActual.uid).collection('configuracion').doc('presupuesto').set({
+        limite: limite
+      }).then(function() {
+        limitePresupuesto = limite;
+        document.getElementById('presupuestoInfo').textContent = 'Límite actual: $' + limite.toFixed(2);
+        actualizarBarraProgreso();
+      });
+    }
+
+    document.getElementById('btnPresupuesto').addEventListener('click', function() {
+      document.getElementById('panelPresupuesto').classList.toggle('hidden');
+    });
+
+    document.getElementById('btnGuardarLimite').addEventListener('click', function() {
+      const valor = parseFloat(document.getElementById('inputLimite').value);
+      if (isNaN(valor) || valor < 0) {
+        alert('Ingresa un valor válido.');
+        return;
+      }
+      guardarPresupuesto(valor);
+    });
+
+    // --- BARRA DE PROGRESO ---
+    function actualizarBarraProgreso() {
+      const gastosText = document.getElementById('totalGastos').textContent.replace('$', '');
+      const gastos = parseFloat(gastosText) || 0;
+      const contenedor = document.getElementById('contenedorPresupuesto');
+      const barra = document.getElementById('barraProgreso');
+      const texto = document.getElementById('textoPresupuesto');
+      const alerta = document.getElementById('alertaPresupuesto');
+
+      if (limitePresupuesto <= 0) {
+        contenedor.classList.add('hidden');
+        return;
+      }
+      contenedor.classList.remove('hidden');
+      const porcentaje = (gastos / limitePresupuesto) * 100;
+      barra.style.width = Math.min(porcentaje, 100) + '%';
+      texto.textContent = '$' + gastos.toFixed(2) + ' / $' + limitePresupuesto.toFixed(2);
+
+      // Color de la barra según porcentaje
+      if (porcentaje < 50) {
+        barra.style.backgroundColor = '#10b981'; // verde
+      } else if (porcentaje < 80) {
+        barra.style.backgroundColor = '#f59e0b'; // amarillo
+      } else if (porcentaje < 100) {
+        barra.style.backgroundColor = '#f97316'; // naranja
+      } else {
+        barra.style.backgroundColor = '#ef4444'; // rojo
+      }
+
+      // Alerta
+      if (porcentaje >= 100) {
+        alerta.textContent = '⚠️ ¡Has superado el límite de gastos!';
+        alerta.classList.remove('hidden');
+        alerta.className = 'text-xs mt-1 text-red-500 font-bold';
+      } else if (porcentaje >= 80) {
+        alerta.textContent = '⚠️ Estás cerca del límite de gastos (' + porcentaje.toFixed(0) + '%)';
+        alerta.classList.remove('hidden');
+        alerta.className = 'text-xs mt-1 text-orange-500 font-bold';
+      } else {
+        alerta.classList.add('hidden');
+      }
+    }
 
     // --- BASE DE DATOS ---
     function coleccionRef() { return 'usuarios/' + usuarioActual.uid + '/transacciones'; }
@@ -456,6 +571,9 @@
       balanceEl.textContent = '$' + balance.toFixed(2);
       balanceEl.className = 'text-3xl font-extrabold ' + (balance >= 0 ? 'text-emerald-500' : 'text-red-500');
 
+      // Actualizar barra de presupuesto después de calcular gastos
+      actualizarBarraProgreso();
+
       const lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos este mes</p>';
@@ -492,6 +610,7 @@
         renderizarListaCategorias();
         obtenerTransacciones(function(transacciones) { actualizarVista(transacciones); });
       });
+      cargarPresupuesto();
     }
 
     // --- MODO OSCURO ---
