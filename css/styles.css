@@ -260,3 +260,39 @@ body {
 .nav-item.active::before { opacity: 1; }
 .nav-item[data-vista="vistaInicio"]::before { background-image: url("data:image/svg+xml,..."); } /* iconos SVG después */
 /* Los iconos los pondremos inline en el HTML para simplificar, pero aquí los defino como clases */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--nav-border);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 30;
+  pointer-events: auto; /* Asegura que los clics funcionen */
+}
+.nav-item {
+  background: none;
+  border: none;
+  color: var(--texto-secundario);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  gap: 0.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  pointer-events: auto;
+  padding: 0.5rem;
+}
+.nav-item.active {
+  color: var(--primario);
+  font-weight: 600;
+}
+/* ... resto de estilos ... */
