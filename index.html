@@ -82,6 +82,19 @@
       background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
     }
+    .progress-bar {
+      height: 8px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
+      border-radius: 8px;
+      box-shadow: 0 0 8px currentColor;
+    }
     canvas { max-height: 220px; }
     .panel-animado { animation: fadeInUp 0.3s ease; }
     @keyframes fadeInUp {
@@ -102,7 +115,7 @@
 <body class="flex items-center justify-center">
   <div class="w-full max-w-lg mx-auto space-y-5">
 
-    <!-- PANTALLA DE AUTENTICACIÓN (sin cambios) -->
+    <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="authScreen" class="hidden space-y-6">
       <div class="text-center">
         <h1 class="text-4xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">💰 Mis Finanzas</h1>
@@ -236,33 +249,33 @@
       </div>
     </div>
 
-    <!-- PANTALLA DE PRESUPUESTO (independiente) -->
+    <!-- PANTALLA DE PRESUPUESTO (POR CATEGORÍAS) -->
     <div id="presupuestoScreen" class="hidden space-y-5">
       <div class="flex items-center gap-3 mb-2">
         <button id="btnVolverDePresupuesto" class="text-2xl p-2 rounded-full hover:bg-white/10">←</button>
         <h1 class="text-2xl font-extrabold flex-1">💵 Presupuesto</h1>
       </div>
 
-      <!-- Mes actual (el del filtro) -->
+      <!-- Mes actual -->
       <div class="tarjeta p-5 space-y-4">
         <div class="flex justify-between items-center">
           <h2 class="font-bold text-lg" id="tituloMesPresupuesto"></h2>
           <span class="text-sm texto-secundario" id="diasRestantes"></span>
         </div>
 
-        <!-- Medidor circular -->
+        <!-- Medidor circular (total) -->
         <div class="flex justify-center">
           <canvas id="graficaPresupuesto" class="max-h-48"></canvas>
         </div>
 
-        <!-- Métricas -->
+        <!-- Resumen total -->
         <div class="grid grid-cols-2 gap-3 text-center">
           <div>
-            <p class="text-xs texto-secundario">Gasto actual</p>
+            <p class="text-xs texto-secundario">Gasto total</p>
             <p id="gastoActualPresupuesto" class="text-xl font-bold text-red-500"></p>
           </div>
           <div>
-            <p class="text-xs texto-secundario">Límite</p>
+            <p class="text-xs texto-secundario">Presupuesto total</p>
             <p id="limitePresupuestoValor" class="text-xl font-bold"></p>
           </div>
           <div>
@@ -274,12 +287,12 @@
             <p id="proyeccionMensual" class="text-lg font-semibold"></p>
           </div>
         </div>
+      </div>
 
-        <!-- Configurar límite -->
-        <div class="flex gap-2 items-end">
-          <input type="number" id="inputLimitePresupuesto" placeholder="Nuevo límite" step="0.01" class="flex-1 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
-          <button id="btnGuardarLimitePresupuesto" class="btn btn-primario">Guardar</button>
-        </div>
+      <!-- Lista de categorías con sub-presupuestos -->
+      <div class="tarjeta p-5">
+        <h2 class="font-bold text-lg mb-4">📊 Presupuesto por categoría</h2>
+        <div id="listaPresupuestoCategorias" class="space-y-4"></div>
       </div>
 
       <!-- Historial -->
@@ -483,15 +496,24 @@
     }
     function eliminarCategoria(id) { db.collection(coleccionCategoriasRef()).doc(id).delete(); }
 
-    // --- PRESUPUESTO (Firestore) ---
-    function obtenerLimiteMes(mes, callback) {
+    // --- PRESUPUESTO POR CATEGORÍA (Firestore) ---
+    function obtenerLimitesCategorias(mes, callback) {
       db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(mes).get().then(doc => {
-        callback(doc.exists ? doc.data().limite : 0);
+        const limites = doc.exists ? (doc.data().categorias || {}) : {};
+        callback(limites);
       });
     }
 
-    function guardarLimiteMes(mes, limite, callback) {
-      db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(mes).set({ limite }).then(callback);
+    function guardarLimiteCategoria(mes, categoria, limite, callback) {
+      const ref = db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(mes);
+      db.runTransaction(transaction => {
+        return transaction.get(ref).then(doc => {
+          const data = doc.exists ? doc.data() : {};
+          const categorias = data.categorias || {};
+          categorias[categoria] = limite;
+          return transaction.set(ref, { categorias }, { merge: true });
+        });
+      }).then(callback);
     }
 
     function obtenerHistorialPresupuestos(callback) {
@@ -502,17 +524,17 @@
         const mesStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
         meses.push(mesStr);
       }
-      const refs = meses.map(m => db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(m).get());
-      Promise.all(refs).then(docs => {
-        const historial = [];
-        docs.forEach((doc, idx) => {
-          historial.push({
-            mes: meses[idx],
-            limite: doc.exists ? doc.data().limite : 0
+      Promise.all(meses.map(m => db.collection('usuarios').doc(usuarioActual.uid).collection('presupuestos').doc(m).get()))
+        .then(docs => {
+          const historial = [];
+          docs.forEach((doc, idx) => {
+            const mes = meses[idx];
+            const limites = doc.exists ? (doc.data().categorias || {}) : {};
+            const totalLimite = Object.values(limites).reduce((sum, val) => sum + val, 0);
+            historial.push({ mes, limiteTotal: totalLimite });
           });
+          callback(historial);
         });
-        callback(historial);
-      });
     }
 
     // --- GRÁFICAS PRINCIPALES ---
@@ -627,73 +649,120 @@
       });
     }
 
-    // --- PANTALLA DE PRESUPUESTO ---
+    // --- PANTALLA DE PRESUPUESTO (POR CATEGORÍAS) ---
     function cargarPantallaPresupuesto() {
-      // Mostrar mes actual
       const partes = mesSeleccionado.split('-');
       const nombreMes = new Date(partes[0], partes[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
       document.getElementById('tituloMesPresupuesto').textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
 
-      // Días restantes
       const ahora = new Date();
       const finMes = new Date(partes[0], partes[1], 0).getDate();
       const diaActual = (ahora.getFullYear() == partes[0] && (ahora.getMonth() + 1) == partes[1]) ? ahora.getDate() : 0;
       const diasRest = Math.max(0, finMes - diaActual);
       document.getElementById('diasRestantes').textContent = diasRest + ' días restantes';
 
-      // Obtener gastos reales del mes
-      obtenerTransacciones(transacciones => {
-        const gastos = transacciones.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesSeleccionado))
-                                     .reduce((sum, t) => sum + t.monto, 0);
-        obtenerLimiteMes(mesSeleccionado, limite => {
-          document.getElementById('gastoActualPresupuesto').textContent = '$' + gastos.toFixed(2);
-          document.getElementById('limitePresupuestoValor').textContent = '$' + limite.toFixed(2);
-          document.getElementById('inputLimitePresupuesto').value = limite;
+      // Obtener datos necesarios
+      Promise.all([
+        new Promise(resolve => obtenerTransacciones(resolve)),
+        new Promise(resolve => obtenerCategorias(resolve)),
+        new Promise(resolve => obtenerLimitesCategorias(mesSeleccionado, resolve)),
+        new Promise(resolve => obtenerHistorialPresupuestos(resolve))
+      ]).then(([transacciones, categorias, limites, historial]) => {
+        // Filtrar gastos del mes actual
+        const gastosMes = transacciones.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesSeleccionado));
+        const totalGastado = gastosMes.reduce((sum, t) => sum + t.monto, 0);
 
-          const porcentaje = limite > 0 ? (gastos / limite) * 100 : 0;
-          dibujarGraficaPresupuesto(porcentaje);
-
-          // Promedio diario
-          const diasTranscurridos = diaActual > 0 ? diaActual : finMes;
-          const promedio = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
-          document.getElementById('promedioDiario').textContent = '$' + promedio.toFixed(2);
-
-          // Proyección
-          const proyeccion = promedio * finMes;
-          document.getElementById('proyeccionMensual').textContent = '$' + proyeccion.toFixed(2);
-          if (limite > 0 && proyeccion > limite) {
-            document.getElementById('proyeccionMensual').className = 'text-lg font-semibold text-red-500';
-          } else {
-            document.getElementById('proyeccionMensual').className = 'text-lg font-semibold text-emerald-500';
-          }
+        // Calcular gasto por categoría
+        const gastosPorCategoria = {};
+        gastosMes.forEach(t => {
+          if (!gastosPorCategoria[t.categoria]) gastosPorCategoria[t.categoria] = 0;
+          gastosPorCategoria[t.categoria] += t.monto;
         });
-      });
 
-      // Cargar historial
-      obtenerHistorialPresupuestos(historial => {
+        // Total presupuestado (suma de todos los límites)
+        const totalPresupuestado = Object.values(limites).reduce((sum, val) => sum + val, 0);
+
+        // Actualizar resumen
+        document.getElementById('gastoActualPresupuesto').textContent = '$' + totalGastado.toFixed(2);
+        document.getElementById('limitePresupuestoValor').textContent = '$' + totalPresupuestado.toFixed(2);
+
+        // Promedio diario y proyección
+        const diasTranscurridos = diaActual > 0 ? diaActual : finMes;
+        const promedio = diasTranscurridos > 0 ? totalGastado / diasTranscurridos : 0;
+        document.getElementById('promedioDiario').textContent = '$' + promedio.toFixed(2);
+        const proyeccion = promedio * finMes;
+        const proyeccionEl = document.getElementById('proyeccionMensual');
+        proyeccionEl.textContent = '$' + proyeccion.toFixed(2);
+        proyeccionEl.className = 'text-lg font-semibold ' + (totalPresupuestado > 0 && proyeccion > totalPresupuestado ? 'text-red-500' : 'text-emerald-500');
+
+        // Dibujar medidor circular (basado en total presupuestado)
+        const porcentajeTotal = totalPresupuestado > 0 ? (totalGastado / totalPresupuestado) * 100 : 0;
+        dibujarGraficaPresupuesto(porcentajeTotal);
+
+        // Lista de categorías con sub-presupuestos
+        const contenedor = document.getElementById('listaPresupuestoCategorias');
+        let html = '';
+        categorias.forEach(c => {
+          const limiteCat = limites[c.nombre] || 0;
+          const gastoCat = gastosPorCategoria[c.nombre] || 0;
+          const porcentajeCat = limiteCat > 0 ? (gastoCat / limiteCat) * 100 : 0;
+          const colorBarra = porcentajeCat >= 100 ? '#ef4444' : porcentajeCat >= 80 ? '#f97316' : '#10b981';
+          html += `
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-medium text-sm">${c.emoji} ${c.nombre}</span>
+                <span class="text-xs texto-secundario">$${gastoCat.toFixed(2)} / $${limiteCat.toFixed(2)}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${Math.min(porcentajeCat, 100)}%; background-color:${colorBarra}; box-shadow:0 0 8px ${colorBarra};"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1">
+                <span class="text-xs texto-secundario">${porcentajeCat.toFixed(0)}% usado</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" class="w-20 text-xs p-1 bg-gray-50 dark:bg-gray-800 rounded-lg text-right" placeholder="Límite" 
+                         value="${limiteCat || ''}" 
+                         onchange="actualizarLimiteCategoria('${c.nombre}', this.value)">
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        contenedor.innerHTML = html || '<p class="texto-secundario text-center">No hay categorías</p>';
+
+        // Historial
         const contenedorHistorial = document.getElementById('historialPresupuesto');
-        // Para cada mes del historial, necesitamos el gasto real (ya lo tenemos en la app principal pero no aquí; podemos obtener transacciones de esos meses extra)
-        // Para simplificar, haremos una consulta adicional por cada mes. Optimización: obtener todas las transacciones de una vez y filtrar.
-        obtenerTransacciones(todas => {
-          var html = '';
-          historial.forEach(item => {
-            const gastosMes = todas.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(item.mes))
-                                  .reduce((sum, t) => sum + t.monto, 0);
-            const cumplio = item.limite > 0 ? gastosMes <= item.limite : true;
-            const color = cumplio ? 'text-emerald-500' : 'text-red-500';
-            const nombreMesHist = new Date(item.mes.split('-')[0], item.mes.split('-')[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-            html += '<div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">' +
-              '<span class="font-medium">' + nombreMesHist + '</span>' +
-              '<div class="text-right">' +
-                '<span class="font-bold ' + color + '">$' + gastosMes.toFixed(2) + '</span>' +
-                '<span class="text-xs texto-secundario ml-2"> / $' + (item.limite || 0).toFixed(2) + '</span>' +
-              '</div>' +
-              '</div>';
-          });
-          contenedorHistorial.innerHTML = html || '<p class="texto-secundario text-center">Sin datos</p>';
+        let htmlHistorial = '';
+        historial.forEach(item => {
+          const gastosMesHist = transacciones.filter(t => t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(item.mes))
+                                    .reduce((sum, t) => sum + t.monto, 0);
+          const cumplio = item.limiteTotal > 0 ? gastosMesHist <= item.limiteTotal : true;
+          const color = cumplio ? 'text-emerald-500' : 'text-red-500';
+          const nombreMesHist = new Date(item.mes.split('-')[0], item.mes.split('-')[1] - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+          htmlHistorial += '<div class="flex justify-between items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">' +
+            '<span class="font-medium">' + nombreMesHist + '</span>' +
+            '<div class="text-right">' +
+              '<span class="font-bold ' + color + '">$' + gastosMesHist.toFixed(2) + '</span>' +
+              '<span class="text-xs texto-secundario ml-2"> / $' + (item.limiteTotal || 0).toFixed(2) + '</span>' +
+            '</div>' +
+            '</div>';
         });
+        contenedorHistorial.innerHTML = htmlHistorial || '<p class="texto-secundario text-center">Sin datos</p>';
       });
     }
+
+    // Actualizar límite de una categoría desde la interfaz
+    function actualizarLimiteCategoria(categoria, nuevoLimiteStr) {
+      const nuevoLimite = parseFloat(nuevoLimiteStr);
+      if (isNaN(nuevoLimite) || nuevoLimite < 0) {
+        alert('Ingresa un valor válido.');
+        return;
+      }
+      guardarLimiteCategoria(mesSeleccionado, categoria, nuevoLimite, () => {
+        cargarPantallaPresupuesto(); // refrescar la pantalla
+      });
+    }
+    // Hacer la función global para que funcione desde el HTML generado
+    window.actualizarLimiteCategoria = actualizarLimiteCategoria;
 
     function dibujarGraficaPresupuesto(porcentaje) {
       if (graficaPresupuestoChart) graficaPresupuestoChart.destroy();
@@ -719,17 +788,6 @@
         }
       });
     }
-
-    document.getElementById('btnGuardarLimitePresupuesto').addEventListener('click', () => {
-      const nuevoLimite = parseFloat(document.getElementById('inputLimitePresupuesto').value);
-      if (isNaN(nuevoLimite) || nuevoLimite < 0) {
-        alert('Ingresa un valor válido.');
-        return;
-      }
-      guardarLimiteMes(mesSeleccionado, nuevoLimite, () => {
-        cargarPantallaPresupuesto();
-      });
-    });
 
     // --- MODO OSCURO ---
     function aplicarTema(oscuro) {
