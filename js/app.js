@@ -1,3 +1,4 @@
+// Inicialización general y modo oscuro
 (function() {
   const App = window.App;
   const CLAVE_TEMA = 'tema_oscuro';
@@ -11,7 +12,6 @@
     document.documentElement.setAttribute('data-theme', oscuro ? 'dark' : 'light');
     const btnTema = document.getElementById('toggleTemaAjustes');
     if (btnTema) btnTema.textContent = oscuro ? '☀️' : '🌙';
-    // Refrescar gráficas si necesario
   }
 
   App.toggleTema = function() {
@@ -19,6 +19,7 @@
     const nuevo = !actual;
     localStorage.setItem(CLAVE_TEMA, nuevo ? 'dark' : 'light');
     aplicarTema(nuevo);
+    // Refrescar gráficas si es necesario (opcional)
   };
 
   document.addEventListener('DOMContentLoaded', () => {
