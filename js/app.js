@@ -1,4 +1,3 @@
-// Inicialización general y modo oscuro
 (function() {
   const App = window.App;
   const CLAVE_TEMA = 'tema_oscuro';
@@ -10,16 +9,9 @@
 
   function aplicarTema(oscuro) {
     document.documentElement.setAttribute('data-theme', oscuro ? 'dark' : 'light');
-    const btn = document.getElementById('toggleTema');
-    if (btn) btn.textContent = oscuro ? '☀️' : '🌙';
-    // Refrescar gráficas si hay usuario
-    if (App.auth && App.auth.currentUser) {
-      App.obtenerTransacciones(transacciones => {
-        const mes = App.getMesSeleccionado ? App.getMesSeleccionado() : App.obtenerMesActual();
-        const filtradas = transacciones.filter(t => t.fecha && t.fecha.startsWith(mes));
-        App.actualizarGraficas(filtradas, App.categoriasState || []);
-      });
-    }
+    const btnTema = document.getElementById('toggleTemaAjustes');
+    if (btnTema) btnTema.textContent = oscuro ? '☀️' : '🌙';
+    // Refrescar gráficas si necesario
   }
 
   App.toggleTema = function() {
@@ -29,8 +21,9 @@
     aplicarTema(nuevo);
   };
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', () => {
     const temaGuardado = localStorage.getItem(CLAVE_TEMA) || 'light';
     aplicarTema(temaGuardado === 'dark');
+    document.getElementById('toggleTemaAjustes').addEventListener('click', App.toggleTema);
   });
 })();
