@@ -19,7 +19,6 @@
     const nuevo = !actual;
     localStorage.setItem(CLAVE_TEMA, nuevo ? 'dark' : 'light');
     aplicarTema(nuevo);
-    // Refrescar gráficas si es necesario (opcional)
   };
 
   document.addEventListener('DOMContentLoaded', () => {
