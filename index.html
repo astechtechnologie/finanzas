@@ -49,21 +49,51 @@
     </header>
 
     <main class="vistas-container">
-      <!-- Vista Inicio -->
+      <!-- Vista Inicio con Dashboard -->
       <div id="vistaInicio" class="vista activa">
+        <!-- Resumen principal (ingresos/gastos) -->
         <div class="resumen-grid">
           <div class="resumen-card ingreso-card"><span>Ingresos</span><strong id="totalIngresos">$0</strong></div>
           <div class="resumen-card gasto-card"><span>Gastos</span><strong id="totalGastos">$0</strong></div>
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
+
+        <!-- KPIs Dashboard -->
+        <div class="kpi-grid" id="kpiContainer">
+          <div class="kpi-card">
+            <span class="kpi-icon">📅</span>
+            <span class="kpi-label">Promedio diario</span>
+            <strong id="kpiPromedioDiario" class="kpi-valor">$0</strong>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">🔥</span>
+            <span class="kpi-label">Categoría top</span>
+            <strong id="kpiCategoriaTop" class="kpi-valor">-</strong>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">🐷</span>
+            <span class="kpi-label">Ahorro</span>
+            <strong id="kpiAhorro" class="kpi-valor">0%</strong>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">📊</span>
+            <span class="kpi-label">vs Mes anterior</span>
+            <strong id="kpiVariacion" class="kpi-valor">-</strong>
+          </div>
+        </div>
+
+        <!-- Gráfico de tendencia -->
         <div class="tendencia-container tarjeta p-4 mb-4">
-          <h3 class="text-sm font-semibold mb-2">📊 Tendencia últimos meses</h3>
+          <h3 class="text-sm font-semibold mb-2">📈 Tendencia últimos meses</h3>
           <canvas id="graficaTendencia" class="max-h-32"></canvas>
         </div>
+
+        <!-- Lista de movimientos -->
         <div class="movimientos-container">
           <h2>Movimientos</h2>
           <div id="listaTransacciones"></div>
         </div>
+
         <button id="fabAgregar" class="fab">+</button>
       </div>
 
@@ -72,11 +102,10 @@
         <div id="contenidoPresupuesto" class="presupuesto-container"></div>
       </div>
 
-      <!-- Vista Categorías (REDISEÑADA) -->
+      <!-- Vista Categorías -->
       <div id="vistaCategorias" class="vista">
         <div class="categorias-container">
           <h2>Mis categorías</h2>
-          <!-- Formulario para agregar nueva -->
           <form id="formCategoria" class="form-categoria">
             <div class="form-row">
               <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
@@ -109,7 +138,6 @@
             </div>
             <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
           </form>
-          <!-- Lista de categorías -->
           <div id="listaCategorias" class="lista-categorias mt-4"></div>
         </div>
       </div>
@@ -142,7 +170,7 @@
       </div>
     </main>
 
-    <!-- Barra de navegación inferior -->
+    <!-- Barra de navegación -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-vista="vistaInicio">🏠<span>Inicio</span></button>
       <button class="nav-item" data-vista="vistaPresupuesto">💵<span>Presupuesto</span></button>
