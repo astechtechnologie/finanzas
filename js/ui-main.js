@@ -54,7 +54,7 @@
     filtroMes.value = mesSeleccionado;
     filtroMes.addEventListener('change', function() {
       mesSeleccionado = filtroMes.value;
-      if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarInicio(t); });
+      if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
     // FAB
@@ -121,18 +121,69 @@
       });
     });
 
-    // Renderizado de inicio
-    function actualizarInicio(transacciones) {
+    // ========== DASHBOARD MEJORADO ==========
+    function actualizarDashboard(transacciones) {
+      // Filtradas del mes actual
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
+      var balance = ingresos - gastos;
+
+      // Totales principales
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
-      var balance = ingresos - gastos;
       var bel = document.getElementById('balance');
       bel.textContent = '$' + balance.toFixed(2);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
+      // --- KPIs ---
+      // Días transcurridos del mes actual
+      var partes = mesSeleccionado.split('-');
+      var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
+      var ahora = new Date();
+      var diasEnMes = new Date(año, mesNum, 0).getDate();
+      var diaActual = (ahora.getFullYear() === año && (ahora.getMonth() + 1) === mesNum) ? ahora.getDate() : diasEnMes;
+      var diasTranscurridos = Math.min(diaActual, diasEnMes);
+
+      // Promedio diario
+      var promedioDiario = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
+      document.getElementById('kpiPromedioDiario').textContent = '$' + promedioDiario.toFixed(2);
+
+      // Categoría de gasto más usada (por monto total)
+      var gastosPorCat = {};
+      filtradas.filter(function(t) { return t.tipo === 'gasto'; }).forEach(function(t) {
+        if (!gastosPorCat[t.categoria]) gastosPorCat[t.categoria] = 0;
+        gastosPorCat[t.categoria] += t.monto;
+      });
+      var catTop = Object.keys(gastosPorCat).reduce(function(a, b) { return gastosPorCat[a] > gastosPorCat[b] ? a : b; }, '');
+      if (catTop) {
+        var catObj = (App.categoriasState || []).find(function(c) { return c.nombre === catTop; });
+        document.getElementById('kpiCategoriaTop').textContent = (catObj ? catObj.emoji + ' ' : '') + catTop;
+      } else {
+        document.getElementById('kpiCategoriaTop').textContent = 'Sin datos';
+      }
+
+      // Ahorro (% de ingresos no gastados)
+      var porcentajeAhorro = ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0;
+      document.getElementById('kpiAhorro').textContent = porcentajeAhorro.toFixed(1) + '%';
+      document.getElementById('kpiAhorro').className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
+
+      // Comparativa vs mes anterior
+      var mesAnterior = (mesNum === 1) ? (año - 1) + '-12' : año + '-' + String(mesNum - 1).padStart(2, '0');
+      var gastosMesAnterior = transacciones.filter(function(t) { return t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesAnterior); })
+                                    .reduce(function(s, t) { return s + t.monto; }, 0);
+      var diff = gastos - gastosMesAnterior;
+      var variacionEl = document.getElementById('kpiVariacion');
+      if (gastosMesAnterior === 0) {
+        variacionEl.textContent = 'Nuevo';
+        variacionEl.className = 'kpi-valor';
+      } else {
+        var signo = diff > 0 ? '↑' : '↓';
+        variacionEl.textContent = signo + ' $' + Math.abs(diff).toFixed(2);
+        variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
+      }
+
+      // --- Lista de movimientos (igual que antes) ---
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -162,8 +213,8 @@
             document.getElementById('montoEditar').value = this.dataset.monto;
             var tipo = this.dataset.tipo;
             var selectEditar = document.getElementById('categoriaEditar');
-            var filtradas = (App.categoriasState || []).filter(function(c) { return c.tipo === tipo; });
-            selectEditar.innerHTML = filtradas.map(function(c) {
+            var filtradasCat = (App.categoriasState || []).filter(function(c) { return c.tipo === tipo; });
+            selectEditar.innerHTML = filtradasCat.map(function(c) {
               return '<option value="' + c.nombre + '"' + (c.nombre === this.dataset.cat ? ' selected' : '') + '>' + c.emoji + ' ' + c.nombre + '</option>';
             }.bind(this)).join('');
             modalEditar.classList.remove('hidden');
@@ -191,7 +242,6 @@
       }).join('');
     }
 
-    // NUEVA VERSIÓN de renderizarListaCategorias
     function renderizarListaCategorias() {
       var cont = document.getElementById('listaCategorias');
       if (!cont) return;
@@ -214,7 +264,6 @@
       });
       cont.innerHTML = html;
 
-      // Eventos de eliminar
       cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
         b.addEventListener('click', function() {
           if (confirm('¿Eliminar esta categoría?')) {
@@ -229,11 +278,11 @@
         App.categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
-        App.obtenerTransacciones(function(t) { actualizarInicio(t); });
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
       });
     };
 
-    // Evento del formulario de categoría (NUEVA VERSIÓN con limpieza)
+    // Formulario de categoría
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
