@@ -241,3 +241,44 @@ body {
   background: #fee2e2;
   color: #ef4444;
 }
+/* ========== DASHBOARD KPIs ========== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.kpi-card {
+  background: var(--tarjeta);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: var(--sombra);
+  text-align: center;
+  transition: transform 0.2s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+}
+.kpi-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.kpi-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-secundario);
+  display: block;
+}
+.kpi-valor {
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--texto);
+}
+/* Ajustes para modo oscuro */
+[data-theme="dark"] .kpi-card {
+  background: var(--tarjeta);
+}
