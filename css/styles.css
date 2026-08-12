@@ -282,3 +282,42 @@ body {
 [data-theme="dark"] .kpi-card {
   background: var(--tarjeta);
 }
+/* ========== PRESUPUESTO MEJORADO ========== */
+.presupuesto-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.presupuesto-tab {
+  flex: 1;
+  padding: 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  border-radius: var(--radio);
+  background: var(--nav-border);
+  color: var(--texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.presupuesto-tab.active {
+  background: var(--primario);
+  color: white;
+}
+
+.presupuesto-cat-item {
+  background: var(--fondo);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--nav-border);
+}
+.btn-editar-limite, .btn-eliminar-limite {
+  background: none;
+  border: 1px solid var(--nav-border);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+}
+.btn-editar-limite:hover { background: var(--primario); color: white; border-color: var(--primario); }
+.btn-eliminar-limite:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
