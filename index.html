@@ -51,14 +51,13 @@
     <main class="vistas-container">
       <!-- Vista Inicio con Dashboard -->
       <div id="vistaInicio" class="vista activa">
-        <!-- Resumen principal (ingresos/gastos) -->
         <div class="resumen-grid">
           <div class="resumen-card ingreso-card"><span>Ingresos</span><strong id="totalIngresos">$0</strong></div>
           <div class="resumen-card gasto-card"><span>Gastos</span><strong id="totalGastos">$0</strong></div>
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
 
-        <!-- KPIs Dashboard -->
+        <!-- KPIs Dashboard (incluye nuevo KPI de Metas) -->
         <div class="kpi-grid" id="kpiContainer">
           <div class="kpi-card">
             <span class="kpi-icon">📅</span>
@@ -80,15 +79,23 @@
             <span class="kpi-label">vs Mes anterior</span>
             <strong id="kpiVariacion" class="kpi-valor">-</strong>
           </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">🎯</span>
+            <span class="kpi-label">Metas</span>
+            <strong id="kpiMetas" class="kpi-valor">0</strong>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">💰</span>
+            <span class="kpi-label">Ahorro en metas</span>
+            <strong id="kpiAhorroMetas" class="kpi-valor">$0</strong>
+          </div>
         </div>
 
-        <!-- Gráfico de tendencia -->
         <div class="tendencia-container tarjeta p-4 mb-4">
           <h3 class="text-sm font-semibold mb-2">📈 Tendencia últimos meses</h3>
           <canvas id="graficaTendencia" class="max-h-32"></canvas>
         </div>
 
-        <!-- Lista de movimientos -->
         <div class="movimientos-container">
           <h2>Movimientos</h2>
           <div id="listaTransacciones"></div>
