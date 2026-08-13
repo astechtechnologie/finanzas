@@ -321,3 +321,32 @@ body {
 }
 .btn-editar-limite:hover { background: var(--primario); color: white; border-color: var(--primario); }
 .btn-eliminar-limite:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
+/* ========== METAS DE AHORRO ========== */
+.meta-card {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: var(--sombra-sm);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.meta-card:hover {
+  transform: translateY(-2px);
+}
+.item-meta {
+  background: var(--fondo);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  border: 1px solid var(--nav-border);
+}
+.btn-detalle-meta, .btn-eliminar-meta {
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+}
+.btn-detalle-meta:hover { background: var(--primario); color: white; border-color: var(--primario); }
+.btn-eliminar-meta:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
