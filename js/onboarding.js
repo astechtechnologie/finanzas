@@ -13,21 +13,19 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    const onboardingVisto = localStorage.getItem('onboarding_completado');
-    if (!onboardingVisto && App.auth && App.auth.currentUser) {
+    const visto = localStorage.getItem('onboarding_completado');
+    if (!visto && App.auth && App.auth.currentUser) {
       mostrarOnboarding();
     } else {
-      // Si ya lo vio, aseguramos que la vista inicio esté activa
+      // Asegurar que la vista inicio esté activa
       document.getElementById('vistaInicio').classList.add('activa');
     }
 
-    // Navegación entre pasos
     document.querySelectorAll('[data-onboarding-next]').forEach(btn => {
       btn.addEventListener('click', function() {
-        const pasoActual = document.querySelector('.onboarding-step.active');
-        const pasoNum = parseInt(pasoActual.dataset.step);
-        pasoActual.classList.remove('active');
-        const siguiente = document.querySelector('[data-step="' + (pasoNum + 1) + '"]');
+        const paso = parseInt(this.dataset.onboardingNext);
+        document.querySelector('.onboarding-step.active').classList.remove('active');
+        const siguiente = document.querySelector('[data-step="' + paso + '"]');
         if (siguiente) siguiente.classList.add('active');
       });
     });
@@ -36,6 +34,7 @@
       btn.addEventListener('click', ocultarOnboarding);
     });
 
-    document.querySelector('[data-onboarding-finish]').addEventListener('click', ocultarOnboarding);
+    const botonFinal = document.querySelector('[data-onboarding-finish]');
+    if (botonFinal) botonFinal.addEventListener('click', ocultarOnboarding);
   });
 })();
