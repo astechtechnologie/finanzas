@@ -17,17 +17,17 @@
   "shortcuts": [
     {
       "name": "Añadir gasto",
-      "url": "?accion=nuevo-gasto",
+      "url": "#accion=nuevo-gasto",
       "description": "Registra un nuevo gasto"
     },
     {
       "name": "Ver presupuesto",
-      "url": "?accion=presupuesto",
+      "url": "#accion=presupuesto",
       "description": "Ir a la sección de presupuesto"
     },
     {
       "name": "Ver metas",
-      "url": "?accion=metas",
+      "url": "#accion=metas",
       "description": "Ir a mis metas de ahorro"
     }
   ]
