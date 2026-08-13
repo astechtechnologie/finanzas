@@ -5,10 +5,25 @@
     return (typeof App.obtenerMesActual === 'function') ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
   }
 
+  // Solicitar permiso de notificaciones al iniciar sesión
+  function solicitarPermisoNotificaciones() {
+    if (Notification && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  // Mostrar notificación si el navegador lo permite
+  function mostrarNotificacion(titulo, mensaje) {
+    if (Notification && Notification.permission === 'granted') {
+      new Notification(titulo, { body: mensaje, icon: 'icon.svg' });
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     var mesSeleccionado = getMes();
     var tipoTransaccion = 'ingreso';
 
+    // Elementos del shell
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
       presupuesto: document.getElementById('vistaPresupuesto'),
@@ -23,6 +38,9 @@
     var filtroMes = document.getElementById('filtroMesHeader');
 
     if (!vistas.inicio) return;
+
+    // Solicitar permiso de notificaciones al cargar
+    solicitarPermisoNotificaciones();
 
     function cambiarVista(nombreVista) {
       var clave = nombreVista.replace('vista', '').toLowerCase();
@@ -90,7 +108,7 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // Modal Editar
+    // Modal Editar transacción
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
@@ -121,22 +139,20 @@
       });
     });
 
-    // ========== DASHBOARD MEJORADO ==========
+    // =================== DASHBOARD MEJORADO CON METAS Y NOTIFICACIONES ===================
     function actualizarDashboard(transacciones) {
-      // Filtradas del mes actual
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
       var balance = ingresos - gastos;
 
-      // Totales principales
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
       var bel = document.getElementById('balance');
       bel.textContent = '$' + balance.toFixed(2);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
-      // --- KPIs ---
+      // --- KPIs (incluyendo Metas) ---
       // Días transcurridos del mes actual
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
@@ -144,12 +160,9 @@
       var diasEnMes = new Date(año, mesNum, 0).getDate();
       var diaActual = (ahora.getFullYear() === año && (ahora.getMonth() + 1) === mesNum) ? ahora.getDate() : diasEnMes;
       var diasTranscurridos = Math.min(diaActual, diasEnMes);
-
-      // Promedio diario
       var promedioDiario = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
       document.getElementById('kpiPromedioDiario').textContent = '$' + promedioDiario.toFixed(2);
 
-      // Categoría de gasto más usada (por monto total)
       var gastosPorCat = {};
       filtradas.filter(function(t) { return t.tipo === 'gasto'; }).forEach(function(t) {
         if (!gastosPorCat[t.categoria]) gastosPorCat[t.categoria] = 0;
@@ -163,12 +176,11 @@
         document.getElementById('kpiCategoriaTop').textContent = 'Sin datos';
       }
 
-      // Ahorro (% de ingresos no gastados)
       var porcentajeAhorro = ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0;
-      document.getElementById('kpiAhorro').textContent = porcentajeAhorro.toFixed(1) + '%';
-      document.getElementById('kpiAhorro').className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
+      var kpiAhorroEl = document.getElementById('kpiAhorro');
+      kpiAhorroEl.textContent = porcentajeAhorro.toFixed(1) + '%';
+      kpiAhorroEl.className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
 
-      // Comparativa vs mes anterior
       var mesAnterior = (mesNum === 1) ? (año - 1) + '-12' : año + '-' + String(mesNum - 1).padStart(2, '0');
       var gastosMesAnterior = transacciones.filter(function(t) { return t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesAnterior); })
                                     .reduce(function(s, t) { return s + t.monto; }, 0);
@@ -183,7 +195,22 @@
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
-      // --- Lista de movimientos (igual que antes) ---
+      // --- KPIs de Metas ---
+      App.obtenerMetas(function(metas) {
+        var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
+        var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
+        var metasCompletadas = metas.length - metasActivas;
+
+        document.getElementById('kpiMetas').textContent = metasActivas + ' activas';
+        document.getElementById('kpiAhorroMetas').textContent = '$' + totalAhorradoMetas.toFixed(2);
+
+        // Notificación: si hay metas completadas recientemente (opcional, solo cuando hay metas completadas)
+        if (metasCompletadas > 0) {
+          // Podríamos notificar, pero lo dejamos para evitar spam.
+        }
+      });
+
+      // --- Lista de movimientos ---
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -204,7 +231,6 @@
             '</div>';
         });
         lista.innerHTML = html;
-        // Eventos editar y eliminar
         lista.querySelectorAll('.btn-editar').forEach(function(b) {
           b.addEventListener('click', function() {
             document.getElementById('idTransaccionEditar').value = this.dataset.id;
@@ -227,7 +253,6 @@
         });
       }
 
-      // Gráfico de tendencia
       if (typeof App.actualizarGraficaTendencia === 'function') {
         App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
       }
@@ -263,12 +288,9 @@
         '</div>';
       });
       cont.innerHTML = html;
-
       cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
         b.addEventListener('click', function() {
-          if (confirm('¿Eliminar esta categoría?')) {
-            App.eliminarCategoria(this.dataset.id);
-          }
+          if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
         });
       });
     }
@@ -282,7 +304,6 @@
       });
     };
 
-    // Formulario de categoría
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
