@@ -477,3 +477,27 @@ html, body {
     padding: 0.2rem 0.5rem;
   }
 }
+/* ========== FIX TARJETA GASTOS/INGRESOS ========== */
+.resumen-card {
+  overflow: hidden;              /* evita que el contenido se salga */
+  min-width: 0;                  /* permite que el grid lo comprima */
+  word-break: break-word;        /* rompe palabras largas si es necesario */
+}
+
+.resumen-card strong {
+  font-size: 1.6rem;             /* un poco más pequeño que 1.8rem */
+  white-space: nowrap;           /* evita que el signo $ y el número se partan */
+  overflow: hidden;
+  text-overflow: ellipsis;       /* si es muy largo, muestra puntos suspensivos */
+  display: block;
+}
+
+/* En pantallas menores a 400px, hacer que el grid sea de una columna */
+@media (max-width: 400px) {
+  .resumen-grid {
+    grid-template-columns: 1fr;  /* una columna para que no se apriete */
+  }
+  .resumen-card strong {
+    font-size: 1.5rem;
+  }
+}
