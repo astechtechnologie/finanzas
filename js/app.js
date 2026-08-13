@@ -46,19 +46,31 @@
       if (localStorage.getItem(CLAVE_TEMA) === 'system') aplicarTema('system');
     });
 
-    // ============ Manejo de atajos (App Shortcuts) ============
-    const params = new URLSearchParams(window.location.search);
-    const accion = params.get('accion');
-    if (accion === 'nuevo-gasto') {
-      document.getElementById('modalTransaccion')?.classList.remove('hidden');
-    } else if (accion === 'presupuesto') {
-      document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
-    } else if (accion === 'metas') {
-      document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
-      setTimeout(() => {
-        document.getElementById('tabMetasAhorro')?.click();
-      }, 300);
-    }
+    // Manejo de atajos (ahora con hash)
+function manejarAccionDesdeHash() {
+  const hash = window.location.hash.substring(1); // quita '#'
+  if (!hash) return;
+  const params = new URLSearchParams(hash);
+  const accion = params.get('accion');
+
+  if (accion === 'nuevo-gasto') {
+    document.getElementById('modalTransaccion')?.classList.remove('hidden');
+  } else if (accion === 'presupuesto') {
+    document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
+  } else if (accion === 'metas') {
+    document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
+    setTimeout(() => {
+      document.getElementById('tabMetasAhorro')?.click();
+    }, 300);
+  }
+  // Limpiar hash para que no se repita si el usuario navega manualmente
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // ... código existente ...
+  manejarAccionDesdeHash();
+});
 
     // Asegurar que el botón de toggle funciona
     const btnTema = document.getElementById('toggleTemaAjustes');
