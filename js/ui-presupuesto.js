@@ -2,7 +2,6 @@
 (function() {
   const App = window.App;
 
-  // ==================== ESTRUCTURA GENERAL ====================
   function crearEstructura() {
     var html = '';
     html += '<div class="presupuesto-tabs">';
@@ -13,12 +12,10 @@
     return html;
   }
 
-  // ==================== PRESUPUESTO MENSUAL ====================
+  // ============ PRESUPUESTO MENSUAL ============
   function renderizarPresupuestoMensual() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
-
-    // Sub-pestañas Gastos/Ingresos
     var html = '';
     html += '<div class="presupuesto-subtabs">';
     html += '<button id="subtabGastos" class="presupuesto-subtab active">Gastos</button>';
@@ -26,7 +23,6 @@
     html += '</div>';
     html += '<div id="presupuestoMensualContenido"></div>';
     cont.innerHTML = html;
-
     document.getElementById('subtabGastos').addEventListener('click', function() {
       document.getElementById('subtabGastos').classList.add('active');
       document.getElementById('subtabIngresos').classList.remove('active');
@@ -37,8 +33,6 @@
       document.getElementById('subtabGastos').classList.remove('active');
       renderizarVistaPresupuesto('ingreso');
     });
-
-    // Por defecto mostrar gastos
     renderizarVistaPresupuesto('gasto');
   }
 
@@ -46,7 +40,6 @@
     var cont = document.getElementById('presupuestoMensualContenido');
     if (!cont) return;
     cont.innerHTML = '<p class="text-center texto-secundario">Cargando...</p>';
-
     var mes = App.obtenerMesActual ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
 
     Promise.all([
@@ -57,29 +50,21 @@
       var transacciones = results[0];
       var categorias = results[1];
       var limites = results[2];
-
       var catsFiltradas = categorias.filter(function(c) { return c.tipo === tipo; });
       var limitesTipo = limites[tipo === 'ingreso' ? 'ingresos' : 'gastos'] || {};
       var transFiltradas = transacciones.filter(function(t) { return t.tipo === tipo && t.fecha && t.fecha.startsWith(mes); });
-
       var totalReal = transFiltradas.reduce(function(s, t) { return s + t.monto; }, 0);
       var totalPresupuestado = Object.values(limitesTipo).reduce(function(s, v) { return s + v; }, 0);
-
       var porcentaje = totalPresupuestado > 0 ? (totalReal / totalPresupuestado) * 100 : 0;
-      var color = tipo === 'gasto'
-        ? (porcentaje > 100 ? '#ef4444' : porcentaje > 80 ? '#f97316' : '#10b981')
-        : (porcentaje < 100 ? '#ef4444' : '#10b981');
+      var color = tipo === 'gasto' ? (porcentaje > 100 ? '#ef4444' : porcentaje > 80 ? '#f97316' : '#10b981') : (porcentaje < 100 ? '#ef4444' : '#10b981');
 
       var html = '';
-      // Resumen superior
       html += '<div class="tarjeta p-5 mb-4">';
       html += '<div class="flex justify-between items-center mb-3">';
       html += '<h3 class="font-bold text-lg">' + (tipo === 'gasto' ? 'Presupuesto de gastos' : 'Meta de ingresos') + '</h3>';
       html += '<span class="text-sm texto-secundario">' + mes + '</span>';
       html += '</div>';
-      html += '<div class="flex justify-center mb-4">';
-      html += '<canvas id="graficaPresupuestoMensual" class="max-h-40"></canvas>';
-      html += '</div>';
+      html += '<div class="flex justify-center mb-4"><canvas id="graficaPresupuestoMensual" class="max-h-40"></canvas></div>';
       html += '<div class="grid grid-cols-2 gap-2 text-center">';
       html += '<div><p class="text-xs texto-secundario">' + (tipo === 'gasto' ? 'Gastado' : 'Ingresado') + '</p><p class="text-xl font-bold">$' + totalReal.toFixed(2) + '</p></div>';
       html += '<div><p class="text-xs texto-secundario">Presupuesto</p><p class="text-xl font-bold">$' + totalPresupuestado.toFixed(2) + '</p></div>';
@@ -87,42 +72,27 @@
       html += '<div class="mt-2 text-center">';
       var diferencia = totalReal - totalPresupuestado;
       if (tipo === 'gasto') {
-        if (totalReal > totalPresupuestado) {
-          html += '<span class="text-sm font-semibold text-red-500">Excedido por $' + diferencia.toFixed(2) + '</span>';
-        } else {
-          html += '<span class="text-sm font-semibold text-emerald-500">Restan $' + Math.abs(diferencia).toFixed(2) + '</span>';
-        }
+        if (totalReal > totalPresupuestado) html += '<span class="text-sm font-semibold text-red-500">Excedido por $' + diferencia.toFixed(2) + '</span>';
+        else html += '<span class="text-sm font-semibold text-emerald-500">Restan $' + Math.abs(diferencia).toFixed(2) + '</span>';
       } else {
-        if (totalReal >= totalPresupuestado) {
-          html += '<span class="text-sm font-semibold text-emerald-500">Meta cumplida</span>';
-        } else {
-          html += '<span class="text-sm font-semibold text-red-500">Faltan $' + Math.abs(diferencia).toFixed(2) + '</span>';
-        }
+        if (totalReal >= totalPresupuestado) html += '<span class="text-sm font-semibold text-emerald-500">Meta cumplida</span>';
+        else html += '<span class="text-sm font-semibold text-red-500">Faltan $' + Math.abs(diferencia).toFixed(2) + '</span>';
       }
-      html += '</div>';
-      html += '</div>';
+      html += '</div></div>';
 
-      // Lista de categorías
       html += '<div class="tarjeta p-5">';
       html += '<div class="flex justify-between items-center mb-3">';
       html += '<h3 class="font-bold">Categorías</h3>';
       html += '<button id="btnAgregarLimite" class="btn btn-primario btn-sm">Añadir</button>';
       html += '</div>';
       html += '<div id="listaCategoriasPresupuesto" class="space-y-3"></div>';
-      // Formulario oculto
       html += '<div id="formLimite" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">';
       html += '<select id="selectCategoriaLimite" class="input-field mb-2"></select>';
       html += '<input type="number" id="inputLimiteValor" placeholder="Monto límite" class="input-field mb-2">';
-      html += '<div class="flex gap-2">';
-      html += '<button id="btnGuardarLimite" class="btn btn-primario flex-1">Guardar</button>';
-      html += '<button id="btnCancelarLimite" class="btn btn-outline flex-1">Cancelar</button>';
-      html += '</div>';
-      html += '</div>';
-      html += '</div>';
-
+      html += '<div class="flex gap-2"><button id="btnGuardarLimite" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarLimite" class="btn btn-outline flex-1">Cancelar</button></div>';
+      html += '</div></div>';
       cont.innerHTML = html;
 
-      // Dibujar gráfico de anillo
       setTimeout(function() {
         var canvas = document.getElementById('graficaPresupuestoMensual');
         if (canvas) {
@@ -131,23 +101,12 @@
           var p = Math.min(porcentaje, 100);
           App.graficaPresupuestoMensualChart = new Chart(ctx, {
             type: 'doughnut',
-            data: {
-              datasets: [{
-                data: [p, 100 - p],
-                backgroundColor: [color, '#e5e7eb'],
-                borderWidth: 0
-              }]
-            },
-            options: {
-              responsive: true,
-              cutout: '80%',
-              plugins: { legend: { display: false }, tooltip: { enabled: false } }
-            }
+            data: { datasets: [{ data: [p, 100 - p], backgroundColor: [color, '#e5e7eb'], borderWidth: 0 }] },
+            options: { responsive: true, cutout: '80%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
           });
         }
       }, 100);
 
-      // Llenar lista de categorías
       var listaEl = document.getElementById('listaCategoriasPresupuesto');
       var listaHtml = '';
       catsFiltradas.forEach(function(c) {
@@ -156,44 +115,25 @@
         var pCat = limite > 0 ? (real / limite) * 100 : 0;
         var colorBarra = pCat > 100 ? '#ef4444' : pCat > 80 ? '#f97316' : '#10b981';
         listaHtml += '<div class="presupuesto-cat-item">';
-        listaHtml += '<div class="flex justify-between items-center mb-1">';
-        listaHtml += '<span class="font-medium">' + c.emoji + ' ' + c.nombre + '</span>';
-        listaHtml += '<span class="text-xs texto-secundario">$' + real.toFixed(2) + ' / $' + limite.toFixed(2) + '</span>';
-        listaHtml += '</div>';
+        listaHtml += '<div class="flex justify-between items-center mb-1"><span class="font-medium">' + c.emoji + ' ' + c.nombre + '</span><span class="text-xs texto-secundario">$' + real.toFixed(2) + ' / $' + limite.toFixed(2) + '</span></div>';
         listaHtml += '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(pCat, 100) + '%; background-color:' + colorBarra + '; box-shadow:0 0 6px ' + colorBarra + ';"></div></div>';
-        listaHtml += '<div class="flex justify-between items-center mt-1">';
-        listaHtml += '<span class="text-xs texto-secundario">' + pCat.toFixed(0) + '% usado</span>';
-        listaHtml += '<div class="flex gap-2">';
-        listaHtml += '<button class="btn-editar-limite text-xs" data-categoria="' + c.nombre + '" data-limite="' + limite + '">Editar</button>';
-        listaHtml += '<button class="btn-eliminar-limite text-xs text-red-500" data-categoria="' + c.nombre + '">Eliminar</button>';
-        listaHtml += '</div>';
-        listaHtml += '</div>';
+        listaHtml += '<div class="flex justify-between items-center mt-1"><span class="text-xs texto-secundario">' + pCat.toFixed(0) + '% usado</span><div class="flex gap-2"><button class="btn-editar-limite text-xs" data-categoria="' + c.nombre + '" data-limite="' + limite + '">Editar</button><button class="btn-eliminar-limite text-xs text-red-500" data-categoria="' + c.nombre + '">Eliminar</button></div></div>';
         listaHtml += '</div>';
       });
       listaEl.innerHTML = listaHtml || '<p class="texto-secundario text-center">No hay categorías</p>';
 
-      // Eventos editar/eliminar
       listaEl.querySelectorAll('.btn-editar-limite').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          mostrarFormularioLimite(tipo, this.dataset.categoria, parseFloat(this.dataset.limite));
-        });
+        btn.addEventListener('click', function() { mostrarFormularioLimite(tipo, this.dataset.categoria, parseFloat(this.dataset.limite)); });
       });
       listaEl.querySelectorAll('.btn-eliminar-limite').forEach(function(btn) {
         btn.addEventListener('click', function() {
           if (confirm('¿Eliminar el límite para ' + this.dataset.categoria + '?')) {
-            App.eliminarLimiteCategoria(mes, tipo, this.dataset.categoria, function() {
-              renderizarVistaPresupuesto(tipo);
-            });
+            App.eliminarLimiteCategoria(mes, tipo, this.dataset.categoria, function() { renderizarVistaPresupuesto(tipo); });
           }
         });
       });
+      document.getElementById('btnAgregarLimite').addEventListener('click', function() { mostrarFormularioLimite(tipo); });
 
-      // Botón añadir
-      document.getElementById('btnAgregarLimite').addEventListener('click', function() {
-        mostrarFormularioLimite(tipo);
-      });
-
-      // Función para mostrar/ocultar formulario
       function mostrarFormularioLimite(tipo, categoria, limite) {
         categoria = categoria || '';
         limite = limite || 0;
@@ -208,39 +148,28 @@
           var cat = select.value;
           var val = parseFloat(document.getElementById('inputLimiteValor').value);
           if (!cat || isNaN(val) || val < 0) return;
-          App.guardarLimiteCategoria(mes, tipo, cat, val, function() {
-            form.classList.add('hidden');
-            renderizarVistaPresupuesto(tipo);
-          });
+          App.guardarLimiteCategoria(mes, tipo, cat, val, function() { form.classList.add('hidden'); renderizarVistaPresupuesto(tipo); });
         };
-        document.getElementById('btnCancelarLimite').onclick = function() {
-          form.classList.add('hidden');
-        };
+        document.getElementById('btnCancelarLimite').onclick = function() { form.classList.add('hidden'); };
       }
     });
   }
 
-  // ==================== METAS DE AHORRO (mantener igual) ====================
+  // ============ METAS DE AHORRO (con edición) ============
   function renderizarMetas() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
     cont.innerHTML = '<p class="text-center texto-secundario">Cargando metas...</p>';
-
     App.obtenerMetas(function(metas) {
       var html = '';
-      html += '<div class="mb-4">';
-      html += '<button id="btnNuevaMeta" class="btn btn-primario w-full">+ Nueva meta de ahorro</button>';
-      html += '</div>';
+      html += '<div class="mb-4"><button id="btnNuevaMeta" class="btn btn-primario w-full">+ Nueva meta de ahorro</button></div>';
       html += '<div id="formNuevaMeta" class="hidden tarjeta p-4 mb-4">';
       html += '<h3 class="font-bold mb-2">Nueva meta</h3>';
       html += '<input type="text" id="nombreMeta" placeholder="Nombre (ej: PC Gamer)" class="input-field mb-2">';
       html += '<input type="number" id="costoTotalMeta" placeholder="Costo total estimado" class="input-field mb-2">';
       html += '<input type="number" id="ahorroInicialMeta" placeholder="Ahorro inicial (opcional)" class="input-field mb-2">';
       html += '<input type="date" id="fechaLimiteMeta" class="input-field mb-2">';
-      html += '<div class="flex gap-2">';
-      html += '<button id="btnGuardarMeta" class="btn btn-primario flex-1">Guardar</button>';
-      html += '<button id="btnCancelarMeta" class="btn btn-outline flex-1">Cancelar</button>';
-      html += '</div>';
+      html += '<div class="flex gap-2"><button id="btnGuardarMeta" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarMeta" class="btn btn-outline flex-1">Cancelar</button></div>';
       html += '</div>';
 
       if (metas.length === 0) {
@@ -251,24 +180,18 @@
           var porcentaje = meta.costoTotal > 0 ? (meta.ahorrado / meta.costoTotal) * 100 : 0;
           var color = porcentaje >= 100 ? '#10b981' : '#3b82f6';
           html += '<div class="meta-card" data-id="' + meta.id + '">';
-          html += '<div class="flex justify-between items-center mb-1">';
-          html += '<span class="font-bold">' + meta.nombre + '</span>';
-          html += '<span class="text-xs texto-secundario">' + (meta.fechaLimite ? new Date(meta.fechaLimite).toLocaleDateString() : 'Sin fecha') + '</span>';
-          html += '</div>';
+          html += '<div class="flex justify-between items-center mb-1"><span class="font-bold">' + meta.nombre + '</span><span class="text-xs texto-secundario">' + (meta.fechaLimite ? new Date(meta.fechaLimite).toLocaleDateString() : 'Sin fecha') + '</span></div>';
           html += '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + color + ';"></div></div>';
-          html += '<div class="flex justify-between text-sm mt-1">';
-          html += '<span class="font-semibold">$' + meta.ahorrado.toFixed(2) + '</span>';
-          html += '<span class="texto-secundario">de $' + meta.costoTotal.toFixed(2) + '</span>';
-          html += '</div>';
+          html += '<div class="flex justify-between text-sm mt-1"><span class="font-semibold">$' + meta.ahorrado.toFixed(2) + '</span><span class="texto-secundario">de $' + meta.costoTotal.toFixed(2) + '</span></div>';
           html += '<div class="flex gap-2 mt-2">';
           html += '<button class="btn-detalle-meta btn btn-outline-small flex-1" data-id="' + meta.id + '">Detalle</button>';
+          html += '<button class="btn-editar-meta btn btn-outline-small" data-id="' + meta.id + '" data-nombre="' + meta.nombre + '" data-costo="' + meta.costoTotal + '" data-ahorrado="' + meta.ahorrado + '" data-fecha="' + (meta.fechaLimite || '') + '">Editar</button>';
           html += '<button class="btn-eliminar-meta text-red-500 text-lg" data-id="' + meta.id + '">✕</button>';
           html += '</div>';
           html += '</div>';
         });
         html += '</div>';
       }
-
       cont.innerHTML = html;
 
       document.getElementById('btnNuevaMeta').addEventListener('click', function() {
@@ -283,29 +206,56 @@
         var ahorroInicial = parseFloat(document.getElementById('ahorroInicialMeta').value) || 0;
         var fechaLimite = document.getElementById('fechaLimiteMeta').value;
         if (!nombre || isNaN(costoTotal) || costoTotal <= 0) return;
-        App.agregarMeta({
-          nombre: nombre,
-          costoTotal: costoTotal,
-          ahorrado: ahorroInicial,
-          fechaLimite: fechaLimite || null
-        }).then(function() {
-          renderizarMetas();
+        App.agregarMeta({ nombre: nombre, costoTotal: costoTotal, ahorrado: ahorroInicial, fechaLimite: fechaLimite || null }).then(function() { renderizarMetas(); });
+      });
+
+      // Editar meta
+      document.querySelectorAll('.btn-editar-meta').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var nombreActual = this.dataset.nombre;
+          var costoActual = parseFloat(this.dataset.costo);
+          var ahorradoActual = parseFloat(this.dataset.ahorrado);
+          var fechaActual = this.dataset.fecha || '';
+
+          var formHtml = '<div class="tarjeta p-4 mb-4">';
+          formHtml += '<h3 class="font-bold mb-2">Editar meta</h3>';
+          formHtml += '<input type="text" id="editNombreMeta" value="' + nombreActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editCostoTotalMeta" value="' + costoActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editAhorradoMeta" value="' + ahorradoActual + '" class="input-field mb-2">';
+          formHtml += '<input type="date" id="editFechaLimiteMeta" value="' + fechaActual + '" class="input-field mb-2">';
+          formHtml += '<div class="flex gap-2"><button id="btnGuardarEdicionMeta" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarEdicionMeta" class="btn btn-outline flex-1">Cancelar</button></div>';
+          formHtml += '</div>';
+
+          // Reemplazar contenido
+          cont.innerHTML = formHtml;
+          document.getElementById('btnCancelarEdicionMeta').addEventListener('click', renderizarMetas);
+          document.getElementById('btnGuardarEdicionMeta').addEventListener('click', function() {
+            var nuevoNombre = document.getElementById('editNombreMeta').value.trim();
+            var nuevoCosto = parseFloat(document.getElementById('editCostoTotalMeta').value);
+            var nuevoAhorrado = parseFloat(document.getElementById('editAhorradoMeta').value);
+            var nuevaFecha = document.getElementById('editFechaLimiteMeta').value;
+            if (!nuevoNombre || isNaN(nuevoCosto) || isNaN(nuevoAhorrado)) return;
+            App.actualizarMeta(id, { nombre: nuevoNombre, costoTotal: nuevoCosto, ahorrado: nuevoAhorrado, fechaLimite: nuevaFecha || null }).then(renderizarMetas);
+          });
         });
       });
 
+      // Eliminar meta
       document.querySelectorAll('.btn-eliminar-meta').forEach(function(btn) {
         btn.addEventListener('click', function() {
           if (confirm('¿Eliminar esta meta?')) App.eliminarMeta(this.dataset.id);
         });
       });
+
+      // Ver detalle
       document.querySelectorAll('.btn-detalle-meta').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          renderizarDetalleMeta(this.dataset.id);
-        });
+        btn.addEventListener('click', function() { renderizarDetalleMeta(this.dataset.id); });
       });
     });
   }
 
+  // Detalle de meta (incluye edición de items)
   function renderizarDetalleMeta(metaId) {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -324,22 +274,15 @@
         html += '</div>';
 
         html += '<div class="tarjeta p-4">';
-        html += '<div class="flex justify-between items-center mb-3">';
-        html += '<h4 class="font-bold">Desglose de artículos</h4>';
-        html += '<button id="btnNuevoItem" class="btn btn-primario btn-sm">+ Añadir</button>';
-        html += '</div>';
+        html += '<div class="flex justify-between items-center mb-3"><h4 class="font-bold">Desglose de artículos</h4><button id="btnNuevoItem" class="btn btn-primario btn-sm">+ Añadir</button></div>';
         html += '<div id="listaItemsMeta" class="space-y-2"></div>';
         html += '<div id="formNuevoItem" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">';
         html += '<input type="text" id="nombreItem" placeholder="Nombre del artículo" class="input-field mb-2">';
         html += '<input type="number" id="costoItem" placeholder="Costo" class="input-field mb-2">';
         html += '<label class="flex items-center gap-2"><input type="checkbox" id="compradoItem"> Comprado</label>';
-        html += '<div class="flex gap-2 mt-2">';
-        html += '<button id="btnGuardarItem" class="btn btn-primario flex-1">Guardar</button>';
-        html += '<button id="btnCancelarItem" class="btn btn-outline flex-1">Cancelar</button>';
+        html += '<div class="flex gap-2 mt-2"><button id="btnGuardarItem" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarItem" class="btn btn-outline flex-1">Cancelar</button></div>';
         html += '</div>';
         html += '</div>';
-        html += '</div>';
-
         cont.innerHTML = html;
 
         var lista = document.getElementById('listaItemsMeta');
@@ -360,6 +303,10 @@
           lista.querySelectorAll('.checkbox-comprado').forEach(function(cb) {
             cb.addEventListener('change', function() {
               App.actualizarItemMeta(metaId, this.dataset.id, { comprado: this.checked });
+              // Notificar si todos los items están comprados (meta completada)
+              if (this.checked) {
+                // Podríamos comprobar aquí si todos están comprados y lanzar notificación
+              }
             });
           });
           lista.querySelectorAll('.btn-eliminar-item').forEach(function(btn) {
@@ -369,30 +316,22 @@
           });
         }
 
-        document.getElementById('btnNuevoItem').addEventListener('click', function() {
-          document.getElementById('formNuevoItem').classList.remove('hidden');
-        });
-        document.getElementById('btnCancelarItem').addEventListener('click', function() {
-          document.getElementById('formNuevoItem').classList.add('hidden');
-        });
+        document.getElementById('btnNuevoItem').addEventListener('click', function() { document.getElementById('formNuevoItem').classList.remove('hidden'); });
+        document.getElementById('btnCancelarItem').addEventListener('click', function() { document.getElementById('formNuevoItem').classList.add('hidden'); });
         document.getElementById('btnGuardarItem').addEventListener('click', function() {
           var nombre = document.getElementById('nombreItem').value.trim();
           var costo = parseFloat(document.getElementById('costoItem').value);
           var comprado = document.getElementById('compradoItem').checked;
           if (!nombre || isNaN(costo) || costo < 0) return;
-          App.agregarItemMeta(metaId, { nombre: nombre, costo: costo, comprado: comprado }).then(function() {
-            renderizarDetalleMeta(metaId);
-          });
+          App.agregarItemMeta(metaId, { nombre: nombre, costo: costo, comprado: comprado }).then(function() { renderizarDetalleMeta(metaId); });
         });
 
-        document.getElementById('btnVolverMetas').addEventListener('click', function() {
-          renderizarMetas();
-        });
+        document.getElementById('btnVolverMetas').addEventListener('click', renderizarMetas);
       });
     });
   }
 
-  // ==================== CARGA INICIAL ====================
+  // ============ CARGA INICIAL ============
   App.cargarPantallaPresupuesto = function() {
     var contenedor = document.getElementById('contenidoPresupuesto');
     if (!contenedor) return;
@@ -409,7 +348,6 @@
         renderizarMetas();
       });
     }
-    // Mostrar Presupuesto mensual por defecto
     renderizarPresupuestoMensual();
   };
 })();
