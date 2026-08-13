@@ -151,30 +151,48 @@
 
       <!-- Vista Ajustes -->
       <div id="vistaAjustes" class="vista">
-        <div class="ajustes-panel">
-          <h2>Ajustes</h2>
-          <div class="ajuste-item">
-            <span>Modo oscuro</span>
-            <button id="toggleTemaAjustes" class="btn-icon">🌙</button>
-          </div>
-          <div class="ajuste-item">
-            <span>Cambiar contraseña</span>
-            <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
-          </div>
-          <div id="panelCambioPassword" class="hidden mt-2">
-            <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
-            <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
-            <button id="btnUpdatePassword" class="btn btn-primario w-full mt-2">Actualizar</button>
-            <p id="passwordError" class="error-text hidden"></p>
-            <p id="passwordSuccess" class="success-text hidden"></p>
-          </div>
-          <div class="ajuste-item">
-            <span>Exportar movimientos (CSV)</span>
-            <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
-          </div>
-          <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
-        </div>
-      </div>
+  <div class="ajustes-panel">
+    <h2>Ajustes</h2>
+
+    <!-- Modo oscuro rápido -->
+    <div class="ajuste-item">
+      <span>Modo oscuro</span>
+      <button id="toggleTemaAjustes" class="btn-icon">🌙</button>
+    </div>
+
+    <!-- Selector de tema (Claro/Oscuro/Sistema) -->
+    <div class="ajuste-item">
+      <span>Tema</span>
+      <select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;">
+        <option value="light">Claro</option>
+        <option value="dark">Oscuro</option>
+        <option value="system">Sistema</option>
+      </select>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="ajuste-item">
+      <span>Cambiar contraseña</span>
+      <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
+    </div>
+    <div id="panelCambioPassword" class="hidden mt-2">
+      <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
+      <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
+      <button id="btnUpdatePassword" class="btn btn-primario w-full mt-2">Actualizar</button>
+      <p id="passwordError" class="error-text hidden"></p>
+      <p id="passwordSuccess" class="success-text hidden"></p>
+    </div>
+
+    <!-- Exportar CSV -->
+    <div class="ajuste-item">
+      <span>Exportar movimientos (CSV)</span>
+      <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
+    </div>
+
+    <!-- Cerrar sesión -->
+    <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
+  </div>
+</div>
       <!-- Vista Onboarding -->
 <div id="vistaOnboarding" class="vista">
   <div class="onboarding-container">
