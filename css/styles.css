@@ -523,3 +523,12 @@ html, body {
   color: var(--texto-secundario);
   margin-bottom: 1.5rem;
 }
+[data-theme="dark"] {
+  --fondo: #0f172a;
+  --tarjeta: #1e293b;
+  --texto: #f8fafc;
+  --texto-secundario: #cbd5e1;
+  --nav-bg: rgba(15, 23, 42, 0.95);
+  --nav-border: rgba(255,255,255,0.1);
+  --sombra: 0 4px 6px rgba(0,0,0,0.3);
+}
