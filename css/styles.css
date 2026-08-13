@@ -350,3 +350,130 @@ body {
 }
 .btn-detalle-meta:hover { background: var(--primario); color: white; border-color: var(--primario); }
 .btn-eliminar-meta:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
+/* ========== MEJORAS RESPONSIVE ========== */
+/* Evitar scroll horizontal */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ajustes generales para móviles */
+@media (max-width: 480px) {
+  body {
+    padding: 0.75rem;
+  }
+  .app-shell {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+  .vistas-container {
+    padding: 0.75rem 0.5rem 5rem; /* más espacio para la navbar */
+  }
+  .resumen-grid {
+    grid-template-columns: 1fr 1fr; /* mantener 2 columnas */
+    gap: 0.5rem;
+  }
+  .resumen-card {
+    padding: 0.75rem;
+  }
+  .resumen-card strong {
+    font-size: 1.5rem;
+  }
+  .balance-card strong {
+    font-size: 1.75rem;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .kpi-card {
+    padding: 0.75rem;
+  }
+  .kpi-valor {
+    font-size: 1.1rem;
+  }
+  .charts-grid {
+    grid-template-columns: 1fr; /* una gráfica por fila en pantallas muy pequeñas */
+    gap: 0.5rem;
+  }
+  .charts-grid canvas {
+    max-height: 200px;
+  }
+  .movimientos-container {
+    padding: 0.75rem;
+  }
+  .movimiento-item {
+    font-size: 0.9rem;
+  }
+  .movimiento-item .emoji {
+    font-size: 1.3rem;
+  }
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  .fab {
+    width: 50px;
+    height: 50px;
+    font-size: 1.6rem;
+    bottom: 5rem;
+    right: 1rem;
+  }
+  .bottom-nav {
+    padding: 0.4rem 0 0.8rem;
+  }
+  .nav-item {
+    font-size: 0.6rem;
+  }
+  .modal-content {
+    border-radius: 1rem 1rem 0 0;
+    padding: 1rem;
+    max-height: 85vh;
+  }
+  .input-field {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .presupuesto-tabs,
+  .presupuesto-subtabs {
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+  .presupuesto-tab,
+  .presupuesto-subtab {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.8rem;
+  }
+  .presupuesto-cat-item {
+    padding: 0.6rem;
+  }
+  .categorias-container {
+    padding: 1rem;
+  }
+  .emoji-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Pantallas aún más pequeñas (ej: iPhone SE) */
+@media (max-width: 360px) {
+  .kpi-grid {
+    grid-template-columns: 1fr; /* una columna para que no se apriete */
+  }
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .app-header {
+    padding: 0.5rem;
+  }
+  .titulo-seccion {
+    font-size: 1.1rem;
+  }
+  .input-mes {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
