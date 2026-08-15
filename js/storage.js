@@ -191,4 +191,59 @@
   App.eliminarSuscripcion = function(id) {
     return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).delete();
   };
+  // ===== MÉTODOS DE PAGO =====
+App.obtenerMetodosPago = function(callback) {
+  return db.collection('usuarios/' + uid() + '/metodos_pago').onSnapshot(snap => {
+    const metodos = [];
+    snap.forEach(doc => metodos.push(Object.assign({ id: doc.id }, doc.data())));
+    callback(metodos);
+  });
+};
+
+App.agregarMetodoPago = function(nombre) {
+  return db.collection('usuarios/' + uid() + '/metodos_pago').add({
+    nombre: nombre.trim()
+  });
+};
+
+App.eliminarMetodoPago = function(id) {
+  return db.collection('usuarios/' + uid() + '/metodos_pago').doc(id).delete();
+};
+
+// Modificar agregarTransaccion y actualizarTransaccion para incluir metodoPago
+App.agregarTransaccion = function(tipo, categoria, descripcion, monto, fecha, metodoPago) {
+  return db.collection('usuarios/' + uid() + '/transacciones').add({
+    tipo: tipo,
+    categoria: categoria,
+    descripcion: descripcion,
+    monto: parseFloat(monto),
+    fecha: fecha,
+    metodoPago: metodoPago || null
+  });
+};
+
+App.actualizarTransaccion = function(id, datos) {
+  return db.collection('usuarios/' + uid() + '/transacciones').doc(id).update(datos);
+};
+
+// ===== PRÉSTAMOS =====
+App.obtenerPrestamos = function(callback) {
+  return db.collection('usuarios/' + uid() + '/prestamos').onSnapshot(snap => {
+    const prestamos = [];
+    snap.forEach(doc => prestamos.push(Object.assign({ id: doc.id }, doc.data())));
+    callback(prestamos);
+  });
+};
+
+App.agregarPrestamo = function(prestamo) {
+  return db.collection('usuarios/' + uid() + '/prestamos').add(prestamo);
+};
+
+App.actualizarPrestamo = function(id, datos) {
+  return db.collection('usuarios/' + uid() + '/prestamos').doc(id).update(datos);
+};
+
+App.eliminarPrestamo = function(id) {
+  return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
+};
 })();
