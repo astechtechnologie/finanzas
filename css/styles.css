@@ -553,3 +553,27 @@ html, body {
   background: var(--primario);
   color: white;
 }
+/* ========== SUSCRIPCIONES ========== */
+.suscripciones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.suscripcion-card {
+  background: var(--fondo);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: var(--sombra-sm);
+}
+.btn-editar-suscripcion,
+.btn-eliminar-suscripcion {
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+}
+.btn-editar-suscripcion:hover { background: var(--primario); color: white; border-color: var(--primario); }
+.btn-eliminar-suscripcion:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
