@@ -72,7 +72,9 @@
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       var cat = document.getElementById('categoria').value;
       var desc = document.getElementById('descripcion').value.trim();
-      var monto = document.getElementById('monto').value;
+      // Limpiar monto: quitar puntos, cambiar coma por punto para parsear correctamente
+      var montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
+      var monto = parseFloat(montoLimpio) || 0;
       var fecha = document.getElementById('fecha').value;
       var metodoPago = document.getElementById('metodoPago').value || null;
       if (!cat || !desc || !monto) return;
@@ -104,7 +106,8 @@
       var id = document.getElementById('idTransaccionEditar').value;
       var cat = document.getElementById('categoriaEditar').value;
       var desc = document.getElementById('descripcionEditar').value.trim();
-      var monto = parseFloat(document.getElementById('montoEditar').value);
+      var montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
+      var monto = parseFloat(montoLimpio) || 0;
       var fecha = document.getElementById('fechaEditar').value;
       var metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
