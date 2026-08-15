@@ -1,7 +1,6 @@
 (function() {
   const App = window.App;
 
-  // ==================== ESTRUCTURA GENERAL ====================
   function crearEstructura() {
     var html = '';
     html += '<div class="presupuesto-tabs">';
@@ -76,17 +75,17 @@
       html += '</div>';
       html += '<div class="flex justify-center mb-4"><canvas id="graficaPresupuestoMensual" class="max-h-40"></canvas></div>';
       html += '<div class="grid grid-cols-2 gap-2 text-center">';
-      html += '<div><p class="text-xs texto-secundario">' + (tipo === 'gasto' ? 'Gastado' : 'Ingresado') + '</p><p class="text-xl font-bold">$' + totalReal.toFixed(2) + '</p></div>';
-      html += '<div><p class="text-xs texto-secundario">Presupuesto</p><p class="text-xl font-bold">$' + totalPresupuestado.toFixed(2) + '</p></div>';
+      html += '<div><p class="text-xs texto-secundario">' + (tipo === 'gasto' ? 'Gastado' : 'Ingresado') + '</p><p class="text-xl font-bold">$' + App.formatearMonto(totalReal) + '</p></div>';
+      html += '<div><p class="text-xs texto-secundario">Presupuesto</p><p class="text-xl font-bold">$' + App.formatearMonto(totalPresupuestado) + '</p></div>';
       html += '</div>';
       html += '<div class="mt-2 text-center">';
       var diferencia = totalReal - totalPresupuestado;
       if (tipo === 'gasto') {
-        if (totalReal > totalPresupuestado) html += '<span class="text-sm font-semibold text-red-500">Excedido por $' + diferencia.toFixed(2) + '</span>';
-        else html += '<span class="text-sm font-semibold text-emerald-500">Restan $' + Math.abs(diferencia).toFixed(2) + '</span>';
+        if (totalReal > totalPresupuestado) html += '<span class="text-sm font-semibold text-red-500">Excedido por $' + App.formatearMonto(diferencia) + '</span>';
+        else html += '<span class="text-sm font-semibold text-emerald-500">Restan $' + App.formatearMonto(Math.abs(diferencia)) + '</span>';
       } else {
         if (totalReal >= totalPresupuestado) html += '<span class="text-sm font-semibold text-emerald-500">Meta cumplida</span>';
-        else html += '<span class="text-sm font-semibold text-red-500">Faltan $' + Math.abs(diferencia).toFixed(2) + '</span>';
+        else html += '<span class="text-sm font-semibold text-red-500">Faltan $' + App.formatearMonto(Math.abs(diferencia)) + '</span>';
       }
       html += '</div></div>';
 
@@ -125,7 +124,7 @@
         var pCat = limite > 0 ? (real / limite) * 100 : 0;
         var colorBarra = pCat > 100 ? '#ef4444' : pCat > 80 ? '#f97316' : '#10b981';
         listaHtml += '<div class="presupuesto-cat-item">';
-        listaHtml += '<div class="flex justify-between items-center mb-1"><span class="font-medium">' + c.emoji + ' ' + c.nombre + '</span><span class="text-xs texto-secundario">$' + real.toFixed(2) + ' / $' + limite.toFixed(2) + '</span></div>';
+        listaHtml += '<div class="flex justify-between items-center mb-1"><span class="font-medium">' + c.emoji + ' ' + c.nombre + '</span><span class="text-xs texto-secundario">$' + App.formatearMonto(real) + ' / $' + App.formatearMonto(limite) + '</span></div>';
         listaHtml += '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(pCat, 100) + '%; background-color:' + colorBarra + '; box-shadow:0 0 6px ' + colorBarra + ';"></div></div>';
         listaHtml += '<div class="flex justify-between items-center mt-1"><span class="text-xs texto-secundario">' + pCat.toFixed(0) + '% usado</span><div class="flex gap-2"><button class="btn-editar-limite text-xs" data-categoria="' + c.nombre + '" data-limite="' + limite + '">Editar</button><button class="btn-eliminar-limite text-xs text-red-500" data-categoria="' + c.nombre + '">Eliminar</button></div></div>';
         listaHtml += '</div>';
@@ -193,7 +192,7 @@
           html += '<div class="meta-card" data-id="' + meta.id + '">';
           html += '<div class="flex justify-between items-center mb-1"><span class="font-bold">' + meta.nombre + '</span><span class="text-xs texto-secundario">' + (meta.fechaLimite ? new Date(meta.fechaLimite).toLocaleDateString() : 'Sin fecha') + '</span></div>';
           html += '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + color + ';"></div></div>';
-          html += '<div class="flex justify-between text-sm mt-1"><span class="font-semibold">$' + meta.ahorrado.toFixed(2) + '</span><span class="texto-secundario">de $' + meta.costoTotal.toFixed(2) + '</span></div>';
+          html += '<div class="flex justify-between text-sm mt-1"><span class="font-semibold">$' + App.formatearMonto(meta.ahorrado) + '</span><span class="texto-secundario">de $' + App.formatearMonto(meta.costoTotal) + '</span></div>';
           html += '<div class="flex gap-2 mt-2">';
           html += '<button class="btn-detalle-meta btn btn-outline-small flex-1" data-id="' + meta.id + '">Detalle</button>';
           html += '<button class="btn-editar-meta btn btn-outline-small" data-id="' + meta.id + '" data-nombre="' + meta.nombre + '" data-costo="' + meta.costoTotal + '" data-ahorrado="' + meta.ahorrado + '" data-fecha="' + (meta.fechaLimite || '') + '">Editar</button>';
@@ -270,7 +269,7 @@
         html += '<button id="btnVolverMetas" class="btn btn-outline-small mb-3">← Volver</button>';
         html += '<div class="tarjeta p-4 mb-4">';
         html += '<h3 class="font-bold text-lg">' + meta.nombre + '</h3>';
-        html += '<p class="text-sm texto-secundario">Costo total: $' + meta.costoTotal.toFixed(2) + ' | Ahorrado: $' + meta.ahorrado.toFixed(2) + '</p>';
+        html += '<p class="text-sm texto-secundario">Costo total: $' + App.formatearMonto(meta.costoTotal) + ' | Ahorrado: $' + App.formatearMonto(meta.ahorrado) + '</p>';
         html += '<div class="progress-bar mt-2"><div class="progress-fill" style="width:' + Math.min((meta.ahorrado / meta.costoTotal) * 100, 100) + '%; background-color:#3b82f6;"></div></div>';
         html += '</div>';
         html += '<div class="tarjeta p-4">';
@@ -292,7 +291,7 @@
           var itemsHtml = '';
           items.forEach(function(item) {
             itemsHtml += '<div class="item-meta flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">';
-            itemsHtml += '<div><span class="font-medium">' + item.nombre + '</span><span class="text-xs texto-secundario ml-2">$' + item.costo.toFixed(2) + '</span></div>';
+            itemsHtml += '<div><span class="font-medium">' + item.nombre + '</span><span class="text-xs texto-secundario ml-2">$' + App.formatearMonto(item.costo) + '</span></div>';
             itemsHtml += '<div class="flex items-center gap-2">';
             itemsHtml += '<input type="checkbox" class="checkbox-comprado" data-id="' + item.id + '"' + (item.comprado ? ' checked' : '') + '>';
             itemsHtml += '<button class="btn-eliminar-item text-red-500" data-id="' + item.id + '">✕</button>';
@@ -361,7 +360,7 @@
 
         html += '<div class="tarjeta p-4 mb-4 text-center">';
         html += '<p class="texto-secundario">Total mensual en suscripciones</p>';
-        html += '<p class="text-2xl font-bold">$' + totalMensual.toFixed(2) + '</p>';
+        html += '<p class="text-2xl font-bold">$' + App.formatearMonto(totalMensual) + '</p>';
         html += '</div>';
 
         html += '<div class="suscripciones-lista space-y-3">';
@@ -373,7 +372,7 @@
           html += '<span class="text-xs texto-secundario">' + s.frecuencia + '</span>';
           html += '</div>';
           html += '<div class="flex justify-between text-sm mb-2">';
-          html += '<span class="font-semibold">$' + s.costo.toFixed(2) + '</span>';
+          html += '<span class="font-semibold">$' + App.formatearMonto(s.costo) + '</span>';
           html += '<span class="texto-secundario">Próximo: ' + proximo + '</span>';
           html += '</div>';
           html += '<div class="flex gap-2">';
@@ -480,12 +479,12 @@
           html += '<div class="prestamo-card">';
           html += '<div class="prestamo-header">';
           html += '<span class="font-bold">' + p.nombre + ' <span class="text-xs texto-secundario">(' + estado + ')</span></span>';
-          html += '<span class="prestamo-monto">$' + montoTotal.toFixed(2) + '</span>';
+          html += '<span class="prestamo-monto">$' + App.formatearMonto(montoTotal) + '</span>';
           html += '</div>';
           html += '<div class="progress-bar prestamo-progress"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + (porcentaje >= 100 ? '#10b981' : '#f59e0b') + ';"></div></div>';
           html += '<div class="flex justify-between text-sm mb-2">';
-          html += '<span>Pagado: $' + montoPagado.toFixed(2) + '</span>';
-          html += '<span>Pendiente: $' + (montoTotal - montoPagado).toFixed(2) + '</span>';
+          html += '<span>Pagado: $' + App.formatearMonto(montoPagado) + '</span>';
+          html += '<span>Pendiente: $' + App.formatearMonto(montoTotal - montoPagado) + '</span>';
           html += '</div>';
           html += '<div class="flex gap-2">';
           html += '<button class="btn-abonar-prestamo btn btn-outline-small flex-1" data-id="' + p.id + '" data-pagado="' + montoPagado + '">Abonar</button>';
