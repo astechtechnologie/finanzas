@@ -636,3 +636,44 @@ html, body {
 .nav-item.active i {
   color: var(--primario);
 }
+/* ========== MÉTODOS DE PAGO Y PRÉSTAMOS ========== */
+.metodo-pago-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--fondo);
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.prestamo-card {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--radio);
+  padding: 1rem;
+  box-shadow: var(--sombra-sm);
+  margin-bottom: 0.75rem;
+}
+.prestamo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.prestamo-monto {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.prestamo-progress {
+  margin: 0.5rem 0;
+}
+.btn-prestamo {
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+}
+.btn-prestamo:hover { background: var(--primario); color: white; border-color: var(--primario); }
