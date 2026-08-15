@@ -15,7 +15,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-  </script>
+</script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
 
@@ -229,11 +230,19 @@
 
     <!-- Barra de navegación -->
     <nav class="bottom-nav">
-      <button class="nav-item active" data-vista="vistaInicio">🏠<span>Inicio</span></button>
-      <button class="nav-item" data-vista="vistaPresupuesto">💵<span>Presupuesto</span></button>
-      <button class="nav-item" data-vista="vistaCategorias">🏷️<span>Categorías</span></button>
-      <button class="nav-item" data-vista="vistaAjustes">⚙️<span>Ajustes</span></button>
-    </nav>
+  <button class="nav-item active" data-vista="vistaInicio">
+    <i class="ph ph-house"></i><span>Inicio</span>
+  </button>
+  <button class="nav-item" data-vista="vistaPresupuesto">
+    <i class="ph ph-wallet"></i><span>Presupuesto</span>
+  </button>
+  <button class="nav-item" data-vista="vistaCategorias">
+    <i class="ph ph-tag"></i><span>Categorías</span>
+  </button>
+  <button class="nav-item" data-vista="vistaAjustes">
+    <i class="ph ph-gear"></i><span>Ajustes</span>
+  </button>
+</nav>
 
     <!-- Modal AGREGAR transacción -->
     <div id="modalTransaccion" class="modal hidden">
