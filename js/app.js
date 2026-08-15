@@ -24,7 +24,6 @@
     const nuevo = actual === 'dark' ? 'light' : 'dark';
     localStorage.setItem(CLAVE_TEMA, nuevo);
     aplicarTema(nuevo);
-    // Actualizar selector si existe
     const selector = document.getElementById('temaSelector');
     if (selector) selector.value = nuevo;
   };
@@ -41,38 +40,32 @@
     }
     aplicarTema(preferencia);
 
-    // Escuchar cambios del sistema si está en modo sistema
+    // Escuchar cambios del sistema
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
       if (localStorage.getItem(CLAVE_TEMA) === 'system') aplicarTema('system');
     });
 
-    // Manejo de atajos (ahora con hash)
-function manejarAccionDesdeHash() {
-  const hash = window.location.hash.substring(1); // quita '#'
-  if (!hash) return;
-  const params = new URLSearchParams(hash);
-  const accion = params.get('accion');
+    // Atajos (App Shortcuts) con hash
+    function manejarAccionDesdeHash() {
+      const hash = window.location.hash.substring(1);
+      if (!hash) return;
+      const params = new URLSearchParams(hash);
+      const accion = params.get('accion');
+      if (accion === 'nuevo-gasto') {
+        document.getElementById('modalTransaccion')?.classList.remove('hidden');
+      } else if (accion === 'presupuesto') {
+        document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
+      } else if (accion === 'metas') {
+        document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
+        setTimeout(function() {
+          document.getElementById('tabMetasAhorro')?.click();
+        }, 300);
+      }
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
 
-  if (accion === 'nuevo-gasto') {
-    document.getElementById('modalTransaccion')?.classList.remove('hidden');
-  } else if (accion === 'presupuesto') {
-    document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
-  } else if (accion === 'metas') {
-    document.querySelector('[data-vista="vistaPresupuesto"]')?.click();
-    setTimeout(() => {
-      document.getElementById('tabMetasAhorro')?.click();
-    }, 300);
-  }
-  // Limpiar hash para que no se repita si el usuario navega manualmente
-  history.replaceState(null, '', window.location.pathname + window.location.search);
-}
+    manejarAccionDesdeHash();
 
-document.addEventListener('DOMContentLoaded', function() {
-  // ... código existente ...
-  manejarAccionDesdeHash();
-});
-
-    // Asegurar que el botón de toggle funciona
     const btnTema = document.getElementById('toggleTemaAjustes');
     if (btnTema) btnTema.addEventListener('click', App.toggleTema);
   });
