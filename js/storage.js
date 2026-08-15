@@ -1,4 +1,4 @@
-// storage.js – acceso a Firestore: transacciones, categorías, presupuestos y metas
+// storage.js – acceso a Firestore: transacciones, categorías, presupuestos, metas y suscripciones
 (function() {
   const App = window.App;
   const db = App.db;
@@ -14,7 +14,13 @@
   };
 
   App.agregarTransaccion = function(tipo, categoria, descripcion, monto, fecha) {
-    return db.collection('usuarios/' + uid() + '/transacciones').add({ tipo: tipo, categoria: categoria, descripcion: descripcion, monto: parseFloat(monto), fecha: fecha });
+    return db.collection('usuarios/' + uid() + '/transacciones').add({
+      tipo: tipo,
+      categoria: categoria,
+      descripcion: descripcion,
+      monto: parseFloat(monto),
+      fecha: fecha
+    });
   };
 
   App.actualizarTransaccion = function(id, datos) {
@@ -50,7 +56,12 @@
   };
 
   App.agregarCategoria = function(nombre, emoji, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color: color || '#10b981', tipo: tipo || 'gasto' });
+    return db.collection('usuarios/' + uid() + '/categorias').add({
+      nombre: nombre.trim().toLowerCase(),
+      emoji: emoji || '📌',
+      color: color || '#10b981',
+      tipo: tipo || 'gasto'
+    });
   };
 
   App.eliminarCategoria = function(id) {
@@ -140,7 +151,6 @@
     return db.collection('usuarios/' + uid() + '/metas').doc(id).delete();
   };
 
-  // Items de una meta
   App.obtenerItemsMeta = function(metaId, callback) {
     return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').onSnapshot(function(snap) {
       const items = [];
@@ -159,5 +169,26 @@
 
   App.eliminarItemMeta = function(metaId, itemId) {
     return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').doc(itemId).delete();
+  };
+
+  // ===== SUSCRIPCIONES =====
+  App.obtenerSuscripciones = function(callback) {
+    return db.collection('usuarios/' + uid() + '/suscripciones').onSnapshot(function(snap) {
+      const suscripciones = [];
+      snap.forEach(function(doc) { suscripciones.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(suscripciones);
+    });
+  };
+
+  App.agregarSuscripcion = function(suscripcion) {
+    return db.collection('usuarios/' + uid() + '/suscripciones').add(suscripcion);
+  };
+
+  App.actualizarSuscripcion = function(id, datos) {
+    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).update(datos);
+  };
+
+  App.eliminarSuscripcion = function(id) {
+    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).delete();
   };
 })();
