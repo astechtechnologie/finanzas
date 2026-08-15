@@ -19,25 +19,30 @@
 </head>
 <body>
 
-  <!-- PANTALLA DE LOGIN -->
-  <div id="authScreen" class="hidden fullscreen-center">
-    <div class="auth-container">
-      <h1 class="app-logo">💰 Mis Finanzas</h1>
-      <p class="texto-secundario">Controla tus ingresos y gastos</p>
-      <input type="email" id="email" placeholder="Correo electrónico" class="input-field">
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Contraseña" class="input-field">
-        <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
-      </div>
-      <div class="auth-buttons">
-        <button id="btnLogin" class="btn btn-primario">Iniciar sesión</button>
-        <button id="btnRegister" class="btn btn-outline">Registrarse</button>
-      </div>
-      <button id="btnResetPassword" class="text-link">¿Olvidaste tu contraseña?</button>
-      <p id="authError" class="error-text hidden"></p>
-      <p id="authSuccess" class="success-text hidden"></p>
+  <!-- PANTALLA DE LOGIN / REGISTRO UNIFICADA -->
+<div id="authScreen" class="hidden fullscreen-center">
+  <div class="auth-container">
+    <h1 class="app-logo">Finora</h1>
+    <p class="texto-secundario">Controla tus ingresos y gastos</p>
+
+    <!-- Pestañas -->
+    <div class="auth-tabs">
+      <button id="tabLogin" class="auth-tab active">Iniciar sesión</button>
+      <button id="tabRegistro" class="auth-tab">Registrarse</button>
     </div>
+
+    <input type="email" id="email" placeholder="Correo electrónico" class="input-field">
+    <div class="password-wrapper">
+      <input type="password" id="password" placeholder="Contraseña" class="input-field">
+      <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+    </div>
+
+    <button id="btnAuthAction" class="btn btn-primario w-full">Iniciar sesión</button>
+    <button id="btnResetPassword" class="text-link">¿Olvidaste tu contraseña?</button>
+    <p id="authError" class="error-text hidden"></p>
+    <p id="authSuccess" class="success-text hidden"></p>
   </div>
+</div>
 
   <!-- APP SHELL -->
   <div id="appShell" class="hidden app-shell">
