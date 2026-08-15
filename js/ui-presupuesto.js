@@ -1,4 +1,3 @@
-// Pantalla de presupuesto – pestañas Gastos e Ingresos
 (function() {
   const App = window.App;
 
@@ -9,12 +8,13 @@
     html += '<button id="tabPresupuestoMensual" class="presupuesto-tab active">Presupuesto mensual</button>';
     html += '<button id="tabMetasAhorro" class="presupuesto-tab">Metas de ahorro</button>';
     html += '<button id="tabSuscripciones" class="presupuesto-tab">Suscripciones</button>';
+    html += '<button id="tabPrestamos" class="presupuesto-tab">Préstamos</button>';
     html += '</div>';
     html += '<div id="presupuestoContenido" class="mt-4"></div>';
     return html;
   }
 
-  // ==================== PRESUPUESTO MENSUAL (igual que antes) ====================
+  // ==================== PRESUPUESTO MENSUAL ====================
   function renderizarPresupuestoMensual() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -165,7 +165,7 @@
     });
   }
 
-  // ==================== METAS DE AHORRO (igual que antes) ====================
+  // ==================== METAS DE AHORRO ====================
   function renderizarMetas() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -326,7 +326,7 @@
     });
   }
 
-  // ==================== SUSCRIPCIONES (NUEVO) ====================
+  // ==================== SUSCRIPCIONES ====================
   function renderizarSuscripciones() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -352,7 +352,6 @@
       if (suscripciones.length === 0) {
         html += '<p class="text-center texto-secundario py-4">No tienes suscripciones registradas.</p>';
       } else {
-        // Calcular total mensual
         var totalMensual = 0;
         suscripciones.forEach(function(s) {
           if (s.frecuencia === 'mensual') totalMensual += s.costo;
@@ -448,16 +447,89 @@
     });
   }
 
-  function crearEstructura() {
-    var html = '';
-    html += '<div class="presupuesto-tabs">';
-    html += '<button id="tabPresupuestoMensual" class="presupuesto-tab active">Presupuesto mensual</button>';
-    html += '<button id="tabMetasAhorro" class="presupuesto-tab">Metas de ahorro</button>';
-    html += '<button id="tabSuscripciones" class="presupuesto-tab">Suscripciones</button>';
-    html += '<button id="tabPrestamos" class="presupuesto-tab">Préstamos</button>';
-    html += '</div>';
-    html += '<div id="presupuestoContenido" class="mt-4"></div>';
-    return html;
+  // ==================== PRÉSTAMOS ====================
+  function renderizarPrestamos() {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-center texto-secundario">Cargando préstamos...</p>';
+
+    App.obtenerPrestamos(function(prestamos) {
+      var html = '';
+      html += '<div class="mb-4"><button id="btnNuevoPrestamo" class="btn btn-primario w-full">+ Nuevo préstamo</button></div>';
+      html += '<div id="formNuevoPrestamo" class="hidden tarjeta p-4 mb-4">';
+      html += '<h3 class="font-bold mb-2">Nuevo préstamo</h3>';
+      html += '<input type="text" id="nombrePrestamo" placeholder="Nombre (ej: Juan)" class="input-field mb-2">';
+      html += '<input type="number" id="montoPrestamo" placeholder="Monto total" class="input-field mb-2">';
+      html += '<select id="tipoPrestamo" class="input-field mb-2">';
+      html += '<option value="prestado">Me deben</option>';
+      html += '<option value="debo">Yo debo</option>';
+      html += '</select>';
+      html += '<input type="number" id="pagadoPrestamo" placeholder="Monto pagado (opcional)" class="input-field mb-2">';
+      html += '<div class="flex gap-2"><button id="btnGuardarPrestamo" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarPrestamo" class="btn btn-outline flex-1">Cancelar</button></div>';
+      html += '</div>';
+
+      if (prestamos.length === 0) {
+        html += '<p class="text-center texto-secundario py-4">No tienes préstamos registrados.</p>';
+      } else {
+        html += '<div class="prestamos-lista space-y-3">';
+        prestamos.forEach(function(p) {
+          var montoTotal = p.monto || 0;
+          var montoPagado = p.pagado || 0;
+          var porcentaje = montoTotal > 0 ? (montoPagado / montoTotal) * 100 : 0;
+          var estado = p.tipo === 'prestado' ? 'Me deben' : 'Yo debo';
+          html += '<div class="prestamo-card">';
+          html += '<div class="prestamo-header">';
+          html += '<span class="font-bold">' + p.nombre + ' <span class="text-xs texto-secundario">(' + estado + ')</span></span>';
+          html += '<span class="prestamo-monto">$' + montoTotal.toFixed(2) + '</span>';
+          html += '</div>';
+          html += '<div class="progress-bar prestamo-progress"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + (porcentaje >= 100 ? '#10b981' : '#f59e0b') + ';"></div></div>';
+          html += '<div class="flex justify-between text-sm mb-2">';
+          html += '<span>Pagado: $' + montoPagado.toFixed(2) + '</span>';
+          html += '<span>Pendiente: $' + (montoTotal - montoPagado).toFixed(2) + '</span>';
+          html += '</div>';
+          html += '<div class="flex gap-2">';
+          html += '<button class="btn-abonar-prestamo btn btn-outline-small flex-1" data-id="' + p.id + '" data-pagado="' + montoPagado + '">Abonar</button>';
+          html += '<button class="btn-eliminar-prestamo text-red-500 text-lg" data-id="' + p.id + '">✕</button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      cont.innerHTML = html;
+
+      document.getElementById('btnNuevoPrestamo').addEventListener('click', function() {
+        document.getElementById('formNuevoPrestamo').classList.remove('hidden');
+      });
+      document.getElementById('btnCancelarPrestamo').addEventListener('click', function() {
+        document.getElementById('formNuevoPrestamo').classList.add('hidden');
+      });
+      document.getElementById('btnGuardarPrestamo').addEventListener('click', function() {
+        var nombre = document.getElementById('nombrePrestamo').value.trim();
+        var monto = parseFloat(document.getElementById('montoPrestamo').value);
+        var tipo = document.getElementById('tipoPrestamo').value;
+        var pagado = parseFloat(document.getElementById('pagadoPrestamo').value) || 0;
+        if (!nombre || isNaN(monto) || monto <= 0) return;
+        App.agregarPrestamo({ nombre: nombre, monto: monto, tipo: tipo, pagado: pagado }).then(function() { renderizarPrestamos(); });
+      });
+
+      document.querySelectorAll('.btn-eliminar-prestamo').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar este préstamo?')) App.eliminarPrestamo(this.dataset.id);
+        });
+      });
+
+      document.querySelectorAll('.btn-abonar-prestamo').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var pagadoActual = parseFloat(this.dataset.pagado);
+          var nuevoAbono = prompt('Ingrese el monto a abonar:', '0');
+          if (nuevoAbono === null) return;
+          var abono = parseFloat(nuevoAbono);
+          if (isNaN(abono) || abono <= 0) return;
+          App.actualizarPrestamo(id, { pagado: pagadoActual + abono }).then(function() { renderizarPrestamos(); });
+        });
+      });
+    });
   }
 
   // ==================== CARGA INICIAL ====================
@@ -466,23 +538,29 @@
     if (!contenedor) return;
     if (!document.getElementById('presupuestoContenido')) {
       contenedor.innerHTML = crearEstructura();
+
+      function setActiveTab(activeId) {
+        ['tabPresupuestoMensual', 'tabMetasAhorro', 'tabSuscripciones', 'tabPrestamos'].forEach(function(id) {
+          document.getElementById(id).classList.remove('active');
+        });
+        document.getElementById(activeId).classList.add('active');
+      }
+
       document.getElementById('tabPresupuestoMensual').addEventListener('click', function() {
-        document.getElementById('tabPresupuestoMensual').classList.add('active');
-        document.getElementById('tabMetasAhorro').classList.remove('active');
-        document.getElementById('tabSuscripciones').classList.remove('active');
+        setActiveTab('tabPresupuestoMensual');
         renderizarPresupuestoMensual();
       });
       document.getElementById('tabMetasAhorro').addEventListener('click', function() {
-        document.getElementById('tabMetasAhorro').classList.add('active');
-        document.getElementById('tabPresupuestoMensual').classList.remove('active');
-        document.getElementById('tabSuscripciones').classList.remove('active');
+        setActiveTab('tabMetasAhorro');
         renderizarMetas();
       });
       document.getElementById('tabSuscripciones').addEventListener('click', function() {
-        document.getElementById('tabSuscripciones').classList.add('active');
-        document.getElementById('tabPresupuestoMensual').classList.remove('active');
-        document.getElementById('tabMetasAhorro').classList.remove('active');
+        setActiveTab('tabSuscripciones');
         renderizarSuscripciones();
+      });
+      document.getElementById('tabPrestamos').addEventListener('click', function() {
+        setActiveTab('tabPrestamos');
+        renderizarPrestamos();
       });
     }
     // Mostrar presupuesto mensual por defecto
