@@ -5,25 +5,11 @@
     return (typeof App.obtenerMesActual === 'function') ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
   }
 
-  // Solicitar permiso de notificaciones al iniciar sesión
-  function solicitarPermisoNotificaciones() {
-    if (Notification && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }
-
-  // Mostrar notificación si el navegador lo permite
-  function mostrarNotificacion(titulo, mensaje) {
-    if (Notification && Notification.permission === 'granted') {
-      new Notification(titulo, { body: mensaje, icon: 'icon.svg' });
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     var mesSeleccionado = getMes();
     var tipoTransaccion = 'ingreso';
+    var metodosPago = [];
 
-    // Elementos del shell
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
       presupuesto: document.getElementById('vistaPresupuesto'),
@@ -36,11 +22,9 @@
     var modalEditar = document.getElementById('modalEditarTransaccion');
     var fab = document.getElementById('fabAgregar');
     var filtroMes = document.getElementById('filtroMesHeader');
+    var filtroMetodo = document.getElementById('filtroMetodoPago');
 
     if (!vistas.inicio) return;
-
-    // Solicitar permiso de notificaciones al cargar
-    solicitarPermisoNotificaciones();
 
     function cambiarVista(nombreVista) {
       var clave = nombreVista.replace('vista', '').toLowerCase();
@@ -75,6 +59,11 @@
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
+    // Filtro de método
+    filtroMetodo.addEventListener('change', function() {
+      if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+    });
+
     // FAB
     fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
@@ -85,8 +74,9 @@
       var desc = document.getElementById('descripcion').value.trim();
       var monto = document.getElementById('monto').value;
       var fecha = document.getElementById('fecha').value;
+      var metodoPago = document.getElementById('metodoPago').value || null;
       if (!cat || !desc || !monto) return;
-      App.agregarTransaccion(tipoTransaccion, cat, desc, monto, fecha);
+      App.agregarTransaccion(tipoTransaccion, cat, desc, monto, fecha, metodoPago);
       modal.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
@@ -108,7 +98,7 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // Modal Editar transacción
+    // Modal Editar
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
@@ -116,8 +106,9 @@
       var desc = document.getElementById('descripcionEditar').value.trim();
       var monto = parseFloat(document.getElementById('montoEditar').value);
       var fecha = document.getElementById('fechaEditar').value;
+      var metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
-      App.actualizarTransaccion(id, { categoria: cat, descripcion: desc, monto: monto, fecha: fecha });
+      App.actualizarTransaccion(id, { categoria: cat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
       modalEditar.classList.add('hidden');
     });
 
@@ -125,9 +116,9 @@
     document.getElementById('btnExportarCSV').addEventListener('click', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
-        var csv = 'Tipo,Categoría,Descripción,Monto,Fecha\n';
+        var csv = 'Tipo,Categoría,Descripción,Monto,Fecha,Método de pago\n';
         filtradas.forEach(function(t) {
-          csv += t.tipo + ',' + t.categoria + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + '\n';
+          csv += t.tipo + ',' + t.categoria + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
         });
         var blob = new Blob([csv], { type: 'text/csv' });
         var url = URL.createObjectURL(blob);
@@ -139,21 +130,57 @@
       });
     });
 
-    // =================== DASHBOARD MEJORADO CON METAS Y NOTIFICACIONES ===================
+    // Gestión de métodos de pago
+    document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
+      document.getElementById('panelMetodosPago').classList.toggle('hidden');
+      renderizarListaMetodosPago();
+    });
+    document.getElementById('btnAgregarMetodoPago').addEventListener('click', function() {
+      var nombre = document.getElementById('nombreMetodoPago').value.trim();
+      if (!nombre) return;
+      App.agregarMetodoPago(nombre);
+      document.getElementById('nombreMetodoPago').value = '';
+    });
+
+    function renderizarListaMetodosPago() {
+      var lista = document.getElementById('listaMetodosPago');
+      if (metodosPago.length === 0) {
+        lista.innerHTML = '<p class="texto-secundario">No hay métodos de pago</p>';
+        return;
+      }
+      var html = '';
+      metodosPago.forEach(function(m) {
+        html += '<div class="metodo-pago-item">' +
+          '<span>' + m.nombre + '</span>' +
+          '<button class="btn-delete" data-id="' + m.id + '">✕</button>' +
+          '</div>';
+      });
+      lista.innerHTML = html;
+      lista.querySelectorAll('.btn-delete').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          App.eliminarMetodoPago(this.dataset.id);
+        });
+      });
+    }
+
+    // Dashboard
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+      var metodoSeleccionado = filtroMetodo.value;
+      if (metodoSeleccionado) {
+        filtradas = filtradas.filter(function(t) { return t.metodoPago === metodoSeleccionado; });
+      }
+
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
-      var balance = ingresos - gastos;
-
       document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
       document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
+      var balance = ingresos - gastos;
       var bel = document.getElementById('balance');
       bel.textContent = '$' + balance.toFixed(2);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
-      // --- KPIs (incluyendo Metas) ---
-      // Días transcurridos del mes actual
+      // KPIs
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -195,22 +222,15 @@
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
-      // --- KPIs de Metas ---
+      // KPIs Metas
       App.obtenerMetas(function(metas) {
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
-        var metasCompletadas = metas.length - metasActivas;
-
         document.getElementById('kpiMetas').textContent = metasActivas + ' activas';
         document.getElementById('kpiAhorroMetas').textContent = '$' + totalAhorradoMetas.toFixed(2);
-
-        // Notificación: si hay metas completadas recientemente (opcional, solo cuando hay metas completadas)
-        if (metasCompletadas > 0) {
-          // Podríamos notificar, pero lo dejamos para evitar spam.
-        }
       });
 
-      // --- Lista de movimientos ---
+      // Lista movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -222,11 +242,13 @@
           var cat = cats.find(function(c) { return c.nombre === t.categoria; });
           var emoji = cat ? cat.emoji : '📌';
           var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
+          var fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString();
+          var metodoInfo = t.metodoPago ? ' · ' + t.metodoPago : '';
           html += '<div class="movimiento-item">' +
             '<span class="emoji">' + emoji + '</span>' +
-            '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + new Date(t.fecha + 'T00:00:00').toLocaleDateString() + '</small></div>' +
+            '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + fecha + metodoInfo + '</small></div>' +
             '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + t.monto.toFixed(2) + '</span>' +
-            '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '">✏️</button>' +
+            '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '">✏️</button>' +
             '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
             '</div>';
         });
@@ -239,10 +261,11 @@
             document.getElementById('montoEditar').value = this.dataset.monto;
             var tipo = this.dataset.tipo;
             var selectEditar = document.getElementById('categoriaEditar');
-            var filtradasCat = (App.categoriasState || []).filter(function(c) { return c.tipo === tipo; });
-            selectEditar.innerHTML = filtradasCat.map(function(c) {
+            var catsFiltradas = (App.categoriasState || []).filter(function(c) { return c.tipo === tipo; });
+            selectEditar.innerHTML = catsFiltradas.map(function(c) {
               return '<option value="' + c.nombre + '"' + (c.nombre === this.dataset.cat ? ' selected' : '') + '>' + c.emoji + ' ' + c.nombre + '</option>';
             }.bind(this)).join('');
+            document.getElementById('metodoPagoEditar').value = this.dataset.metodo;
             modalEditar.classList.remove('hidden');
           });
         });
@@ -261,10 +284,23 @@
     function llenarSelectCategorias() {
       var select = document.getElementById('categoria');
       if (!select) return;
-      var filtradas = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
-      select.innerHTML = filtradas.map(function(c) {
+      var cats = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
+      select.innerHTML = cats.map(function(c) {
         return '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
       }).join('');
+    }
+
+    function llenarSelectMetodosPago() {
+      var selectAgregar = document.getElementById('metodoPago');
+      var selectEditar = document.getElementById('metodoPagoEditar');
+      var filtroSelect = document.getElementById('filtroMetodoPago');
+      var opciones = '<option value="">Método de pago (opcional)</option>';
+      metodosPago.forEach(function(m) { opciones += '<option value="' + m.nombre + '">' + m.nombre + '</option>'; });
+      if (selectAgregar) selectAgregar.innerHTML = opciones;
+      if (selectEditar) selectEditar.innerHTML = opciones;
+      if (filtroSelect) {
+        filtroSelect.innerHTML = '<option value="">Todos los métodos de pago</option>' + metodosPago.map(function(m) { return '<option value="' + m.nombre + '">' + m.nombre + '</option>'; }).join('');
+      }
     }
 
     function renderizarListaCategorias() {
@@ -300,10 +336,16 @@
         App.categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
+        App.obtenerMetodosPago(function(metodos) {
+          metodosPago = metodos;
+          llenarSelectMetodosPago();
+          renderizarListaMetodosPago();
+        });
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
       });
     };
 
+    // Formulario categoría
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
