@@ -117,61 +117,64 @@
 
       <!-- Vista Categorías -->
       <div id="vistaCategorias" class="vista">
-        <div class="categorias-container">
-          <h2>Mis categorías</h2>
-          <form id="formCategoria" class="form-categoria">
-            <div class="form-row">
-              <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
-              <div class="color-picker-wrapper">
-                <input type="color" id="colorCategoria" value="#10b981" class="input-color">
-              </div>
-            </div>
-            <div class="form-row">
-              <select id="tipoCategoria" class="input-field flex-1">
-                <option value="gasto">Gasto</option>
-                <option value="ingreso">Ingreso</option>
-              </select>
-              <div class="emoji-selector">
-                <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" readonly class="input-field emoji-input">
-                <div class="emoji-grid">
-  <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🍕'">🍕</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🍜'">🍜</span>
-  <span onclick="document.getElementById('emojiCategoria').value='☕'">☕</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🛒'">🛒</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🚗'">🚗</span>
-  <span onclick="document.getElementById('emojiCategoria').value='⛽'">⛽</span>
-  <span onclick="document.getElementById('emojiCategoria').value='✈️'">✈️</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🎬'">🎬</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🎵'">🎵</span>
-  <span onclick="document.getElementById('emojiCategoria').value='📚'">📚</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💧'">💧</span>
-  <span onclick="document.getElementById('emojiCategoria').value='📱'">📱</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🏋️'">🏋️</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💊'">💊</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🐶'">🐶</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
-  <span onclick="document.getElementById('emojiCategoria').value='👕'">👕</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🧾'">🧾</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💳'">💳</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🏦'">🏦</span>
-  <span onclick="document.getElementById('emojiCategoria').value='💰'">💰</span>
-  <span onclick="document.getElementById('emojiCategoria').value='📈'">📈</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🎯'">🎯</span>
-  <span onclick="document.getElementById('emojiCategoria').value='🌟'">🌟</span>
-</div>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
-          </form>
-          <div id="listaCategorias" class="lista-categorias mt-4"></div>
+  <div class="categorias-container">
+    <h2>Mis categorías</h2>
+    <!-- Formulario para añadir categoría -->
+    <form id="formCategoria" class="form-categoria">
+      <div class="form-row">
+        <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
+        <div class="color-picker-wrapper">
+          <input type="color" id="colorCategoria" value="#10b981" class="input-color">
         </div>
       </div>
+      <div class="form-row">
+        <select id="tipoCategoria" class="input-field flex-1">
+          <option value="gasto">Gasto</option>
+          <option value="ingreso">Ingreso</option>
+        </select>
+        <div class="emoji-selector">
+          <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="input-field emoji-input" readonly>
+          <div class="emoji-grid">
+            <!-- 30 emojis variados -->
+            <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🍕'">🍕</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🍜'">🍜</span>
+            <span onclick="document.getElementById('emojiCategoria').value='☕'">☕</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🛒'">🛒</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🚗'">🚗</span>
+            <span onclick="document.getElementById('emojiCategoria').value='⛽'">⛽</span>
+            <span onclick="document.getElementById('emojiCategoria').value='✈️'">✈️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎬'">🎬</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎵'">🎵</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📚'">📚</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💧'">💧</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📱'">📱</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏋️'">🏋️</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💊'">💊</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🐶'">🐶</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
+            <span onclick="document.getElementById('emojiCategoria').value='👕'">👕</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🧾'">🧾</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💳'">💳</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🏦'">🏦</span>
+            <span onclick="document.getElementById('emojiCategoria').value='💰'">💰</span>
+            <span onclick="document.getElementById('emojiCategoria').value='📈'">📈</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🎯'">🎯</span>
+            <span onclick="document.getElementById('emojiCategoria').value='🌟'">🌟</span>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
+    </form>
+    <!-- Lista de categorías -->
+    <div id="listaCategorias" class="lista-categorias mt-4"></div>
+  </div>
+</div>
 
       <!-- Vista Ajustes -->
       <div id="vistaAjustes" class="vista">
