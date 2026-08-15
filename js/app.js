@@ -2,6 +2,10 @@
   const App = window.App;
   const CLAVE_TEMA = 'tema_preferido';
 
+  App.formatearMonto = function(monto) {
+  return Number(monto).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
   App.obtenerMesActual = function() {
     const ahora = new Date();
     return ahora.getFullYear() + '-' + String(ahora.getMonth() + 1).padStart(2, '0');
