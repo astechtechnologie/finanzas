@@ -173,11 +173,12 @@
 
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
-      document.getElementById('totalIngresos').textContent = '$' + ingresos.toFixed(2);
-      document.getElementById('totalGastos').textContent = '$' + gastos.toFixed(2);
+
+      document.getElementById('totalIngresos').textContent = '$' + App.formatearMonto(ingresos);
+      document.getElementById('totalGastos').textContent = '$' + App.formatearMonto(gastos);
       var balance = ingresos - gastos;
       var bel = document.getElementById('balance');
-      bel.textContent = '$' + balance.toFixed(2);
+      bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
       // KPIs
@@ -188,7 +189,7 @@
       var diaActual = (ahora.getFullYear() === año && (ahora.getMonth() + 1) === mesNum) ? ahora.getDate() : diasEnMes;
       var diasTranscurridos = Math.min(diaActual, diasEnMes);
       var promedioDiario = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
-      document.getElementById('kpiPromedioDiario').textContent = '$' + promedioDiario.toFixed(2);
+      document.getElementById('kpiPromedioDiario').textContent = '$' + App.formatearMonto(promedioDiario);
 
       var gastosPorCat = {};
       filtradas.filter(function(t) { return t.tipo === 'gasto'; }).forEach(function(t) {
@@ -218,7 +219,7 @@
         variacionEl.className = 'kpi-valor';
       } else {
         var signo = diff > 0 ? '↑' : '↓';
-        variacionEl.textContent = signo + ' $' + Math.abs(diff).toFixed(2);
+        variacionEl.textContent = signo + ' $' + App.formatearMonto(Math.abs(diff));
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
@@ -227,7 +228,7 @@
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
         document.getElementById('kpiMetas').textContent = metasActivas + ' activas';
-        document.getElementById('kpiAhorroMetas').textContent = '$' + totalAhorradoMetas.toFixed(2);
+        document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
       // Lista movimientos
@@ -247,7 +248,7 @@
           html += '<div class="movimiento-item">' +
             '<span class="emoji">' + emoji + '</span>' +
             '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + fecha + metodoInfo + '</small></div>' +
-            '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + t.monto.toFixed(2) + '</span>' +
+            '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</span>' +
             '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '">✏️</button>' +
             '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
             '</div>';
