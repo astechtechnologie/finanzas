@@ -448,6 +448,18 @@
     });
   }
 
+  function crearEstructura() {
+    var html = '';
+    html += '<div class="presupuesto-tabs">';
+    html += '<button id="tabPresupuestoMensual" class="presupuesto-tab active">Presupuesto mensual</button>';
+    html += '<button id="tabMetasAhorro" class="presupuesto-tab">Metas de ahorro</button>';
+    html += '<button id="tabSuscripciones" class="presupuesto-tab">Suscripciones</button>';
+    html += '<button id="tabPrestamos" class="presupuesto-tab">Préstamos</button>';
+    html += '</div>';
+    html += '<div id="presupuestoContenido" class="mt-4"></div>';
+    return html;
+  }
+
   // ==================== CARGA INICIAL ====================
   App.cargarPantallaPresupuesto = function() {
     var contenedor = document.getElementById('contenidoPresupuesto');
