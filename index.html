@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Mis Finanzas</title>
+  <title>Finora - Mis Finanzas</title>
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -15,35 +18,30 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-</script>
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  </script>
 </head>
 <body>
 
-  <!-- PANTALLA DE LOGIN / REGISTRO UNIFICADA -->
-<div id="authScreen" class="hidden fullscreen-center">
-  <div class="auth-container">
-    <h1 class="app-logo">Finora</h1>
-    <p class="texto-secundario">Controla tus ingresos y gastos</p>
-
-    <!-- Pestañas -->
-    <div class="auth-tabs">
-      <button id="tabLogin" class="auth-tab active">Iniciar sesión</button>
-      <button id="tabRegistro" class="auth-tab">Registrarse</button>
+  <!-- PANTALLA DE LOGIN -->
+  <div id="authScreen" class="hidden fullscreen-center">
+    <div class="auth-container">
+      <h1 class="app-logo">Finora</h1>
+      <p class="texto-secundario">Controla tus ingresos y gastos</p>
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active">Iniciar sesión</button>
+        <button id="tabRegistro" class="auth-tab">Registrarse</button>
+      </div>
+      <input type="email" id="email" placeholder="Correo electrónico" class="input-field">
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Contraseña" class="input-field">
+        <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+      </div>
+      <button id="btnAuthAction" class="btn btn-primario w-full">Iniciar sesión</button>
+      <button id="btnResetPassword" class="text-link">¿Olvidaste tu contraseña?</button>
+      <p id="authError" class="error-text hidden"></p>
+      <p id="authSuccess" class="success-text hidden"></p>
     </div>
-
-    <input type="email" id="email" placeholder="Correo electrónico" class="input-field">
-    <div class="password-wrapper">
-      <input type="password" id="password" placeholder="Contraseña" class="input-field">
-      <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
-    </div>
-
-    <button id="btnAuthAction" class="btn btn-primario w-full">Iniciar sesión</button>
-    <button id="btnResetPassword" class="text-link">¿Olvidaste tu contraseña?</button>
-    <p id="authError" class="error-text hidden"></p>
-    <p id="authSuccess" class="success-text hidden"></p>
   </div>
-</div>
 
   <!-- APP SHELL -->
   <div id="appShell" class="hidden app-shell">
@@ -55,7 +53,7 @@
     </header>
 
     <main class="vistas-container">
-      <!-- Vista Inicio con Dashboard -->
+      <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
         <div class="resumen-grid">
           <div class="resumen-card ingreso-card"><span>Ingresos</span><strong id="totalIngresos">$0</strong></div>
@@ -63,7 +61,7 @@
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
 
-        <!-- KPIs Dashboard (incluye nuevo KPI de Metas) -->
+        <!-- KPIs Dashboard -->
         <div class="kpi-grid" id="kpiContainer">
           <div class="kpi-card">
             <span class="kpi-icon">📅</span>
@@ -97,6 +95,11 @@
           </div>
         </div>
 
+        <!-- Filtro por método de pago -->
+        <select id="filtroMetodoPago" class="input-field mb-2">
+          <option value="">Todos los métodos de pago</option>
+        </select>
+
         <div class="tendencia-container tarjeta p-4 mb-4">
           <h3 class="text-sm font-semibold mb-2">📈 Tendencia últimos meses</h3>
           <canvas id="graficaTendencia" class="max-h-32"></canvas>
@@ -107,7 +110,7 @@
           <div id="listaTransacciones"></div>
         </div>
 
-        <button id="fabAgregar" class="fab">+</button>
+        <button id="fabAgregar" class="fab"><i class="ph ph-plus"></i></button>
       </div>
 
       <!-- Vista Presupuesto -->
@@ -117,153 +120,122 @@
 
       <!-- Vista Categorías -->
       <div id="vistaCategorias" class="vista">
-  <div class="categorias-container">
-    <h2>Mis categorías</h2>
-    <!-- Formulario para añadir categoría -->
-    <form id="formCategoria" class="form-categoria">
-      <div class="form-row">
-        <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
-        <div class="color-picker-wrapper">
-          <input type="color" id="colorCategoria" value="#10b981" class="input-color">
+        <div class="categorias-container">
+          <h2>Mis categorías</h2>
+          <form id="formCategoria" class="form-categoria">
+            <div class="form-row">
+              <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
+              <div class="color-picker-wrapper">
+                <input type="color" id="colorCategoria" value="#10b981" class="input-color">
+              </div>
+            </div>
+            <div class="form-row">
+              <select id="tipoCategoria" class="input-field flex-1">
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+              </select>
+              <div class="emoji-selector">
+                <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="input-field emoji-input" readonly>
+                <div class="emoji-grid">
+                  <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🍕'">🍕</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🍜'">🍜</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='☕'">☕</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🛒'">🛒</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🚗'">🚗</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='⛽'">⛽</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='✈️'">✈️</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🎬'">🎬</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🎵'">🎵</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='📚'">📚</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💧'">💧</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='📱'">📱</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🏋️'">🏋️</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💊'">💊</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🐶'">🐶</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='👕'">👕</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🧾'">🧾</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💳'">💳</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🏦'">🏦</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='💰'">💰</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='📈'">📈</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🎯'">🎯</span>
+                  <span onclick="document.getElementById('emojiCategoria').value='🌟'">🌟</span>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
+          </form>
+          <div id="listaCategorias" class="lista-categorias mt-4"></div>
         </div>
       </div>
-      <div class="form-row">
-        <select id="tipoCategoria" class="input-field flex-1">
-          <option value="gasto">Gasto</option>
-          <option value="ingreso">Ingreso</option>
-        </select>
-        <div class="emoji-selector">
-          <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="input-field emoji-input" readonly>
-          <div class="emoji-grid">
-            <!-- 30 emojis variados -->
-            <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🍕'">🍕</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🍜'">🍜</span>
-            <span onclick="document.getElementById('emojiCategoria').value='☕'">☕</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🛒'">🛒</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🚗'">🚗</span>
-            <span onclick="document.getElementById('emojiCategoria').value='⛽'">⛽</span>
-            <span onclick="document.getElementById('emojiCategoria').value='✈️'">✈️</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎬'">🎬</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎵'">🎵</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📚'">📚</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💧'">💧</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📱'">📱</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🏋️'">🏋️</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💊'">💊</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🐶'">🐶</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
-            <span onclick="document.getElementById('emojiCategoria').value='👕'">👕</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🧾'">🧾</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💳'">💳</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🏦'">🏦</span>
-            <span onclick="document.getElementById('emojiCategoria').value='💰'">💰</span>
-            <span onclick="document.getElementById('emojiCategoria').value='📈'">📈</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🎯'">🎯</span>
-            <span onclick="document.getElementById('emojiCategoria').value='🌟'">🌟</span>
-          </div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
-    </form>
-    <!-- Lista de categorías -->
-    <div id="listaCategorias" class="lista-categorias mt-4"></div>
-  </div>
-</div>
 
       <!-- Vista Ajustes -->
       <div id="vistaAjustes" class="vista">
-  <div class="ajustes-panel">
-    <h2>Ajustes</h2>
-
-    <!-- Modo oscuro rápido -->
-    <div class="ajuste-item">
-      <span>Modo oscuro</span>
-      <button id="toggleTemaAjustes" class="btn-icon">🌙</button>
-    </div>
-
-    <!-- Selector de tema (Claro/Oscuro/Sistema) -->
-    <div class="ajuste-item">
-      <span>Tema</span>
-      <select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;">
-        <option value="light">Claro</option>
-        <option value="dark">Oscuro</option>
-        <option value="system">Sistema</option>
-      </select>
-    </div>
-
-    <!-- Cambiar contraseña -->
-    <div class="ajuste-item">
-      <span>Cambiar contraseña</span>
-      <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
-    </div>
-    <div id="panelCambioPassword" class="hidden mt-2">
-      <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
-      <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
-      <button id="btnUpdatePassword" class="btn btn-primario w-full mt-2">Actualizar</button>
-      <p id="passwordError" class="error-text hidden"></p>
-      <p id="passwordSuccess" class="success-text hidden"></p>
-    </div>
-
-    <!-- Exportar CSV -->
-    <div class="ajuste-item">
-      <span>Exportar movimientos (CSV)</span>
-      <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
-    </div>
-
-    <!-- Cerrar sesión -->
-    <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
-  </div>
-</div>
-      <!-- Vista Onboarding -->
-<div id="vistaOnboarding" class="vista">
-  <div class="onboarding-container">
-    <div class="onboarding-step active" data-step="1">
-      <h2>Bienvenido 👋</h2>
-      <p>Organiza tus finanzas personales en segundos.</p>
-      <button class="btn btn-primario" data-onboarding-next="2">Siguiente</button>
-    </div>
-    <div class="onboarding-step" data-step="2">
-      <h2>🏷️ Crea categorías</h2>
-      <p>Define categorías de ingreso y gasto para clasificar tus movimientos.</p>
-      <button class="btn btn-primario" data-onboarding-next="3">Siguiente</button>
-      <button class="btn btn-outline" data-onboarding-skip>Omitir</button>
-    </div>
-    <div class="onboarding-step" data-step="3">
-      <h2>💵 Presupuesto y metas</h2>
-      <p>Establece límites por categoría y planifica tus ahorros.</p>
-      <button class="btn btn-primario" data-onboarding-next="4">Siguiente</button>
-      <button class="btn btn-outline" data-onboarding-skip>Omitir</button>
-    </div>
-    <div class="onboarding-step" data-step="4">
-      <h2>🚀 ¡Listo!</h2>
-      <p>Empieza a registrar tus ingresos y gastos.</p>
-      <button class="btn btn-primario" data-onboarding-finish>Comenzar</button>
-    </div>
-  </div>
-</div>
+        <div class="ajustes-panel">
+          <h2>Ajustes</h2>
+          <div class="ajuste-item">
+            <span>Modo oscuro</span>
+            <button id="toggleTemaAjustes" class="btn-icon">🌙</button>
+          </div>
+          <div class="ajuste-item">
+            <span>Tema</span>
+            <select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;">
+              <option value="light">Claro</option>
+              <option value="dark">Oscuro</option>
+              <option value="system">Sistema</option>
+            </select>
+          </div>
+          <div class="ajuste-item">
+            <span>Cambiar contraseña</span>
+            <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
+          </div>
+          <div id="panelCambioPassword" class="hidden mt-2">
+            <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
+            <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
+            <button id="btnUpdatePassword" class="btn btn-primario w-full mt-2">Actualizar</button>
+            <p id="passwordError" class="error-text hidden"></p>
+            <p id="passwordSuccess" class="success-text hidden"></p>
+          </div>
+          <div class="ajuste-item">
+            <span>Exportar movimientos (CSV)</span>
+            <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
+          </div>
+          <div class="ajuste-item">
+            <span>Gestionar métodos de pago</span>
+            <button id="btnGestionarMetodos" class="btn btn-outline-small">Gestionar</button>
+          </div>
+          <div id="panelMetodosPago" class="hidden mt-2">
+            <div id="listaMetodosPago" class="space-y-2"></div>
+            <input type="text" id="nombreMetodoPago" placeholder="Nuevo método (ej: Tarjeta Visa)" class="input-field mt-2">
+            <button id="btnAgregarMetodoPago" class="btn btn-primario w-full mt-2">Añadir método</button>
+          </div>
+          <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
+        </div>
+      </div>
     </main>
 
     <!-- Barra de navegación -->
     <nav class="bottom-nav">
-  <button class="nav-item active" data-vista="vistaInicio">
-    <i class="ph ph-house"></i><span>Inicio</span>
-  </button>
-  <button class="nav-item" data-vista="vistaPresupuesto">
-    <i class="ph ph-wallet"></i><span>Presupuesto</span>
-  </button>
-  <button class="nav-item" data-vista="vistaCategorias">
-    <i class="ph ph-tag"></i><span>Categorías</span>
-  </button>
-  <button class="nav-item" data-vista="vistaAjustes">
-    <i class="ph ph-gear"></i><span>Ajustes</span>
-  </button>
-</nav>
+      <button class="nav-item active" data-vista="vistaInicio">
+        <i class="ph ph-house"></i><span>Inicio</span>
+      </button>
+      <button class="nav-item" data-vista="vistaPresupuesto">
+        <i class="ph ph-wallet"></i><span>Presupuesto</span>
+      </button>
+      <button class="nav-item" data-vista="vistaCategorias">
+        <i class="ph ph-tag"></i><span>Categorías</span>
+      </button>
+      <button class="nav-item" data-vista="vistaAjustes">
+        <i class="ph ph-gear"></i><span>Ajustes</span>
+      </button>
+    </nav>
 
     <!-- Modal AGREGAR transacción -->
     <div id="modalTransaccion" class="modal hidden">
@@ -275,6 +247,9 @@
         </div>
         <input type="date" id="fecha" class="input-field">
         <select id="categoria" class="input-field"></select>
+        <select id="metodoPago" class="input-field">
+          <option value="">Método de pago (opcional)</option>
+        </select>
         <input type="text" id="descripcion" placeholder="Descripción" class="input-field">
         <input type="number" id="monto" placeholder="Monto" class="input-field">
         <div class="modal-buttons">
@@ -290,6 +265,9 @@
         <h2>Editar transacción</h2>
         <input type="date" id="fechaEditar" class="input-field">
         <select id="categoriaEditar" class="input-field"></select>
+        <select id="metodoPagoEditar" class="input-field">
+          <option value="">Método de pago (opcional)</option>
+        </select>
         <input type="text" id="descripcionEditar" placeholder="Descripción" class="input-field">
         <input type="number" id="montoEditar" placeholder="Monto" class="input-field">
         <input type="hidden" id="idTransaccionEditar">
@@ -301,6 +279,7 @@
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="js/firebase-config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>
