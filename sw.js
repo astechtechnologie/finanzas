@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v6';
+const CACHE_NAME = 'finanzas-v7';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -16,9 +16,10 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  // Solo manejar solicitudes GET y http/https
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) return;
 
-  // Para navegaciones (p. ej., cuando se abre la app desde un atajo)
+  // Para navegaciones, devolver index.html (App Shell)
   if (e.request.mode === 'navigate') {
     e.respondWith(
       caches.match('./index.html').then(cached => cached || fetch('./index.html'))
@@ -26,7 +27,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Para otros recursos, usar estrategia cache-first
+  // Para otros recursos, cache-first
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fetched = fetch(e.request).then(response => {
