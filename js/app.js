@@ -2,9 +2,10 @@
   const App = window.App;
   const CLAVE_TEMA = 'tema_preferido';
 
+  // Función para formatear montos con separadores de miles y 2 decimales (formato español)
   App.formatearMonto = function(monto) {
-  return Number(monto).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+    return Number(monto).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
 
   App.obtenerMesActual = function() {
     const ahora = new Date();
