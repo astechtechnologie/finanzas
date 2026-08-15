@@ -532,3 +532,24 @@ html, body {
   --nav-border: rgba(255,255,255,0.1);
   --sombra: 0 4px 6px rgba(0,0,0,0.3);
 }
+/* Pestañas de autenticación */
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.auth-tab {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--nav-border);
+  color: var(--texto-secundario);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.auth-tab.active {
+  background: var(--primario);
+  color: white;
+}
