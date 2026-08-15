@@ -577,3 +577,10 @@ html, body {
 }
 .btn-editar-suscripcion:hover { background: var(--primario); color: white; border-color: var(--primario); }
 .btn-eliminar-suscripcion:hover { background: var(--gasto); color: white; border-color: var(--gasto); }
+.nav-item i {
+  font-size: 1.5rem;
+  transition: color 0.2s;
+}
+.nav-item.active i {
+  color: var(--primario);
+}
