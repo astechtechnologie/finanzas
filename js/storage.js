@@ -1,4 +1,3 @@
-// storage.js – Acceso a Firestore
 (function() {
   const App = window.App;
   const db = App.db;
@@ -13,10 +12,11 @@
     });
   };
 
-  App.agregarTransaccion = function(tipo, categoria, descripcion, monto, fecha, metodoPago) {
+  App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago) {
     return db.collection('usuarios/' + uid() + '/transacciones').add({
       tipo: tipo,
       categoria: categoria,
+      subcategoria: subcategoria || null,
       descripcion: descripcion,
       monto: parseFloat(monto),
       fecha: fecha,
@@ -39,13 +39,14 @@
       snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
       if (cats.length === 0) {
         const pre = [
-          { nombre: 'salario', emoji: '💼', color: '#10b981', tipo: 'ingreso' },
-          { nombre: 'freelance', emoji: '💻', color: '#34d399', tipo: 'ingreso' },
+          { nombre: 'salud', emoji: '⚕️', color: '#ef4444', tipo: 'gasto' },
           { nombre: 'comida', emoji: '🍔', color: '#FF6384', tipo: 'gasto' },
           { nombre: 'transporte', emoji: '🚌', color: '#36A2EB', tipo: 'gasto' },
           { nombre: 'ocio', emoji: '🎮', color: '#FFCE56', tipo: 'gasto' },
           { nombre: 'servicios', emoji: '💡', color: '#4BC0C0', tipo: 'gasto' },
-          { nombre: 'otros', emoji: '📦', color: '#9966FF', tipo: 'gasto' }
+          { nombre: 'otros', emoji: '📦', color: '#9966FF', tipo: 'gasto' },
+          { nombre: 'salario', emoji: '💼', color: '#10b981', tipo: 'ingreso' },
+          { nombre: 'freelance', emoji: '💻', color: '#34d399', tipo: 'ingreso' }
         ];
         const batch = db.batch();
         pre.forEach(function(c) { batch.set(db.collection('usuarios/' + uid() + '/categorias').doc(), c); });
@@ -57,12 +58,7 @@
   };
 
   App.agregarCategoria = function(nombre, emoji, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({
-      nombre: nombre.trim().toLowerCase(),
-      emoji: emoji || '📌',
-      color: color || '#10b981',
-      tipo: tipo || 'gasto'
-    });
+    return db.collection('usuarios/' + uid() + '/categorias').add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color: color || '#10b981', tipo: tipo || 'gasto' });
   };
 
   App.eliminarCategoria = function(id) {
@@ -75,7 +71,7 @@
       if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
       const data = doc.data();
       callback({
-        gastos: data.gastos || data.categorias || {},
+        gastos: data.gastos || {},
         ingresos: data.ingresos || {}
       });
     });
@@ -87,48 +83,49 @@
       return transaction.get(ref).then(function(doc) {
         const data = doc.exists ? doc.data() : {};
         const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const map = data[campo] || {};
-        map[categoria] = limite;
-        data[campo] = map;
+        const categorias = data[campo] || {};
+        if (!categorias[categoria]) categorias[categoria] = { limite: 0, subcategorias: {} };
+        categorias[categoria].limite = limite;
+        data[campo] = categorias;
         return transaction.set(ref, data, { merge: true });
       });
     }).then(callback);
   };
 
-  App.eliminarLimiteCategoria = function(mes, tipo, categoria, callback) {
+  App.guardarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, limite, callback) {
+    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
+    db.runTransaction(function(transaction) {
+      return transaction.get(ref).then(function(doc) {
+        const data = doc.exists ? doc.data() : {};
+        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
+        const categorias = data[campo] || {};
+        if (!categorias[categoria]) categorias[categoria] = { limite: 0, subcategorias: {} };
+        if (!categorias[categoria].subcategorias) categorias[categoria].subcategorias = {};
+        categorias[categoria].subcategorias[subcategoria] = { limite: limite };
+        data[campo] = categorias;
+        return transaction.set(ref, data, { merge: true });
+      });
+    }).then(callback);
+  };
+
+  App.eliminarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, callback) {
     const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
     db.runTransaction(function(transaction) {
       return transaction.get(ref).then(function(doc) {
         if (!doc.exists) return;
         const data = doc.data();
         const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        if (data[campo]) {
-          delete data[campo][categoria];
-          if (Object.keys(data[campo]).length === 0) delete data[campo];
+        const categorias = data[campo] || {};
+        if (categorias[categoria] && categorias[categoria].subcategorias) {
+          delete categorias[categoria].subcategorias[subcategoria];
+          if (Object.keys(categorias[categoria].subcategorias).length === 0) {
+            delete categorias[categoria].subcategorias;
+          }
         }
+        data[campo] = categorias;
         return transaction.set(ref, data, { merge: true });
       });
     }).then(callback);
-  };
-
-  App.obtenerHistorialPresupuestos = function(callback) {
-    const meses = [];
-    const hoy = new Date();
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-      meses.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
-    }
-    Promise.all(meses.map(function(m) {
-      return db.collection('usuarios').doc(uid()).collection('presupuestos').doc(m).get();
-    })).then(function(docs) {
-      callback(docs.map(function(doc, i) {
-        return {
-          mes: meses[i],
-          gastos: doc.exists ? Object.values(doc.data().gastos || doc.data().categorias || {}).reduce(function(a, b) { return a + b; }, 0) : 0,
-          ingresos: doc.exists ? Object.values(doc.data().ingresos || {}).reduce(function(a, b) { return a + b; }, 0) : 0
-        };
-      }));
-    });
   };
 
   // ===== METAS DE AHORRO =====
