@@ -2,7 +2,6 @@
   const App = window.App;
   const CLAVE_TEMA = 'tema_preferido';
 
-  // Función para formatear montos con separadores de miles y 2 decimales (formato español)
   App.formatearMonto = function(monto) {
     return Number(monto).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
@@ -45,7 +44,6 @@
     }
     aplicarTema(preferencia);
 
-    // Escuchar cambios del sistema
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
       if (localStorage.getItem(CLAVE_TEMA) === 'system') aplicarTema('system');
     });
