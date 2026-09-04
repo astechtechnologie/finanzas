@@ -9,6 +9,7 @@
     var mesSeleccionado = getMes();
     var tipoTransaccion = 'ingreso';
     var metodosPago = [];
+    App.subcategoriasPorCategoria = {};
 
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
@@ -52,39 +53,34 @@
       });
     });
 
-    // Filtro de mes
     filtroMes.value = mesSeleccionado;
     filtroMes.addEventListener('change', function() {
       mesSeleccionado = filtroMes.value;
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
-    // Filtro de método
     filtroMetodo.addEventListener('change', function() {
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
-    // FAB
     fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
-    // Modal Agregar
     document.getElementById('btnCancelarModal').addEventListener('click', function() { modal.classList.add('hidden'); });
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       var cat = document.getElementById('categoria').value;
+      var subcat = document.getElementById('subcategoria').value || null;
       var desc = document.getElementById('descripcion').value.trim();
-      // Limpiar monto: quitar puntos, cambiar coma por punto para parsear correctamente
       var montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
       var monto = parseFloat(montoLimpio) || 0;
       var fecha = document.getElementById('fecha').value;
       var metodoPago = document.getElementById('metodoPago').value || null;
       if (!cat || !desc || !monto) return;
-      App.agregarTransaccion(tipoTransaccion, cat, desc, monto, fecha, metodoPago);
+      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago);
       modal.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
     });
 
-    // Pestañas tipo
     document.getElementById('tabIngreso').addEventListener('click', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso').classList.add('active');
@@ -100,28 +96,27 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // Modal Editar
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
       var cat = document.getElementById('categoriaEditar').value;
+      var subcat = document.getElementById('subcategoriaEditar').value || null;
       var desc = document.getElementById('descripcionEditar').value.trim();
       var montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
       var monto = parseFloat(montoLimpio) || 0;
       var fecha = document.getElementById('fechaEditar').value;
       var metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
-      App.actualizarTransaccion(id, { categoria: cat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
+      App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
       modalEditar.classList.add('hidden');
     });
 
-    // Exportar CSV
     document.getElementById('btnExportarCSV').addEventListener('click', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
-        var csv = 'Tipo,Categoría,Descripción,Monto,Fecha,Método de pago\n';
+        var csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
         filtradas.forEach(function(t) {
-          csv += t.tipo + ',' + t.categoria + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
+          csv += t.tipo + ',' + t.categoria + ',' + (t.subcategoria || '') + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
         });
         var blob = new Blob([csv], { type: 'text/csv' });
         var url = URL.createObjectURL(blob);
@@ -133,7 +128,6 @@
       });
     });
 
-    // Gestión de métodos de pago
     document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
       document.getElementById('panelMetodosPago').classList.toggle('hidden');
       renderizarListaMetodosPago();
@@ -160,19 +154,14 @@
       });
       lista.innerHTML = html;
       lista.querySelectorAll('.btn-delete').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          App.eliminarMetodoPago(this.dataset.id);
-        });
+        btn.addEventListener('click', function() { App.eliminarMetodoPago(this.dataset.id); });
       });
     }
 
-    // Dashboard
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var metodoSeleccionado = filtroMetodo.value;
-      if (metodoSeleccionado) {
-        filtradas = filtradas.filter(function(t) { return t.metodoPago === metodoSeleccionado; });
-      }
+      if (metodoSeleccionado) filtradas = filtradas.filter(function(t) { return t.metodoPago === metodoSeleccionado; });
 
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
@@ -184,7 +173,7 @@
       bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
-      // KPIs
+      // KPIs (sin cambios)
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -226,7 +215,6 @@
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
-      // KPIs Metas
       App.obtenerMetas(function(metas) {
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
@@ -234,7 +222,6 @@
         document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
-      // Lista movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -248,11 +235,12 @@
           var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
           var fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString();
           var metodoInfo = t.metodoPago ? ' · ' + t.metodoPago : '';
+          var subInfo = t.subcategoria ? ' · ' + t.subcategoria : '';
           html += '<div class="movimiento-item">' +
             '<span class="emoji">' + emoji + '</span>' +
-            '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + fecha + metodoInfo + '</small></div>' +
+            '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + fecha + metodoInfo + subInfo + '</small></div>' +
             '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</span>' +
-            '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '">✏️</button>' +
+            '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-subcat="' + (t.subcategoria || '') + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '">✏️</button>' +
             '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
             '</div>';
         });
@@ -270,6 +258,7 @@
               return '<option value="' + c.nombre + '"' + (c.nombre === this.dataset.cat ? ' selected' : '') + '>' + c.emoji + ' ' + c.nombre + '</option>';
             }.bind(this)).join('');
             document.getElementById('metodoPagoEditar').value = this.dataset.metodo;
+            document.getElementById('subcategoriaEditar').value = this.dataset.subcat;
             modalEditar.classList.remove('hidden');
           });
         });
@@ -292,7 +281,22 @@
       select.innerHTML = cats.map(function(c) {
         return '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
       }).join('');
+      llenarSelectSubcategorias();
     }
+
+    function llenarSelectSubcategorias() {
+      var select = document.getElementById('subcategoria');
+      if (!select) return;
+      var catSeleccionada = document.getElementById('categoria').value;
+      var subcats = App.subcategoriasPorCategoria[catSeleccionada] || [];
+      var html = '<option value="">Sin subcategoría</option>';
+      subcats.forEach(function(sub) {
+        html += '<option value="' + sub + '">' + sub + '</option>';
+      });
+      select.innerHTML = html;
+    }
+
+    document.getElementById('categoria').addEventListener('change', llenarSelectSubcategorias);
 
     function llenarSelectMetodosPago() {
       var selectAgregar = document.getElementById('metodoPago');
@@ -345,11 +349,19 @@
           llenarSelectMetodosPago();
           renderizarListaMetodosPago();
         });
+        App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
+          App.subcategoriasPorCategoria = {};
+          var gastos = limites.gastos || {};
+          Object.keys(gastos).forEach(function(cat) {
+            var subcats = gastos[cat].subcategorias || {};
+            App.subcategoriasPorCategoria[cat] = Object.keys(subcats);
+          });
+          llenarSelectSubcategorias();
+        });
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
       });
     };
 
-    // Formulario categoría
     var formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
