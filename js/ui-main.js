@@ -33,21 +33,16 @@
       const clave = nombreVista.replace('vista', '').toLowerCase();
       if (!vistas[clave]) return;
 
-      // Ocultar todas
-      Object.values(vistas).forEach(v => v.classList.remove('activa'));
-      // Mostrar elegida
+      Object.values(vistas).forEach(function(v) { v.classList.remove('activa'); });
       vistas[clave].classList.add('activa');
 
-      // Actualizar barra
-      navItems.forEach(item => item.classList.remove('active'));
+      navItems.forEach(function(item) { item.classList.remove('active'); });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
 
-      // Título
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       titulo.textContent = titulos[clave];
 
-      // Acciones específicas
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
       }
@@ -328,6 +323,210 @@
       }
     }
 
-    // ... (resto de funciones igual que antes) ...
+    // ==================== FUNCIONES AUXILIARES ====================
+    function llenarSelectCategorias() {
+      var select = document.getElementById('categoria');
+      if (!select) return;
+      var cats = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
+      select.innerHTML = cats.map(function(c) {
+        return '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
+      }).join('');
+      llenarSelectSubcategorias();
+    }
+
+    function llenarSelectSubcategorias() {
+      var select = document.getElementById('subcategoria');
+      if (!select) return;
+      var catSeleccionada = document.getElementById('categoria').value;
+      var subcats = App.subcategoriasPorCategoria[catSeleccionada] || [];
+      var html = '<option value="">Sin subcategoría</option>';
+      subcats.forEach(function(sub) {
+        html += '<option value="' + sub + '">' + sub + '</option>';
+      });
+      select.innerHTML = html;
+    }
+
+    document.getElementById('categoria').addEventListener('change', llenarSelectSubcategorias);
+
+    function llenarSelectMetodosPago() {
+      var selectAgregar = document.getElementById('metodoPago');
+      var selectEditar = document.getElementById('metodoPagoEditar');
+      var filtroSelect = document.getElementById('filtroMetodoPago');
+      var opciones = '<option value="">Método de pago (opcional)</option>';
+      metodosPago.forEach(function(m) { opciones += '<option value="' + m.nombre + '">' + m.nombre + '</option>'; });
+      if (selectAgregar) selectAgregar.innerHTML = opciones;
+      if (selectEditar) selectEditar.innerHTML = opciones;
+      if (filtroSelect) {
+        filtroSelect.innerHTML = '<option value="">Todos los métodos de pago</option>' + metodosPago.map(function(m) { return '<option value="' + m.nombre + '">' + m.nombre + '</option>'; }).join('');
+      }
+    }
+
+    function renderizarListaCategorias() {
+      var cont = document.getElementById('listaCategorias');
+      if (!cont) return;
+      if (!App.categoriasState || App.categoriasState.length === 0) {
+        cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
+        return;
+      }
+      var html = '';
+      App.categoriasState.forEach(function(c) {
+        html += '<div class="cat-card">' +
+          '<div class="cat-info">' +
+            '<span class="cat-emoji">' + c.emoji + '</span>' +
+            '<div class="cat-detalles">' +
+              '<span class="cat-nombre">' + c.nombre + '</span>' +
+              '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
+        '</div>';
+      });
+      cont.innerHTML = html;
+      cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
+        b.addEventListener('click', function() {
+          if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
+        });
+      });
+    }
+
+    // ==================== ADMIN ====================
+    function cargarOrganizaciones() {
+      var cont = document.getElementById('listaOrganizaciones');
+      if (!cont) return;
+      App.obtenerOrganizaciones(function(orgs) {
+        if (orgs.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>';
+          return;
+        }
+        var html = '';
+        orgs.forEach(function(org) {
+          html += '<div class="org-item">' +
+            '<span>' + org.nombre + '</span>' +
+            '<button class="btn-eliminar-org" data-id="' + org.id + '">✕</button>' +
+            '</div>';
+        });
+        cont.innerHTML = html;
+        cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
+          });
+        });
+      });
+    }
+
+    document.getElementById('btnCrearOrganizacion').addEventListener('click', function() {
+      var nombre = document.getElementById('nombreOrganizacion').value.trim();
+      if (nombre) {
+        App.crearOrganizacion(nombre).then(function() {
+          document.getElementById('nombreOrganizacion').value = '';
+          cargarOrganizaciones();
+        });
+      }
+    });
+
+    function cargarUsuariosAdmin() {
+      var cont = document.getElementById('listaUsuariosAdmin');
+      if (!cont) return;
+      App.obtenerUsuariosVinculados(function(usuarios) {
+        if (usuarios.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
+          return;
+        }
+        var html = '';
+        usuarios.forEach(function(usuario) {
+          html += '<div class="usuario-admin-card">' +
+            '<span class="font-medium">' + usuario.email + '</span>' +
+            '<div class="flex gap-2">' +
+              '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
+              '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
+            '</div>' +
+          '</div>';
+        });
+        cont.innerHTML = html;
+
+        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar vinculación?')) {
+              App.eliminarVinculacion(this.dataset.uid);
+            }
+          });
+        });
+
+        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var uid = this.dataset.uid;
+            App.obtenerTransaccionesDeUsuario(uid, function(transacciones) {
+              var detalleCont = document.getElementById('detalleUsuarioAdmin');
+              if (!detalleCont) return;
+              var detalleHtml = '<h4 class="font-bold mt-4">Transacciones</h4>';
+              if (transacciones.length === 0) {
+                detalleHtml += '<p class="texto-secundario">Sin transacciones</p>';
+              } else {
+                transacciones.forEach(function(t) {
+                  detalleHtml += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
+                });
+              }
+              detalleCont.innerHTML = detalleHtml;
+            });
+          });
+        });
+      });
+    }
+
+    document.getElementById('btnVincularUsuario').addEventListener('click', function() {
+      var email = document.getElementById('emailUsuarioVincular').value.trim();
+      if (email) {
+        App.vincularUsuarioPorEmail(email, function() {
+          document.getElementById('emailUsuarioVincular').value = '';
+          cargarUsuariosAdmin();
+        });
+      }
+    });
+
+    App.cargarDatosIniciales = function() {
+      App.obtenerCategorias(function(cats) {
+        App.categoriasState = cats;
+        llenarSelectCategorias();
+        renderizarListaCategorias();
+        App.obtenerMetodosPago(function(metodos) {
+          metodosPago = metodos;
+          llenarSelectMetodosPago();
+          renderizarListaMetodosPago();
+        });
+        App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
+          App.subcategoriasPorCategoria = {};
+          var gastos = limites.gastos || {};
+          Object.keys(gastos).forEach(function(cat) {
+            var subcats = gastos[cat].subcategorias || {};
+            App.subcategoriasPorCategoria[cat] = Object.keys(subcats);
+          });
+          llenarSelectSubcategorias();
+        });
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+        App.obtenerRolUsuario(function(rol) {
+          var btnAdmin = document.getElementById('btnAdmin');
+          if (btnAdmin) {
+            if (rol === 'admin') btnAdmin.classList.remove('hidden');
+            else btnAdmin.classList.add('hidden');
+          }
+        });
+      });
+    };
+
+    var formCat = document.getElementById('formCategoria');
+    if (formCat) {
+      formCat.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var nombre = document.getElementById('nombreCategoria').value.trim();
+        var emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
+        var color = document.getElementById('colorCategoria').value;
+        var tipo = document.getElementById('tipoCategoria').value;
+        if (!nombre) return;
+        App.agregarCategoria(nombre, emoji, color, tipo);
+        formCat.reset();
+        document.getElementById('colorCategoria').value = '#10b981';
+        document.getElementById('emojiCategoria').value = '';
+      });
+    }
   });
 })();
