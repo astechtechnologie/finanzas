@@ -47,6 +47,7 @@
         renderizarListaCategorias();
       }
       if (clave === 'admin') {
+        cargarOrganizaciones();
         cargarUsuariosAdmin();
       }
     }
@@ -57,6 +58,35 @@
       });
     });
 
+    // ==================== ACCESOS DIRECTOS ====================
+    document.getElementById('btnAccesoGasto').addEventListener('click', function() {
+      tipoTransaccion = 'gasto';
+      document.getElementById('tabGasto').classList.add('active');
+      document.getElementById('tabIngreso').classList.remove('active');
+      llenarSelectCategorias();
+      modal.classList.remove('hidden');
+    });
+
+    document.getElementById('btnAccesoIngreso').addEventListener('click', function() {
+      tipoTransaccion = 'ingreso';
+      document.getElementById('tabIngreso').classList.add('active');
+      document.getElementById('tabGasto').classList.remove('active');
+      llenarSelectCategorias();
+      modal.classList.remove('hidden');
+    });
+
+    document.getElementById('btnAccesoPresupuesto').addEventListener('click', function() {
+      cambiarVista('vistaPresupuesto');
+    });
+
+    document.getElementById('btnAccesoMetas').addEventListener('click', function() {
+      cambiarVista('vistaPresupuesto');
+      setTimeout(function() {
+        document.getElementById('tabMetasAhorro')?.click();
+      }, 300);
+    });
+
+    // ==================== FILTROS ====================
     filtroMes.value = mesSeleccionado;
     filtroMes.addEventListener('change', function() {
       mesSeleccionado = filtroMes.value;
@@ -67,8 +97,10 @@
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
+    // ==================== FAB ====================
     fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
+    // ==================== MODAL AGREGAR ====================
     document.getElementById('btnCancelarModal').addEventListener('click', function() { modal.classList.add('hidden'); });
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       var cat = document.getElementById('categoria').value;
@@ -100,6 +132,7 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
+    // ==================== MODAL EDITAR ====================
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
@@ -115,6 +148,7 @@
       modalEditar.classList.add('hidden');
     });
 
+    // ==================== EXPORTAR CSV ====================
     document.getElementById('btnExportarCSV').addEventListener('click', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
@@ -132,6 +166,7 @@
       });
     });
 
+    // ==================== GESTIÓN DE MÉTODOS DE PAGO ====================
     document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
       document.getElementById('panelMetodosPago').classList.toggle('hidden');
       renderizarListaMetodosPago();
@@ -164,6 +199,7 @@
       });
     }
 
+    // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var metodoSeleccionado = filtroMetodo.value;
@@ -179,6 +215,7 @@
       bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
+      // KPIs
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -227,6 +264,7 @@
         document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
+      // Lista de movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -344,7 +382,42 @@
       });
     }
 
-    // ==================== ADMIN ====================
+    // ==================== ADMIN: ORGANIZACIONES ====================
+    function cargarOrganizaciones() {
+      var cont = document.getElementById('listaOrganizaciones');
+      if (!cont) return;
+      App.obtenerOrganizaciones(function(orgs) {
+        if (orgs.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>';
+          return;
+        }
+        var html = '';
+        orgs.forEach(function(org) {
+          html += '<div class="org-item flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-lg mb-2">' +
+            '<span>' + org.nombre + '</span>' +
+            '<button class="btn-eliminar-org text-red-500" data-id="' + org.id + '">✕</button>' +
+            '</div>';
+        });
+        cont.innerHTML = html;
+        cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
+          });
+        });
+      });
+    }
+
+    document.getElementById('btnCrearOrganizacion').addEventListener('click', function() {
+      var nombre = document.getElementById('nombreOrganizacion').value.trim();
+      if (nombre) {
+        App.crearOrganizacion(nombre).then(function() {
+          document.getElementById('nombreOrganizacion').value = '';
+          cargarOrganizaciones();
+        });
+      }
+    });
+
+    // ==================== ADMIN: USUARIOS VINCULADOS ====================
     function cargarUsuariosAdmin() {
       var cont = document.getElementById('listaUsuariosAdmin');
       if (!cont) return;
