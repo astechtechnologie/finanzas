@@ -1,7 +1,8 @@
-// auth.js – Autenticación con pestañas
 (function() {
   const App = window.App;
   const auth = App.auth;
+  const db = App.db; // Asegúrate de que App.db esté definido en firebase-config.js
+
   let modoAuth = 'login';
 
   App.mostrarAuth = function() {
@@ -38,7 +39,16 @@
           document.getElementById('authError').classList.remove('hidden');
         });
       } else {
-        auth.createUserWithEmailAndPassword(email, password).catch(function(e) {
+        auth.createUserWithEmailAndPassword(email, password).then(function(userCredential) {
+          const user = userCredential.user;
+          // Asignar rol por defecto 'normal', y admin si el email está en lista blanca
+          const admins = ['tuemail@ejemplo.com']; // Reemplaza con tu email
+          const rol = admins.includes(user.email) ? 'admin' : 'normal';
+          return db.collection('usuarios').doc(user.uid).set({
+            rol: rol,
+            email: user.email
+          });
+        }).catch(function(e) {
           document.getElementById('authError').textContent = e.message;
           document.getElementById('authError').classList.remove('hidden');
         });
@@ -63,7 +73,6 @@
 
     document.getElementById('btnLogout').addEventListener('click', function() { auth.signOut(); });
 
-    // Cambio de contraseña
     document.getElementById('btnCambiarPasswordAjustes').addEventListener('click', function() {
       document.getElementById('panelCambioPassword').classList.toggle('hidden');
     });
@@ -89,7 +98,6 @@
       });
     });
 
-    // Toggle visibilidad contraseña
     window.togglePasswordVisibility = function() {
       const input = document.getElementById('password');
       const icon = document.querySelector('.toggle-password');
