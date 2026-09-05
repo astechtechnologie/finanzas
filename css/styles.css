@@ -755,3 +755,25 @@ body {
   font-size: 1.1rem;
   margin-bottom: 0.75rem;
 }
+.onboarding-container {
+  background: var(--tarjeta);
+  border-radius: var(--radio);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--sombra);
+}
+.onboarding-step {
+  display: none;
+}
+.onboarding-step.active {
+  display: block;
+  animation: fadeIn 0.3s;
+}
+.onboarding-step h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+.onboarding-step p {
+  color: var(--texto-secundario);
+  margin-bottom: 1.5rem;
+}
