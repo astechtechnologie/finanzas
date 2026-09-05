@@ -251,16 +251,31 @@ App.obtenerUsuariosVinculados = function(callback) {
 };
 
 App.vincularUsuarioPorEmail = function(email, callback) {
+  if (!email) {
+    alert('Ingresa un correo electrónico');
+    return;
+  }
   db.collection('usuarios').where('email', '==', email).get().then(function(query) {
     if (!query.empty) {
       const usuario = query.docs[0];
       const adminUid = App.auth.currentUser.uid;
-      db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
+      console.log('Admin UID:', adminUid);
+      console.log('Usuario UID:', usuario.id);
+      return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
         email: email
-      }).then(callback);
+      }).then(function() {
+        alert('Usuario vinculado correctamente');
+        if (callback) callback();
+      }).catch(function(error) {
+        console.error('Error al vincular:', error);
+        alert('Error al vincular: ' + error.message);
+      });
     } else {
       alert('No se encontró usuario con ese email');
     }
+  }).catch(function(error) {
+    console.error('Error buscando usuario:', error);
+    alert('Error buscando: ' + error.message);
   });
 };
 
