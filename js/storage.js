@@ -348,4 +348,18 @@ App.vincularUsuarioAOrganizacion = function(email, orgId) {
     }
   });
 };
+  // ===== ADMINISTRACIÓN AVANZADA =====
+App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
+  return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
+};
+
+App.actualizarEstadoUsuario = function(usuarioUid, activo) {
+  return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
+};
+
+App.obtenerUsuarioPorId = function(usuarioUid, callback) {
+  db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
+    callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
+  });
+};
 })();
