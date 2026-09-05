@@ -220,6 +220,19 @@
           <button id="btnLogout" class="btn btn-peligro w-full mt-4">Cerrar sesión</button>
         </div>
       </div>
+
+      <!-- Vista Admin -->
+      <div id="vistaAdmin" class="vista">
+        <div class="admin-panel">
+          <h2>Usuarios vinculados</h2>
+          <div id="listaUsuariosAdmin"></div>
+          <div class="flex gap-2 mt-3">
+            <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
+            <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
+          </div>
+          <div id="detalleUsuarioAdmin" class="mt-4"></div>
+        </div>
+      </div>
     </main>
 
     <!-- Barra de navegación -->
@@ -235,6 +248,9 @@
       </button>
       <button class="nav-item" data-vista="vistaAjustes">
         <i class="ph ph-gear"></i><span>Ajustes</span>
+      </button>
+      <button class="nav-item hidden" data-vista="vistaAdmin" id="btnAdmin">
+        <i class="ph ph-users"></i><span>Admin</span>
       </button>
     </nav>
 
