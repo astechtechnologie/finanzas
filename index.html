@@ -248,17 +248,22 @@
       </div>
 
       <!-- Vista Admin -->
-      <div id="vistaAdmin" class="vista">
-        <div class="admin-panel">
-          <h2>Usuarios vinculados</h2>
-          <div id="listaUsuariosAdmin"></div>
-          <div class="flex gap-2 mt-3">
-            <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
-            <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
-          </div>
-          <div id="detalleUsuarioAdmin" class="mt-4"></div>
-        </div>
-      </div>
+      <div class="admin-panel">
+  <h2>Organizaciones</h2>
+  <div id="listaOrganizaciones"></div>
+  <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
+  <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
+
+  <hr class="my-4">
+
+  <h2>Usuarios vinculados</h2>
+  <div id="listaUsuariosAdmin"></div>
+  <div class="flex gap-2 mt-3">
+    <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
+    <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
+  </div>
+  <div id="detalleUsuarioAdmin" class="mt-4"></div>
+</div>
     </main>
 
     <!-- Barra de navegación -->
