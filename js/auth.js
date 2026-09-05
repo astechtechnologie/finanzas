@@ -1,7 +1,7 @@
 (function() {
   const App = window.App;
   const auth = App.auth;
-  const db = App.db; // Asegúrate de que App.db esté definido en firebase-config.js
+  const db = App.db;
 
   let modoAuth = 'login';
 
@@ -41,8 +41,7 @@
       } else {
         auth.createUserWithEmailAndPassword(email, password).then(function(userCredential) {
           const user = userCredential.user;
-          // Asignar rol por defecto 'normal', y admin si el email está en lista blanca
-          const admins = ['tuemail@ejemplo.com']; // Reemplaza con tu email
+          const admins = ['kevinalexanderariza@gmail.com']; // ← Cambia esto por tu correo
           const rol = admins.includes(user.email) ? 'admin' : 'normal';
           return db.collection('usuarios').doc(user.uid).set({
             rol: rol,
