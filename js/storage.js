@@ -227,4 +227,51 @@
   App.eliminarPrestamo = function(id) {
     return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
   };
+  // ===== FUNCIONES DE ADMINISTRADOR =====
+App.obtenerRolUsuario = function(callback) {
+  const uid = App.auth.currentUser.uid;
+  db.collection('usuarios').doc(uid).get().then(function(doc) {
+    const data = doc.exists ? doc.data() : {};
+    callback(data.rol || 'normal');
+  });
+};
+
+App.obtenerUsuariosVinculados = function(callback) {
+  const adminUid = App.auth.currentUser.uid;
+  return db.collection('usuarios').doc(adminUid).collection('vinculados').onSnapshot(function(snap) {
+    const usuarios = [];
+    snap.forEach(function(doc) {
+      usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
+    });
+    callback(usuarios);
+  });
+};
+
+App.vincularUsuarioPorEmail = function(email, callback) {
+  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
+    if (!query.empty) {
+      const usuario = query.docs[0];
+      const adminUid = App.auth.currentUser.uid;
+      db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
+        email: email
+      }).then(callback);
+    } else {
+      alert('No se encontró usuario con ese email');
+    }
+  });
+};
+
+App.eliminarVinculacion = function(usuarioUid) {
+  const adminUid = App.auth.currentUser.uid;
+  return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).delete();
+};
+
+// Función para obtener transacciones de un usuario vinculado
+App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
+  return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+    const arr = [];
+    snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
+    callback(arr);
+  });
+};
 })();
