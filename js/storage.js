@@ -58,7 +58,12 @@
   };
 
   App.agregarCategoria = function(nombre, emoji, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({ nombre: nombre.trim().toLowerCase(), emoji: emoji || '📌', color: color || '#10b981', tipo: tipo || 'gasto' });
+    return db.collection('usuarios/' + uid() + '/categorias').add({
+      nombre: nombre.trim().toLowerCase(),
+      emoji: emoji || '📌',
+      color: color || '#10b981',
+      tipo: tipo || 'gasto'
+    });
   };
 
   App.eliminarCategoria = function(id) {
@@ -126,6 +131,26 @@
         return transaction.set(ref, data, { merge: true });
       });
     }).then(callback);
+  };
+
+  App.obtenerHistorialPresupuestos = function(callback) {
+    const meses = [];
+    const hoy = new Date();
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+      meses.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+    }
+    Promise.all(meses.map(function(m) {
+      return db.collection('usuarios').doc(uid()).collection('presupuestos').doc(m).get();
+    })).then(function(docs) {
+      callback(docs.map(function(doc, i) {
+        return {
+          mes: meses[i],
+          gastos: doc.exists ? Object.values(doc.data().gastos || doc.data().categorias || {}).reduce(function(a, b) { return a + b; }, 0) : 0,
+          ingresos: doc.exists ? Object.values(doc.data().ingresos || {}).reduce(function(a, b) { return a + b; }, 0) : 0
+        };
+      }));
+    });
   };
 
   // ===== METAS DE AHORRO =====
@@ -227,129 +252,65 @@
   App.eliminarPrestamo = function(id) {
     return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
   };
-  // ===== FUNCIONES DE ADMINISTRADOR =====
-App.obtenerRolUsuario = function(callback) {
-  const userId = uid();
-  db.collection('usuarios').doc(userId).get().then(function(doc) {
-    const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
-    callback(rol);
-  }).catch(function(error) {
-    console.warn('No se pudo obtener rol, usando normal', error);
-    callback('normal');
-  });
-};
 
-App.obtenerUsuariosVinculados = function(callback) {
-  const adminUid = App.auth.currentUser.uid;
-  return db.collection('usuarios').doc(adminUid).collection('vinculados').onSnapshot(function(snap) {
-    const usuarios = [];
-    snap.forEach(function(doc) {
-      usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
-    });
-    callback(usuarios);
-  });
-};
-
-App.vincularUsuarioPorEmail = function(email, callback) {
-  if (!email) {
-    alert('Ingresa un correo electrónico');
-    return;
-  }
-  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
-    if (!query.empty) {
-      const usuario = query.docs[0];
-      const adminUid = App.auth.currentUser.uid;
-      console.log('Admin UID:', adminUid);
-      console.log('Usuario UID:', usuario.id);
-      return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
-        email: email
-      }).then(function() {
-        alert('Usuario vinculado correctamente');
-        if (callback) callback();
-      }).catch(function(error) {
-        console.error('Error al vincular:', error);
-        alert('Error al vincular: ' + error.message);
-      });
-    } else {
-      alert('No se encontró usuario con ese email');
-    }
-  }).catch(function(error) {
-    console.error('Error buscando usuario:', error);
-    alert('Error buscando: ' + error.message);
-  });
-};
-
-App.eliminarVinculacion = function(usuarioUid) {
-  const adminUid = App.auth.currentUser.uid;
-  return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).delete();
-};
-
-// Función para obtener transacciones de un usuario vinculado
-App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
-  return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-    const arr = [];
-    snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-    callback(arr);
-  });
-};
   // ===== ADMINISTRADOR =====
-App.obtenerRolUsuario = function(callback) {
-  const userId = uid();
-  db.collection('usuarios').doc(userId).get().then(function(doc) {
-    const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
-    callback(rol);
-  }).catch(function(error) {
-    console.warn('No se pudo obtener rol, usando normal', error);
-    callback('normal');
-  });
-};
-
-App.obtenerUsuariosVinculados = function(callback) {
-  return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
-    const usuarios = [];
-    snap.forEach(function(doc) {
-      usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
+  App.obtenerRolUsuario = function(callback) {
+    const userId = uid();
+    db.collection('usuarios').doc(userId).get().then(function(doc) {
+      const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
+      callback(rol);
+    }).catch(function(error) {
+      console.warn('No se pudo obtener rol, usando normal', error);
+      callback('normal');
     });
-    callback(usuarios);
-  });
-};
+  };
 
-App.vincularUsuarioPorEmail = function(email, callback) {
-  if (!email) {
-    alert('Ingresa un correo electrónico');
-    return;
-  }
-  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
-    if (!query.empty) {
-      const usuario = query.docs[0];
-      const adminUid = uid();
-      return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
-        email: email
-      }).then(function() {
-        alert('Usuario vinculado correctamente');
-        if (callback) callback();
-      }).catch(function(error) {
-        console.error('Error al vincular:', error);
-        alert('Error al vincular: ' + error.message);
+  App.obtenerUsuariosVinculados = function(callback) {
+    return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
+      const usuarios = [];
+      snap.forEach(function(doc) {
+        usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
       });
-    } else {
-      alert('No se encontró usuario con ese email');
+      callback(usuarios);
+    });
+  };
+
+  App.vincularUsuarioPorEmail = function(email, callback) {
+    if (!email) {
+      alert('Ingresa un correo electrónico');
+      return;
     }
-  }).catch(function(error) {
-    console.error('Error buscando usuario:', error);
-    alert('Error buscando: ' + error.message);
-  });
-};
+    db.collection('usuarios').where('email', '==', email).get().then(function(query) {
+      if (!query.empty) {
+        const usuario = query.docs[0];
+        const adminUid = uid();
+        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
+          email: email
+        }).then(function() {
+          alert('Usuario vinculado correctamente');
+          if (callback) callback();
+        }).catch(function(error) {
+          console.error('Error al vincular:', error);
+          alert('Error al vincular: ' + error.message);
+        });
+      } else {
+        alert('No se encontró usuario con ese email');
+      }
+    }).catch(function(error) {
+      console.error('Error buscando usuario:', error);
+      alert('Error buscando: ' + error.message);
+    });
+  };
 
-App.eliminarVinculacion = function(usuarioUid) {
-  return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
-};
+  App.eliminarVinculacion = function(usuarioUid) {
+    return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
+  };
 
-App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
-  return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-    const arr = [];
-    snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-    callback(arr);
-  });
-};
+  App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
+    return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+      const arr = [];
+      snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(arr);
+    });
+  };
 })();
