@@ -92,57 +92,23 @@
 
         <!-- Accesos rápidos -->
         <div class="accesos-rapidos">
-          <button id="btnAccesoGasto" class="btn-acceso">
-            <i class="ph ph-plus-circle"></i><span>Gasto</span>
-          </button>
-          <button id="btnAccesoIngreso" class="btn-acceso">
-            <i class="ph ph-money"></i><span>Ingreso</span>
-          </button>
-          <button id="btnAccesoPresupuesto" class="btn-acceso">
-            <i class="ph ph-wallet"></i><span>Presupuesto</span>
-          </button>
-          <button id="btnAccesoMetas" class="btn-acceso">
-            <i class="ph ph-piggy-bank"></i><span>Metas</span>
-          </button>
+          <button id="btnAccesoGasto" class="btn-acceso"><i class="ph ph-plus-circle"></i><span>Gasto</span></button>
+          <button id="btnAccesoIngreso" class="btn-acceso"><i class="ph ph-money"></i><span>Ingreso</span></button>
+          <button id="btnAccesoPresupuesto" class="btn-acceso"><i class="ph ph-wallet"></i><span>Presupuesto</span></button>
+          <button id="btnAccesoMetas" class="btn-acceso"><i class="ph ph-piggy-bank"></i><span>Metas</span></button>
         </div>
 
         <!-- KPIs -->
         <div class="kpi-grid" id="kpiContainer">
-          <div class="kpi-card">
-            <span class="kpi-icon">📅</span>
-            <span class="kpi-label">Promedio diario</span>
-            <strong id="kpiPromedioDiario" class="kpi-valor">$0</strong>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-icon">🔥</span>
-            <span class="kpi-label">Categoría top</span>
-            <strong id="kpiCategoriaTop" class="kpi-valor">-</strong>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-icon">🐷</span>
-            <span class="kpi-label">Ahorro</span>
-            <strong id="kpiAhorro" class="kpi-valor">0%</strong>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-icon">📊</span>
-            <span class="kpi-label">vs Mes anterior</span>
-            <strong id="kpiVariacion" class="kpi-valor">-</strong>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-icon">🎯</span>
-            <span class="kpi-label">Metas</span>
-            <strong id="kpiMetas" class="kpi-valor">0</strong>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-icon">💰</span>
-            <span class="kpi-label">Ahorro en metas</span>
-            <strong id="kpiAhorroMetas" class="kpi-valor">$0</strong>
-          </div>
+          <div class="kpi-card"><span class="kpi-icon">📅</span><span class="kpi-label">Promedio diario</span><strong id="kpiPromedioDiario" class="kpi-valor">$0</strong></div>
+          <div class="kpi-card"><span class="kpi-icon">🔥</span><span class="kpi-label">Categoría top</span><strong id="kpiCategoriaTop" class="kpi-valor">-</strong></div>
+          <div class="kpi-card"><span class="kpi-icon">🐷</span><span class="kpi-label">Ahorro</span><strong id="kpiAhorro" class="kpi-valor">0%</strong></div>
+          <div class="kpi-card"><span class="kpi-icon">📊</span><span class="kpi-label">vs Mes anterior</span><strong id="kpiVariacion" class="kpi-valor">-</strong></div>
+          <div class="kpi-card"><span class="kpi-icon">🎯</span><span class="kpi-label">Metas</span><strong id="kpiMetas" class="kpi-valor">0</strong></div>
+          <div class="kpi-card"><span class="kpi-icon">💰</span><span class="kpi-label">Ahorro en metas</span><strong id="kpiAhorroMetas" class="kpi-valor">$0</strong></div>
         </div>
 
-        <select id="filtroMetodoPago" class="input-field mb-2">
-          <option value="">Todos los métodos de pago</option>
-        </select>
+        <select id="filtroMetodoPago" class="input-field mb-2"><option value="">Todos los métodos de pago</option></select>
 
         <div class="tendencia-container tarjeta p-4 mb-4">
           <h3 class="text-sm font-semibold mb-2">📈 Tendencia últimos meses</h3>
@@ -169,9 +135,7 @@
           <form id="formCategoria" class="form-categoria">
             <div class="form-row">
               <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
-              <div class="color-picker-wrapper">
-                <input type="color" id="colorCategoria" value="#10b981" class="input-color">
-              </div>
+              <div class="color-picker-wrapper"><input type="color" id="colorCategoria" value="#10b981" class="input-color"></div>
             </div>
             <div class="form-row">
               <select id="tipoCategoria" class="input-field flex-1">
@@ -224,22 +188,9 @@
       <div id="vistaAjustes" class="vista">
         <div class="ajustes-panel">
           <h2>Ajustes</h2>
-          <div class="ajuste-item">
-            <span>Modo oscuro</span>
-            <button id="toggleTemaAjustes" class="btn-icon">🌙</button>
-          </div>
-          <div class="ajuste-item">
-            <span>Tema</span>
-            <select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;">
-              <option value="light">Claro</option>
-              <option value="dark">Oscuro</option>
-              <option value="system">Sistema</option>
-            </select>
-          </div>
-          <div class="ajuste-item">
-            <span>Cambiar contraseña</span>
-            <button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button>
-          </div>
+          <div class="ajuste-item"><span>Modo oscuro</span><button id="toggleTemaAjustes" class="btn-icon">🌙</button></div>
+          <div class="ajuste-item"><span>Tema</span><select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="system">Sistema</option></select></div>
+          <div class="ajuste-item"><span>Cambiar contraseña</span><button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button></div>
           <div id="panelCambioPassword" class="hidden mt-2">
             <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-field">
             <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-field">
@@ -247,14 +198,8 @@
             <p id="passwordError" class="error-text hidden"></p>
             <p id="passwordSuccess" class="success-text hidden"></p>
           </div>
-          <div class="ajuste-item">
-            <span>Exportar movimientos (CSV)</span>
-            <button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button>
-          </div>
-          <div class="ajuste-item">
-            <span>Gestionar métodos de pago</span>
-            <button id="btnGestionarMetodos" class="btn btn-outline-small">Gestionar</button>
-          </div>
+          <div class="ajuste-item"><span>Exportar movimientos (CSV)</span><button id="btnExportarCSV" class="btn btn-outline-small">Exportar</button></div>
+          <div class="ajuste-item"><span>Gestionar métodos de pago</span><button id="btnGestionarMetodos" class="btn btn-outline-small">Gestionar</button></div>
           <div id="panelMetodosPago" class="hidden mt-2">
             <div id="listaMetodosPago" class="space-y-2"></div>
             <input type="text" id="nombreMetodoPago" placeholder="Nuevo método (ej: Tarjeta Visa)" class="input-field mt-2">
@@ -271,9 +216,7 @@
           <div id="listaOrganizaciones"></div>
           <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
           <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
-
           <hr class="my-4">
-
           <h2>Usuarios vinculados</h2>
           <div id="listaUsuariosAdmin"></div>
           <div class="flex gap-2 mt-3">
@@ -281,27 +224,23 @@
             <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
           </div>
           <div id="detalleUsuarioAdmin" class="mt-4"></div>
+          <hr class="my-4">
+          <h3>Auditoría</h3>
+          <div id="listaAuditoria" class="text-sm"></div>
+          <hr class="my-4">
+          <h3>Estadísticas</h3>
+          <div id="estadisticasAdmin"></div>
         </div>
       </div>
     </main>
 
     <!-- Barra de navegación -->
     <nav class="bottom-nav">
-      <button class="nav-item active" data-vista="vistaInicio">
-        <i class="ph ph-house"></i><span>Inicio</span>
-      </button>
-      <button class="nav-item" data-vista="vistaPresupuesto">
-        <i class="ph ph-wallet"></i><span>Presupuesto</span>
-      </button>
-      <button class="nav-item" data-vista="vistaCategorias">
-        <i class="ph ph-tag"></i><span>Categorías</span>
-      </button>
-      <button class="nav-item" data-vista="vistaAjustes">
-        <i class="ph ph-gear"></i><span>Ajustes</span>
-      </button>
-      <button class="nav-item hidden" data-vista="vistaAdmin" id="btnAdmin">
-        <i class="ph ph-users"></i><span>Admin</span>
-      </button>
+      <button class="nav-item active" data-vista="vistaInicio"><i class="ph ph-house"></i><span>Inicio</span></button>
+      <button class="nav-item" data-vista="vistaPresupuesto"><i class="ph ph-wallet"></i><span>Presupuesto</span></button>
+      <button class="nav-item" data-vista="vistaCategorias"><i class="ph ph-tag"></i><span>Categorías</span></button>
+      <button class="nav-item" data-vista="vistaAjustes"><i class="ph ph-gear"></i><span>Ajustes</span></button>
+      <button class="nav-item hidden" data-vista="vistaAdmin" id="btnAdmin"><i class="ph ph-users"></i><span>Admin</span></button>
     </nav>
 
     <!-- Modal AGREGAR transacción -->
@@ -314,12 +253,8 @@
         </div>
         <input type="date" id="fecha" class="input-field">
         <select id="categoria" class="input-field"></select>
-        <select id="subcategoria" class="input-field">
-          <option value="">Sin subcategoría</option>
-        </select>
-        <select id="metodoPago" class="input-field">
-          <option value="">Método de pago (opcional)</option>
-        </select>
+        <select id="subcategoria" class="input-field"><option value="">Sin subcategoría</option></select>
+        <select id="metodoPago" class="input-field"><option value="">Método de pago (opcional)</option></select>
         <input type="text" id="descripcion" placeholder="Descripción" class="input-field">
         <input type="text" id="monto" placeholder="Monto" inputmode="decimal" class="input-field">
         <div class="modal-buttons">
@@ -335,12 +270,8 @@
         <h2>Editar transacción</h2>
         <input type="date" id="fechaEditar" class="input-field">
         <select id="categoriaEditar" class="input-field"></select>
-        <select id="subcategoriaEditar" class="input-field">
-          <option value="">Sin subcategoría</option>
-        </select>
-        <select id="metodoPagoEditar" class="input-field">
-          <option value="">Método de pago (opcional)</option>
-        </select>
+        <select id="subcategoriaEditar" class="input-field"><option value="">Sin subcategoría</option></select>
+        <select id="metodoPagoEditar" class="input-field"><option value="">Método de pago (opcional)</option></select>
         <input type="text" id="descripcionEditar" placeholder="Descripción" class="input-field">
         <input type="text" id="montoEditar" placeholder="Monto" inputmode="decimal" class="input-field">
         <input type="hidden" id="idTransaccionEditar">
