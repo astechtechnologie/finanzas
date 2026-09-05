@@ -90,6 +90,23 @@
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
 
+        <!-- Accesos rápidos -->
+        <div class="accesos-rapidos">
+          <button id="btnAccesoGasto" class="btn-acceso">
+            <i class="ph ph-plus-circle"></i><span>Gasto</span>
+          </button>
+          <button id="btnAccesoIngreso" class="btn-acceso">
+            <i class="ph ph-money"></i><span>Ingreso</span>
+          </button>
+          <button id="btnAccesoPresupuesto" class="btn-acceso">
+            <i class="ph ph-wallet"></i><span>Presupuesto</span>
+          </button>
+          <button id="btnAccesoMetas" class="btn-acceso">
+            <i class="ph ph-piggy-bank"></i><span>Metas</span>
+          </button>
+        </div>
+
+        <!-- KPIs -->
         <div class="kpi-grid" id="kpiContainer">
           <div class="kpi-card">
             <span class="kpi-icon">📅</span>
@@ -248,22 +265,24 @@
       </div>
 
       <!-- Vista Admin -->
-      <div class="admin-panel">
-  <h2>Organizaciones</h2>
-  <div id="listaOrganizaciones"></div>
-  <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
-  <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
+      <div id="vistaAdmin" class="vista">
+        <div class="admin-panel">
+          <h2>Organizaciones</h2>
+          <div id="listaOrganizaciones"></div>
+          <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
+          <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
 
-  <hr class="my-4">
+          <hr class="my-4">
 
-  <h2>Usuarios vinculados</h2>
-  <div id="listaUsuariosAdmin"></div>
-  <div class="flex gap-2 mt-3">
-    <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
-    <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
-  </div>
-  <div id="detalleUsuarioAdmin" class="mt-4"></div>
-</div>
+          <h2>Usuarios vinculados</h2>
+          <div id="listaUsuariosAdmin"></div>
+          <div class="flex gap-2 mt-3">
+            <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
+            <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
+          </div>
+          <div id="detalleUsuarioAdmin" class="mt-4"></div>
+        </div>
+      </div>
     </main>
 
     <!-- Barra de navegación -->
