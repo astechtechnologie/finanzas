@@ -48,7 +48,6 @@
       if (localStorage.getItem(CLAVE_TEMA) === 'system') aplicarTema('system');
     });
 
-    // Atajos (App Shortcuts) con hash
     function manejarAccionDesdeHash() {
       const hash = window.location.hash.substring(1);
       if (!hash) return;
