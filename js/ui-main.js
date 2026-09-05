@@ -31,17 +31,19 @@
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
       const clave = nombreVista.replace('vista', '').toLowerCase();
-      if (!vistas[clave]) return;
 
-      Object.values(vistas).forEach(function(v) { v.classList.remove('activa'); });
-      vistas[clave].classList.add('activa');
+      Object.keys(vistas).forEach(function(key) {
+        if (vistas[key]) vistas[key].classList.remove('activa');
+      });
+
+      if (vistas[clave]) vistas[clave].classList.add('activa');
 
       navItems.forEach(function(item) { item.classList.remove('active'); });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
 
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
-      titulo.textContent = titulos[clave];
+      if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
 
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
@@ -64,54 +66,58 @@
     });
 
     // ==================== ACCESOS DIRECTOS ====================
-    var btnAccesoGasto = document.getElementById('btnAccesoGasto');
-    if (btnAccesoGasto) {
-      btnAccesoGasto.addEventListener('click', function() {
-        tipoTransaccion = 'gasto';
-        document.getElementById('tabGasto').classList.add('active');
-        document.getElementById('tabIngreso').classList.remove('active');
-        llenarSelectCategorias();
-        modal.classList.remove('hidden');
-      });
+    function addListener(id, callback) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('click', callback);
     }
-    var btnAccesoIngreso = document.getElementById('btnAccesoIngreso');
-    if (btnAccesoIngreso) {
-      btnAccesoIngreso.addEventListener('click', function() {
-        tipoTransaccion = 'ingreso';
-        document.getElementById('tabIngreso').classList.add('active');
-        document.getElementById('tabGasto').classList.remove('active');
-        llenarSelectCategorias();
-        modal.classList.remove('hidden');
-      });
-    }
-    var btnAccesoPresupuesto = document.getElementById('btnAccesoPresupuesto');
-    if (btnAccesoPresupuesto) {
-      btnAccesoPresupuesto.addEventListener('click', function() { cambiarVista('vistaPresupuesto'); });
-    }
-    var btnAccesoMetas = document.getElementById('btnAccesoMetas');
-    if (btnAccesoMetas) {
-      btnAccesoMetas.addEventListener('click', function() {
-        cambiarVista('vistaPresupuesto');
-        setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
-      });
-    }
+
+    addListener('btnAccesoGasto', function() {
+      tipoTransaccion = 'gasto';
+      document.getElementById('tabGasto').classList.add('active');
+      document.getElementById('tabIngreso').classList.remove('active');
+      llenarSelectCategorias();
+      modal.classList.remove('hidden');
+    });
+
+    addListener('btnAccesoIngreso', function() {
+      tipoTransaccion = 'ingreso';
+      document.getElementById('tabIngreso').classList.add('active');
+      document.getElementById('tabGasto').classList.remove('active');
+      llenarSelectCategorias();
+      modal.classList.remove('hidden');
+    });
+
+    addListener('btnAccesoPresupuesto', function() {
+      cambiarVista('vistaPresupuesto');
+    });
+
+    addListener('btnAccesoMetas', function() {
+      cambiarVista('vistaPresupuesto');
+      setTimeout(function() {
+        document.getElementById('tabMetasAhorro')?.click();
+      }, 300);
+    });
 
     // ==================== FILTROS ====================
-    filtroMes.value = mesSeleccionado;
-    filtroMes.addEventListener('change', function() {
-      mesSeleccionado = filtroMes.value;
-      if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
-    });
-    filtroMetodo.addEventListener('change', function() {
-      if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
-    });
+    if (filtroMes) {
+      filtroMes.value = mesSeleccionado;
+      filtroMes.addEventListener('change', function() {
+        mesSeleccionado = filtroMes.value;
+        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+      });
+    }
+    if (filtroMetodo) {
+      filtroMetodo.addEventListener('change', function() {
+        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+      });
+    }
 
     // ==================== FAB ====================
-    fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
+    if (fab) fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
     // ==================== MODAL AGREGAR ====================
-    document.getElementById('btnCancelarModal').addEventListener('click', function() { modal.classList.add('hidden'); });
-    document.getElementById('btnGuardarModal').addEventListener('click', function() {
+    addListener('btnCancelarModal', function() { modal.classList.add('hidden'); });
+    addListener('btnGuardarModal', function() {
       var cat = document.getElementById('categoria').value;
       var subcat = document.getElementById('subcategoria').value || null;
       var desc = document.getElementById('descripcion').value.trim();
@@ -126,23 +132,25 @@
       document.getElementById('monto').value = '';
     });
 
-    document.getElementById('tabIngreso').addEventListener('click', function() {
+    addListener('tabIngreso', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso').classList.add('active');
       document.getElementById('tabGasto').classList.remove('active');
       llenarSelectCategorias();
     });
-    document.getElementById('tabGasto').addEventListener('click', function() {
+    addListener('tabGasto', function() {
       tipoTransaccion = 'gasto';
       document.getElementById('tabGasto').classList.add('active');
       document.getElementById('tabIngreso').classList.remove('active');
       llenarSelectCategorias();
     });
-    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+    var fechaInput = document.getElementById('fecha');
+    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
     // ==================== MODAL EDITAR ====================
-    document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
-    document.getElementById('btnGuardarEditar').addEventListener('click', function() {
+    addListener('btnCancelarEditar', function() { modalEditar.classList.add('hidden'); });
+    addListener('btnGuardarEditar', function() {
       var id = document.getElementById('idTransaccionEditar').value;
       var cat = document.getElementById('categoriaEditar').value;
       var subcat = document.getElementById('subcategoriaEditar').value || null;
@@ -157,7 +165,7 @@
     });
 
     // ==================== EXPORTAR CSV ====================
-    document.getElementById('btnExportarCSV').addEventListener('click', function() {
+    addListener('btnExportarCSV', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
         var csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
@@ -175,11 +183,11 @@
     });
 
     // ==================== MÉTODOS DE PAGO ====================
-    document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
+    addListener('btnGestionarMetodos', function() {
       document.getElementById('panelMetodosPago').classList.toggle('hidden');
       renderizarListaMetodosPago();
     });
-    document.getElementById('btnAgregarMetodoPago').addEventListener('click', function() {
+    addListener('btnAgregarMetodoPago', function() {
       var nombre = document.getElementById('nombreMetodoPago').value.trim();
       if (!nombre) return;
       App.agregarMetodoPago(nombre);
@@ -188,6 +196,7 @@
 
     function renderizarListaMetodosPago() {
       var lista = document.getElementById('listaMetodosPago');
+      if (!lista) return;
       if (metodosPago.length === 0) {
         lista.innerHTML = '<p class="texto-secundario">No hay métodos de pago</p>';
         return;
@@ -208,18 +217,22 @@
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
-      var metodoSeleccionado = filtroMetodo.value;
+      var metodoSeleccionado = filtroMetodo ? filtroMetodo.value : '';
       if (metodoSeleccionado) filtradas = filtradas.filter(function(t) { return t.metodoPago === metodoSeleccionado; });
 
       var ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
 
-      document.getElementById('totalIngresos').textContent = '$' + App.formatearMonto(ingresos);
-      document.getElementById('totalGastos').textContent = '$' + App.formatearMonto(gastos);
+      var totalIngresosEl = document.getElementById('totalIngresos');
+      var totalGastosEl = document.getElementById('totalGastos');
+      var balanceEl = document.getElementById('balance');
+      if (totalIngresosEl) totalIngresosEl.textContent = '$' + App.formatearMonto(ingresos);
+      if (totalGastosEl) totalGastosEl.textContent = '$' + App.formatearMonto(gastos);
       var balance = ingresos - gastos;
-      var bel = document.getElementById('balance');
-      bel.textContent = '$' + App.formatearMonto(balance);
-      bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+      if (balanceEl) {
+        balanceEl.textContent = '$' + App.formatearMonto(balance);
+        balanceEl.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+      }
 
       // KPIs
       var partes = mesSeleccionado.split('-');
@@ -229,7 +242,8 @@
       var diaActual = (ahora.getFullYear() === año && (ahora.getMonth() + 1) === mesNum) ? ahora.getDate() : diasEnMes;
       var diasTranscurridos = Math.min(diaActual, diasEnMes);
       var promedioDiario = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
-      document.getElementById('kpiPromedioDiario').textContent = '$' + App.formatearMonto(promedioDiario);
+      var kpiPromedio = document.getElementById('kpiPromedioDiario');
+      if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(promedioDiario);
 
       var gastosPorCat = {};
       filtradas.filter(function(t) { return t.tipo === 'gasto'; }).forEach(function(t) {
@@ -237,41 +251,50 @@
         gastosPorCat[t.categoria] += t.monto;
       });
       var catTop = Object.keys(gastosPorCat).reduce(function(a, b) { return gastosPorCat[a] > gastosPorCat[b] ? a : b; }, '');
-      if (catTop) {
-        var catObj = (App.categoriasState || []).find(function(c) { return c.nombre === catTop; });
-        document.getElementById('kpiCategoriaTop').textContent = (catObj ? catObj.emoji + ' ' : '') + catTop;
-      } else {
-        document.getElementById('kpiCategoriaTop').textContent = 'Sin datos';
+      var kpiCat = document.getElementById('kpiCategoriaTop');
+      if (kpiCat) {
+        if (catTop) {
+          var catObj = (App.categoriasState || []).find(function(c) { return c.nombre === catTop; });
+          kpiCat.textContent = (catObj ? catObj.emoji + ' ' : '') + catTop;
+        } else {
+          kpiCat.textContent = 'Sin datos';
+        }
       }
 
       var porcentajeAhorro = ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0;
-      var kpiAhorroEl = document.getElementById('kpiAhorro');
-      kpiAhorroEl.textContent = porcentajeAhorro.toFixed(1) + '%';
-      kpiAhorroEl.className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
+      var kpiAhorro = document.getElementById('kpiAhorro');
+      if (kpiAhorro) {
+        kpiAhorro.textContent = porcentajeAhorro.toFixed(1) + '%';
+        kpiAhorro.className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
+      }
 
       var mesAnterior = (mesNum === 1) ? (año - 1) + '-12' : año + '-' + String(mesNum - 1).padStart(2, '0');
       var gastosMesAnterior = transacciones.filter(function(t) { return t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesAnterior); })
                                     .reduce(function(s, t) { return s + t.monto; }, 0);
       var diff = gastos - gastosMesAnterior;
-      var variacionEl = document.getElementById('kpiVariacion');
-      if (gastosMesAnterior === 0) {
-        variacionEl.textContent = 'Nuevo';
-        variacionEl.className = 'kpi-valor';
-      } else {
-        var signo = diff > 0 ? '↑' : '↓';
-        variacionEl.textContent = signo + ' $' + App.formatearMonto(Math.abs(diff));
-        variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
+      var kpiVariacion = document.getElementById('kpiVariacion');
+      if (kpiVariacion) {
+        if (gastosMesAnterior === 0) {
+          kpiVariacion.textContent = 'Nuevo';
+          kpiVariacion.className = 'kpi-valor';
+        } else {
+          var signo = diff > 0 ? '↑' : '↓';
+          kpiVariacion.textContent = signo + ' $' + App.formatearMonto(Math.abs(diff));
+          kpiVariacion.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
+        }
       }
 
       App.obtenerMetas(function(metas) {
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
-        document.getElementById('kpiMetas').textContent = metasActivas + ' activas';
-        document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
+        var kpiMetas = document.getElementById('kpiMetas');
+        var kpiAhorroMetas = document.getElementById('kpiAhorroMetas');
+        if (kpiMetas) kpiMetas.textContent = metasActivas + ' activas';
+        if (kpiAhorroMetas) kpiAhorroMetas.textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
-      // Lista de movimientos
       var lista = document.getElementById('listaTransacciones');
+      if (!lista) return;
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
       } else {
@@ -346,7 +369,8 @@
       select.innerHTML = html;
     }
 
-    document.getElementById('categoria').addEventListener('change', llenarSelectSubcategorias);
+    var selectCategoria = document.getElementById('categoria');
+    if (selectCategoria) selectCategoria.addEventListener('change', llenarSelectSubcategorias);
 
     function llenarSelectMetodosPago() {
       var selectAgregar = document.getElementById('metodoPago');
@@ -414,7 +438,7 @@
       });
     }
 
-    document.getElementById('btnCrearOrganizacion').addEventListener('click', function() {
+    addListener('btnCrearOrganizacion', function() {
       var nombre = document.getElementById('nombreOrganizacion').value.trim();
       if (nombre) {
         App.crearOrganizacion(nombre).then(function() {
@@ -443,13 +467,11 @@
           '</div>';
         });
         cont.innerHTML = html;
-
         cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
           btn.addEventListener('click', function() {
             if (confirm('¿Eliminar vinculación?')) App.eliminarVinculacion(this.dataset.uid);
           });
         });
-
         cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
           btn.addEventListener('click', function() {
             verDetalleUsuario(this.dataset.uid);
@@ -512,7 +534,6 @@
       });
     }
 
-    // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
