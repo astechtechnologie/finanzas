@@ -14,7 +14,7 @@
     return html;
   }
 
-  // ==================== PRESUPUESTO MENSUAL REDISEÑADO ====================
+  // ==================== PRESUPUESTO MENSUAL ====================
   function renderizarPresupuestoMensual() {
     var cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -73,7 +73,7 @@
 
       var html = '';
 
-      // ===== Resumen global =====
+      // Resumen global
       html += '<div class="presupuesto-resumen">';
       html += '<div class="presupuesto-resumen-header">';
       html += '<span class="texto-secundario">' + (tipo === 'gasto' ? 'Total gastado' : 'Total ingresado') + '</span>';
@@ -95,10 +95,10 @@
       html += '</p>';
       html += '</div>';
 
-      // ===== Botón para añadir categoría =====
+      // Botón añadir categoría
       html += '<button id="btnAgregarLimite" class="btn btn-primario btn-agregar-categoria"><i class="ph ph-plus"></i> Añadir categoría</button>';
 
-      // ===== Lista de categorías =====
+      // Lista de categorías
       html += '<div class="categorias-presupuesto">';
       catsFiltradas.forEach(function(c) {
         var limiteCat = (limitesTipo[c.nombre] && limitesTipo[c.nombre].limite) || 0;
@@ -125,7 +125,7 @@
         html += '</div>';
         html += '</div>';
 
-        // Subcategorías (ocultas por defecto)
+        // Subcategorías
         html += '<div class="subcategorias-lista hidden" data-subcategorias="' + c.nombre + '">';
         if (Object.keys(subcats).length > 0) {
           Object.keys(subcats).forEach(function(sub) {
@@ -149,7 +149,7 @@
       });
       html += '</div>';
 
-      // ===== Formulario para añadir/editar límite =====
+      // Formulario límite
       html += '<div id="formLimite" class="hidden form-limite">';
       html += '<h3 class="form-titulo">Añadir límite</h3>';
       html += '<select id="selectCategoriaLimite" class="input-field mb-2"></select>';
@@ -162,8 +162,7 @@
 
       cont.innerHTML = html;
 
-      // ===== Eventos =====
-      // Expandir/colapsar subcategorías
+      // Eventos
       cont.querySelectorAll('.categoria-header, .btn-expandir').forEach(function(el) {
         el.addEventListener('click', function() {
           var cat = this.dataset.cat || this.parentElement.dataset.cat;
@@ -172,19 +171,16 @@
         });
       });
 
-      // Botón añadir límite
       document.getElementById('btnAgregarLimite').addEventListener('click', function() {
         mostrarFormularioLimite(tipo);
       });
 
-      // Editar límite
       cont.querySelectorAll('.btn-editar-limite').forEach(function(btn) {
         btn.addEventListener('click', function() {
           mostrarFormularioLimite(tipo, this.dataset.categoria, parseFloat(this.dataset.limite));
         });
       });
 
-      // Eliminar límite
       cont.querySelectorAll('.btn-eliminar-limite').forEach(function(btn) {
         btn.addEventListener('click', function() {
           if (confirm('¿Eliminar el límite para ' + this.dataset.categoria + '?')) {
@@ -195,7 +191,6 @@
         });
       });
 
-      // Añadir subcategoría
       cont.querySelectorAll('.btn-agregar-subcat').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var categoria = this.dataset.categoria;
@@ -211,7 +206,6 @@
         });
       });
 
-      // Configurar formulario
       function mostrarFormularioLimite(tipo, categoria, limite) {
         categoria = categoria || '';
         limite = limite || 0;
@@ -240,17 +234,372 @@
 
   // ==================== METAS DE AHORRO ====================
   function renderizarMetas() {
-    // ... (mantener el código actual)
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-center texto-secundario">Cargando metas...</p>';
+
+    App.obtenerMetas(function(metas) {
+      var html = '';
+      html += '<div class="mb-4"><button id="btnNuevaMeta" class="btn btn-primario w-full"><i class="ph ph-plus"></i> Nueva meta de ahorro</button></div>';
+      html += '<div id="formNuevaMeta" class="hidden tarjeta p-4 mb-4">';
+      html += '<h3 class="font-bold mb-2">Nueva meta</h3>';
+      html += '<input type="text" id="nombreMeta" placeholder="Nombre (ej: PC Gamer)" class="input-field mb-2">';
+      html += '<input type="number" id="costoTotalMeta" placeholder="Costo total estimado" class="input-field mb-2">';
+      html += '<input type="number" id="ahorroInicialMeta" placeholder="Ahorro inicial (opcional)" class="input-field mb-2">';
+      html += '<input type="date" id="fechaLimiteMeta" class="input-field mb-2">';
+      html += '<div class="flex gap-2">';
+      html += '<button id="btnGuardarMeta" class="btn btn-primario flex-1">Guardar</button>';
+      html += '<button id="btnCancelarMeta" class="btn btn-outline flex-1">Cancelar</button>';
+      html += '</div>';
+      html += '</div>';
+
+      if (metas.length === 0) {
+        html += '<p class="text-center texto-secundario py-4">No tienes metas de ahorro. ¡Crea la primera!</p>';
+      } else {
+        html += '<div class="metas-lista space-y-3">';
+        metas.forEach(function(meta) {
+          var porcentaje = meta.costoTotal > 0 ? (meta.ahorrado / meta.costoTotal) * 100 : 0;
+          var color = porcentaje >= 100 ? '#e8c84c' : '#3b82f6';
+          html += '<div class="meta-card" data-id="' + meta.id + '">';
+          html += '<div class="flex justify-between items-center mb-1"><span class="font-bold">' + meta.nombre + '</span><span class="text-xs texto-secundario">' + (meta.fechaLimite ? new Date(meta.fechaLimite).toLocaleDateString() : 'Sin fecha') + '</span></div>';
+          html += '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + color + ';"></div></div>';
+          html += '<div class="flex justify-between text-sm mt-1"><span class="font-semibold">$' + App.formatearMonto(meta.ahorrado) + '</span><span class="texto-secundario">de $' + App.formatearMonto(meta.costoTotal) + '</span></div>';
+          html += '<div class="flex gap-2 mt-2">';
+          html += '<button class="btn-detalle-meta btn btn-outline-small flex-1" data-id="' + meta.id + '">Detalle</button>';
+          html += '<button class="btn-editar-meta btn btn-outline-small" data-id="' + meta.id + '" data-nombre="' + meta.nombre + '" data-costo="' + meta.costoTotal + '" data-ahorrado="' + meta.ahorrado + '" data-fecha="' + (meta.fechaLimite || '') + '">Editar</button>';
+          html += '<button class="btn-eliminar-meta text-red-500 text-lg" data-id="' + meta.id + '">✕</button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      cont.innerHTML = html;
+
+      document.getElementById('btnNuevaMeta').addEventListener('click', function() {
+        document.getElementById('formNuevaMeta').classList.remove('hidden');
+      });
+      document.getElementById('btnCancelarMeta').addEventListener('click', function() {
+        document.getElementById('formNuevaMeta').classList.add('hidden');
+      });
+      document.getElementById('btnGuardarMeta').addEventListener('click', function() {
+        var nombre = document.getElementById('nombreMeta').value.trim();
+        var costoTotal = parseFloat(document.getElementById('costoTotalMeta').value);
+        var ahorroInicial = parseFloat(document.getElementById('ahorroInicialMeta').value) || 0;
+        var fechaLimite = document.getElementById('fechaLimiteMeta').value;
+        if (!nombre || isNaN(costoTotal) || costoTotal <= 0) return;
+        App.agregarMeta({ nombre: nombre, costoTotal: costoTotal, ahorrado: ahorroInicial, fechaLimite: fechaLimite || null }).then(function() { renderizarMetas(); });
+      });
+
+      document.querySelectorAll('.btn-eliminar-meta').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar esta meta?')) App.eliminarMeta(this.dataset.id);
+        });
+      });
+      document.querySelectorAll('.btn-detalle-meta').forEach(function(btn) {
+        btn.addEventListener('click', function() { renderizarDetalleMeta(this.dataset.id); });
+      });
+      document.querySelectorAll('.btn-editar-meta').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var nombreActual = this.dataset.nombre;
+          var costoActual = parseFloat(this.dataset.costo);
+          var ahorradoActual = parseFloat(this.dataset.ahorrado);
+          var fechaActual = this.dataset.fecha || '';
+          var formHtml = '<div class="tarjeta p-4 mb-4">';
+          formHtml += '<h3 class="font-bold mb-2">Editar meta</h3>';
+          formHtml += '<input type="text" id="editNombreMeta" value="' + nombreActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editCostoTotalMeta" value="' + costoActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editAhorradoMeta" value="' + ahorradoActual + '" class="input-field mb-2">';
+          formHtml += '<input type="date" id="editFechaLimiteMeta" value="' + fechaActual + '" class="input-field mb-2">';
+          formHtml += '<div class="flex gap-2"><button id="btnGuardarEdicionMeta" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarEdicionMeta" class="btn btn-outline flex-1">Cancelar</button></div>';
+          formHtml += '</div>';
+          cont.innerHTML = formHtml;
+          document.getElementById('btnCancelarEdicionMeta').addEventListener('click', renderizarMetas);
+          document.getElementById('btnGuardarEdicionMeta').addEventListener('click', function() {
+            var nuevoNombre = document.getElementById('editNombreMeta').value.trim();
+            var nuevoCosto = parseFloat(document.getElementById('editCostoTotalMeta').value);
+            var nuevoAhorrado = parseFloat(document.getElementById('editAhorradoMeta').value);
+            var nuevaFecha = document.getElementById('editFechaLimiteMeta').value;
+            if (!nuevoNombre || isNaN(nuevoCosto) || isNaN(nuevoAhorrado)) return;
+            App.actualizarMeta(id, { nombre: nuevoNombre, costoTotal: nuevoCosto, ahorrado: nuevoAhorrado, fechaLimite: nuevaFecha || null }).then(renderizarMetas);
+          });
+        });
+      });
+    });
+  }
+
+  function renderizarDetalleMeta(metaId) {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-center texto-secundario">Cargando detalle...</p>';
+    App.obtenerMetas(function(metas) {
+      var meta = metas.find(function(m) { return m.id === metaId; });
+      if (!meta) return;
+      App.obtenerItemsMeta(metaId, function(items) {
+        var html = '';
+        html += '<button id="btnVolverMetas" class="btn btn-outline-small mb-3">← Volver</button>';
+        html += '<div class="tarjeta p-4 mb-4">';
+        html += '<h3 class="font-bold text-lg">' + meta.nombre + '</h3>';
+        html += '<p class="text-sm texto-secundario">Costo total: $' + App.formatearMonto(meta.costoTotal) + ' | Ahorrado: $' + App.formatearMonto(meta.ahorrado) + '</p>';
+        html += '<div class="progress-bar mt-2"><div class="progress-fill" style="width:' + Math.min((meta.ahorrado / meta.costoTotal) * 100, 100) + '%; background-color:#e8c84c;"></div></div>';
+        html += '</div>';
+        html += '<div class="tarjeta p-4">';
+        html += '<div class="flex justify-between items-center mb-3"><h4 class="font-bold">Desglose de artículos</h4><button id="btnNuevoItem" class="btn btn-primario btn-sm">+ Añadir</button></div>';
+        html += '<div id="listaItemsMeta" class="space-y-2"></div>';
+        html += '<div id="formNuevoItem" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">';
+        html += '<input type="text" id="nombreItem" placeholder="Nombre del artículo" class="input-field mb-2">';
+        html += '<input type="number" id="costoItem" placeholder="Costo" class="input-field mb-2">';
+        html += '<label class="flex items-center gap-2"><input type="checkbox" id="compradoItem"> Comprado</label>';
+        html += '<div class="flex gap-2 mt-2"><button id="btnGuardarItem" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarItem" class="btn btn-outline flex-1">Cancelar</button></div>';
+        html += '</div>';
+        html += '</div>';
+        cont.innerHTML = html;
+
+        var lista = document.getElementById('listaItemsMeta');
+        if (items.length === 0) {
+          lista.innerHTML = '<p class="texto-secundario text-center">Sin artículos</p>';
+        } else {
+          var itemsHtml = '';
+          items.forEach(function(item) {
+            itemsHtml += '<div class="item-meta flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">';
+            itemsHtml += '<div><span class="font-medium">' + item.nombre + '</span><span class="text-xs texto-secundario ml-2">$' + App.formatearMonto(item.costo) + '</span></div>';
+            itemsHtml += '<div class="flex items-center gap-2">';
+            itemsHtml += '<input type="checkbox" class="checkbox-comprado" data-id="' + item.id + '"' + (item.comprado ? ' checked' : '') + '>';
+            itemsHtml += '<button class="btn-eliminar-item text-red-500" data-id="' + item.id + '">✕</button>';
+            itemsHtml += '</div>';
+            itemsHtml += '</div>';
+          });
+          lista.innerHTML = itemsHtml;
+          lista.querySelectorAll('.checkbox-comprado').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+              App.actualizarItemMeta(metaId, this.dataset.id, { comprado: this.checked });
+            });
+          });
+          lista.querySelectorAll('.btn-eliminar-item').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              if (confirm('¿Eliminar este artículo?')) App.eliminarItemMeta(metaId, this.dataset.id);
+            });
+          });
+        }
+
+        document.getElementById('btnNuevoItem').addEventListener('click', function() { document.getElementById('formNuevoItem').classList.remove('hidden'); });
+        document.getElementById('btnCancelarItem').addEventListener('click', function() { document.getElementById('formNuevoItem').classList.add('hidden'); });
+        document.getElementById('btnGuardarItem').addEventListener('click', function() {
+          var nombre = document.getElementById('nombreItem').value.trim();
+          var costo = parseFloat(document.getElementById('costoItem').value);
+          var comprado = document.getElementById('compradoItem').checked;
+          if (!nombre || isNaN(costo) || costo < 0) return;
+          App.agregarItemMeta(metaId, { nombre: nombre, costo: costo, comprado: comprado }).then(function() { renderizarDetalleMeta(metaId); });
+        });
+        document.getElementById('btnVolverMetas').addEventListener('click', renderizarMetas);
+      });
+    });
   }
 
   // ==================== SUSCRIPCIONES ====================
   function renderizarSuscripciones() {
-    // ... (mantener el código actual)
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-center texto-secundario">Cargando suscripciones...</p>';
+
+    App.obtenerSuscripciones(function(suscripciones) {
+      var html = '';
+      html += '<div class="mb-4"><button id="btnNuevaSuscripcion" class="btn btn-primario w-full"><i class="ph ph-plus"></i> Nueva suscripción</button></div>';
+      html += '<div id="formNuevaSuscripcion" class="hidden tarjeta p-4 mb-4">';
+      html += '<h3 class="font-bold mb-2">Nueva suscripción</h3>';
+      html += '<input type="text" id="nombreSuscripcion" placeholder="Nombre (ej: Netflix)" class="input-field mb-2">';
+      html += '<input type="number" id="costoSuscripcion" placeholder="Costo" class="input-field mb-2">';
+      html += '<select id="frecuenciaSuscripcion" class="input-field mb-2">';
+      html += '<option value="mensual">Mensual</option>';
+      html += '<option value="anual">Anual</option>';
+      html += '<option value="semanal">Semanal</option>';
+      html += '</select>';
+      html += '<input type="date" id="proximoCobroSuscripcion" class="input-field mb-2">';
+      html += '<input type="number" id="recordatorioSuscripcion" placeholder="Días de anticipación (opcional)" class="input-field mb-2">';
+      html += '<div class="flex gap-2"><button id="btnGuardarSuscripcion" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarSuscripcion" class="btn btn-outline flex-1">Cancelar</button></div>';
+      html += '</div>';
+
+      if (suscripciones.length === 0) {
+        html += '<p class="text-center texto-secundario py-4">No tienes suscripciones registradas.</p>';
+      } else {
+        var totalMensual = 0;
+        suscripciones.forEach(function(s) {
+          if (s.frecuencia === 'mensual') totalMensual += s.costo;
+          else if (s.frecuencia === 'semanal') totalMensual += s.costo * 4.33;
+          else if (s.frecuencia === 'anual') totalMensual += s.costo / 12;
+        });
+
+        html += '<div class="tarjeta p-4 mb-4 text-center">';
+        html += '<p class="texto-secundario">Total mensual en suscripciones</p>';
+        html += '<p class="text-2xl font-bold" style="color: var(--primario);">$' + App.formatearMonto(totalMensual) + '</p>';
+        html += '</div>';
+
+        html += '<div class="suscripciones-lista space-y-3">';
+        suscripciones.forEach(function(s) {
+          var proximo = s.proximoCobro ? new Date(s.proximoCobro).toLocaleDateString() : 'Sin fecha';
+          html += '<div class="suscripcion-card">';
+          html += '<div class="flex justify-between items-center mb-1">';
+          html += '<span class="font-bold">' + s.nombre + '</span>';
+          html += '<span class="text-xs texto-secundario">' + s.frecuencia + '</span>';
+          html += '</div>';
+          html += '<div class="flex justify-between text-sm mb-2">';
+          html += '<span class="font-semibold">$' + App.formatearMonto(s.costo) + '</span>';
+          html += '<span class="texto-secundario">Próximo: ' + proximo + '</span>';
+          html += '</div>';
+          html += '<div class="flex gap-2">';
+          html += '<button class="btn-editar-suscripcion btn btn-outline-small flex-1" data-id="' + s.id + '" data-nombre="' + s.nombre + '" data-costo="' + s.costo + '" data-frecuencia="' + s.frecuencia + '" data-proximo="' + (s.proximoCobro || '') + '" data-recordatorio="' + (s.recordatorio || 0) + '">Editar</button>';
+          html += '<button class="btn-eliminar-suscripcion text-red-500 text-lg" data-id="' + s.id + '">✕</button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      cont.innerHTML = html;
+
+      document.getElementById('btnNuevaSuscripcion').addEventListener('click', function() {
+        document.getElementById('formNuevaSuscripcion').classList.remove('hidden');
+      });
+      document.getElementById('btnCancelarSuscripcion').addEventListener('click', function() {
+        document.getElementById('formNuevaSuscripcion').classList.add('hidden');
+      });
+      document.getElementById('btnGuardarSuscripcion').addEventListener('click', function() {
+        var nombre = document.getElementById('nombreSuscripcion').value.trim();
+        var costo = parseFloat(document.getElementById('costoSuscripcion').value);
+        var frecuencia = document.getElementById('frecuenciaSuscripcion').value;
+        var proximo = document.getElementById('proximoCobroSuscripcion').value;
+        var recordatorio = parseInt(document.getElementById('recordatorioSuscripcion').value) || 0;
+        if (!nombre || isNaN(costo) || costo <= 0) return;
+        App.agregarSuscripcion({ nombre: nombre, costo: costo, frecuencia: frecuencia, proximoCobro: proximo || null, recordatorio: recordatorio }).then(function() { renderizarSuscripciones(); });
+      });
+
+      document.querySelectorAll('.btn-eliminar-suscripcion').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar esta suscripción?')) App.eliminarSuscripcion(this.dataset.id);
+        });
+      });
+
+      document.querySelectorAll('.btn-editar-suscripcion').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var nombreActual = this.dataset.nombre;
+          var costoActual = parseFloat(this.dataset.costo);
+          var frecuenciaActual = this.dataset.frecuencia;
+          var proximoActual = this.dataset.proximo;
+          var recordatorioActual = parseInt(this.dataset.recordatorio) || 0;
+
+          var formHtml = '<div class="tarjeta p-4 mb-4">';
+          formHtml += '<h3 class="font-bold mb-2">Editar suscripción</h3>';
+          formHtml += '<input type="text" id="editNombreSuscripcion" value="' + nombreActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editCostoSuscripcion" value="' + costoActual + '" class="input-field mb-2">';
+          formHtml += '<select id="editFrecuenciaSuscripcion" class="input-field mb-2">';
+          formHtml += '<option value="mensual"' + (frecuenciaActual === 'mensual' ? ' selected' : '') + '>Mensual</option>';
+          formHtml += '<option value="anual"' + (frecuenciaActual === 'anual' ? ' selected' : '') + '>Anual</option>';
+          formHtml += '<option value="semanal"' + (frecuenciaActual === 'semanal' ? ' selected' : '') + '>Semanal</option>';
+          formHtml += '</select>';
+          formHtml += '<input type="date" id="editProximoCobroSuscripcion" value="' + proximoActual + '" class="input-field mb-2">';
+          formHtml += '<input type="number" id="editRecordatorioSuscripcion" value="' + recordatorioActual + '" placeholder="Días de anticipación" class="input-field mb-2">';
+          formHtml += '<div class="flex gap-2"><button id="btnGuardarEdicionSuscripcion" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarEdicionSuscripcion" class="btn btn-outline flex-1">Cancelar</button></div>';
+          formHtml += '</div>';
+          cont.innerHTML = formHtml;
+
+          document.getElementById('btnCancelarEdicionSuscripcion').addEventListener('click', renderizarSuscripciones);
+          document.getElementById('btnGuardarEdicionSuscripcion').addEventListener('click', function() {
+            var nuevoNombre = document.getElementById('editNombreSuscripcion').value.trim();
+            var nuevoCosto = parseFloat(document.getElementById('editCostoSuscripcion').value);
+            var nuevaFrecuencia = document.getElementById('editFrecuenciaSuscripcion').value;
+            var nuevoProximo = document.getElementById('editProximoCobroSuscripcion').value;
+            var nuevoRecordatorio = parseInt(document.getElementById('editRecordatorioSuscripcion').value) || 0;
+            if (!nuevoNombre || isNaN(nuevoCosto) || nuevoCosto <= 0) return;
+            App.actualizarSuscripcion(id, { nombre: nuevoNombre, costo: nuevoCosto, frecuencia: nuevaFrecuencia, proximoCobro: nuevoProximo || null, recordatorio: nuevoRecordatorio }).then(renderizarSuscripciones);
+          });
+        });
+      });
+    });
   }
 
   // ==================== PRÉSTAMOS ====================
   function renderizarPrestamos() {
-    // ... (mantener el código actual)
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="text-center texto-secundario">Cargando préstamos...</p>';
+
+    App.obtenerPrestamos(function(prestamos) {
+      var html = '';
+      html += '<div class="mb-4"><button id="btnNuevoPrestamo" class="btn btn-primario w-full"><i class="ph ph-plus"></i> Nuevo préstamo</button></div>';
+      html += '<div id="formNuevoPrestamo" class="hidden tarjeta p-4 mb-4">';
+      html += '<h3 class="font-bold mb-2">Nuevo préstamo</h3>';
+      html += '<input type="text" id="nombrePrestamo" placeholder="Nombre (ej: Juan)" class="input-field mb-2">';
+      html += '<input type="number" id="montoPrestamo" placeholder="Monto total" class="input-field mb-2">';
+      html += '<select id="tipoPrestamo" class="input-field mb-2">';
+      html += '<option value="prestado">Me deben</option>';
+      html += '<option value="debo">Yo debo</option>';
+      html += '</select>';
+      html += '<input type="number" id="pagadoPrestamo" placeholder="Monto pagado (opcional)" class="input-field mb-2">';
+      html += '<div class="flex gap-2"><button id="btnGuardarPrestamo" class="btn btn-primario flex-1">Guardar</button><button id="btnCancelarPrestamo" class="btn btn-outline flex-1">Cancelar</button></div>';
+      html += '</div>';
+
+      if (prestamos.length === 0) {
+        html += '<p class="text-center texto-secundario py-4">No tienes préstamos registrados.</p>';
+      } else {
+        html += '<div class="prestamos-lista space-y-3">';
+        prestamos.forEach(function(p) {
+          var montoTotal = p.monto || 0;
+          var montoPagado = p.pagado || 0;
+          var porcentaje = montoTotal > 0 ? (montoPagado / montoTotal) * 100 : 0;
+          var estado = p.tipo === 'prestado' ? 'Me deben' : 'Yo debo';
+          html += '<div class="prestamo-card">';
+          html += '<div class="prestamo-header">';
+          html += '<span class="font-bold">' + p.nombre + ' <span class="text-xs texto-secundario">(' + estado + ')</span></span>';
+          html += '<span class="prestamo-monto">$' + App.formatearMonto(montoTotal) + '</span>';
+          html += '</div>';
+          html += '<div class="progress-bar prestamo-progress"><div class="progress-fill" style="width:' + Math.min(porcentaje, 100) + '%; background-color:' + (porcentaje >= 100 ? '#e8c84c' : '#f97316') + ';"></div></div>';
+          html += '<div class="flex justify-between text-sm mb-2">';
+          html += '<span>Pagado: $' + App.formatearMonto(montoPagado) + '</span>';
+          html += '<span>Pendiente: $' + App.formatearMonto(montoTotal - montoPagado) + '</span>';
+          html += '</div>';
+          html += '<div class="flex gap-2">';
+          html += '<button class="btn-abonar-prestamo btn btn-outline-small flex-1" data-id="' + p.id + '" data-pagado="' + montoPagado + '">Abonar</button>';
+          html += '<button class="btn-eliminar-prestamo text-red-500 text-lg" data-id="' + p.id + '">✕</button>';
+          html += '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      cont.innerHTML = html;
+
+      document.getElementById('btnNuevoPrestamo').addEventListener('click', function() {
+        document.getElementById('formNuevoPrestamo').classList.remove('hidden');
+      });
+      document.getElementById('btnCancelarPrestamo').addEventListener('click', function() {
+        document.getElementById('formNuevoPrestamo').classList.add('hidden');
+      });
+      document.getElementById('btnGuardarPrestamo').addEventListener('click', function() {
+        var nombre = document.getElementById('nombrePrestamo').value.trim();
+        var monto = parseFloat(document.getElementById('montoPrestamo').value);
+        var tipo = document.getElementById('tipoPrestamo').value;
+        var pagado = parseFloat(document.getElementById('pagadoPrestamo').value) || 0;
+        if (!nombre || isNaN(monto) || monto <= 0) return;
+        App.agregarPrestamo({ nombre: nombre, monto: monto, tipo: tipo, pagado: pagado }).then(function() { renderizarPrestamos(); });
+      });
+
+      document.querySelectorAll('.btn-eliminar-prestamo').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar este préstamo?')) App.eliminarPrestamo(this.dataset.id);
+        });
+      });
+
+      document.querySelectorAll('.btn-abonar-prestamo').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var pagadoActual = parseFloat(this.dataset.pagado);
+          var nuevoAbono = prompt('Ingrese el monto a abonar:', '0');
+          if (nuevoAbono === null) return;
+          var abono = parseFloat(nuevoAbono);
+          if (isNaN(abono) || abono <= 0) return;
+          App.actualizarPrestamo(id, { pagado: pagadoActual + abono }).then(function() { renderizarPrestamos(); });
+        });
+      });
+    });
   }
 
   // ==================== CARGA INICIAL ====================
