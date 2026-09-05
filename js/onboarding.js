@@ -3,9 +3,15 @@
   const App = window.App;
 
   function mostrarOnboarding() {
-    document.getElementById('vistaOnboarding').classList.add('activa');
-    document.getElementById('vistaInicio').classList.remove('activa');
+  const el = document.getElementById('vistaOnboarding');
+  if (el) {
+    el.classList.add('activa');
   }
+  const inicio = document.getElementById('vistaInicio');
+  if (inicio) {
+    inicio.classList.remove('activa');
+  }
+}
 
   function ocultarOnboarding() {
     document.getElementById('vistaOnboarding').classList.remove('activa');
