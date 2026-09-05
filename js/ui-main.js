@@ -57,22 +57,18 @@
       });
     });
 
-    // Filtro de mes
     filtroMes.value = mesSeleccionado;
     filtroMes.addEventListener('change', function() {
       mesSeleccionado = filtroMes.value;
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
-    // Filtro de método
     filtroMetodo.addEventListener('change', function() {
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
-    // FAB
     fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
-    // Modal Agregar
     document.getElementById('btnCancelarModal').addEventListener('click', function() { modal.classList.add('hidden'); });
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       var cat = document.getElementById('categoria').value;
@@ -89,7 +85,6 @@
       document.getElementById('monto').value = '';
     });
 
-    // Pestañas tipo
     document.getElementById('tabIngreso').addEventListener('click', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso').classList.add('active');
@@ -105,7 +100,6 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-    // Modal Editar
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
@@ -121,7 +115,6 @@
       modalEditar.classList.add('hidden');
     });
 
-    // Exportar CSV
     document.getElementById('btnExportarCSV').addEventListener('click', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
@@ -139,7 +132,6 @@
       });
     });
 
-    // Gestión de métodos de pago
     document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
       document.getElementById('panelMetodosPago').classList.toggle('hidden');
       renderizarListaMetodosPago();
@@ -172,7 +164,6 @@
       });
     }
 
-    // Dashboard
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var metodoSeleccionado = filtroMetodo.value;
@@ -188,7 +179,6 @@
       bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
-      // KPIs
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -230,7 +220,6 @@
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
-      // KPIs Metas
       App.obtenerMetas(function(metas) {
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
@@ -238,7 +227,6 @@
         document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
-      // Lista movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -367,7 +355,7 @@
         }
         var html = '';
         usuarios.forEach(function(usuario) {
-          html += '<div class="usuario-admin-card flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl mb-2">' +
+          html += '<div class="usuario-admin-card">' +
             '<span class="font-medium">' + usuario.email + '</span>' +
             '<div class="flex gap-2">' +
               '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
@@ -406,7 +394,6 @@
       });
     }
 
-    // Botón vincular usuario
     document.getElementById('btnVincularUsuario').addEventListener('click', function() {
       var email = document.getElementById('emailUsuarioVincular').value.trim();
       if (email) {
