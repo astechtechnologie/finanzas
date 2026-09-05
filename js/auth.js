@@ -41,7 +41,7 @@
       } else {
         auth.createUserWithEmailAndPassword(email, password).then(function(userCredential) {
           const user = userCredential.user;
-          const admins = ['kevinalexanderariza@gmail.com']; // ← Cambia esto por tu correo
+          const admins = ['tucorreo@gmail.com']; // ← Reemplaza con tu correo
           const rol = admins.includes(user.email) ? 'admin' : 'normal';
           return db.collection('usuarios').doc(user.uid).set({
             rol: rol,
