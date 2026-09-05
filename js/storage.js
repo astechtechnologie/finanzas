@@ -292,4 +292,64 @@ App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
     callback(arr);
   });
 };
+  // ===== ADMINISTRADOR =====
+App.obtenerRolUsuario = function(callback) {
+  const userId = uid();
+  db.collection('usuarios').doc(userId).get().then(function(doc) {
+    const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
+    callback(rol);
+  }).catch(function(error) {
+    console.warn('No se pudo obtener rol, usando normal', error);
+    callback('normal');
+  });
+};
+
+App.obtenerUsuariosVinculados = function(callback) {
+  return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
+    const usuarios = [];
+    snap.forEach(function(doc) {
+      usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
+    });
+    callback(usuarios);
+  });
+};
+
+App.vincularUsuarioPorEmail = function(email, callback) {
+  if (!email) {
+    alert('Ingresa un correo electrónico');
+    return;
+  }
+  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
+    if (!query.empty) {
+      const usuario = query.docs[0];
+      const adminUid = uid();
+      return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
+        email: email
+      }).then(function() {
+        alert('Usuario vinculado correctamente');
+        if (callback) callback();
+      }).catch(function(error) {
+        console.error('Error al vincular:', error);
+        alert('Error al vincular: ' + error.message);
+      });
+    } else {
+      alert('No se encontró usuario con ese email');
+    }
+  }).catch(function(error) {
+    console.error('Error buscando usuario:', error);
+    alert('Error buscando: ' + error.message);
+  });
+};
+
+App.eliminarVinculacion = function(usuarioUid) {
+  return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
+};
+
+App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
+  return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+    const arr = [];
+    snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
+    callback(arr);
+  });
+};
 })();
