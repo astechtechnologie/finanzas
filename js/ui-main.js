@@ -15,7 +15,8 @@
       inicio: document.getElementById('vistaInicio'),
       presupuesto: document.getElementById('vistaPresupuesto'),
       categorias: document.getElementById('vistaCategorias'),
-      ajustes: document.getElementById('vistaAjustes')
+      ajustes: document.getElementById('vistaAjustes'),
+      admin: document.getElementById('vistaAdmin')
     };
     var navItems = document.querySelectorAll('.nav-item');
     var titulo = document.getElementById('tituloSeccion');
@@ -36,7 +37,7 @@
       var itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
 
-      var titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes' };
+      var titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       titulo.textContent = titulos[clave];
 
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
@@ -44,6 +45,9 @@
       }
       if (clave === 'categorias') {
         renderizarListaCategorias();
+      }
+      if (clave === 'admin') {
+        cargarUsuariosAdmin();
       }
     }
 
@@ -53,18 +57,22 @@
       });
     });
 
+    // Filtro de mes
     filtroMes.value = mesSeleccionado;
     filtroMes.addEventListener('change', function() {
       mesSeleccionado = filtroMes.value;
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
+    // Filtro de método
     filtroMetodo.addEventListener('change', function() {
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
 
+    // FAB
     fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
 
+    // Modal Agregar
     document.getElementById('btnCancelarModal').addEventListener('click', function() { modal.classList.add('hidden'); });
     document.getElementById('btnGuardarModal').addEventListener('click', function() {
       var cat = document.getElementById('categoria').value;
@@ -81,6 +89,7 @@
       document.getElementById('monto').value = '';
     });
 
+    // Pestañas tipo
     document.getElementById('tabIngreso').addEventListener('click', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso').classList.add('active');
@@ -96,6 +105,7 @@
 
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
+    // Modal Editar
     document.getElementById('btnCancelarEditar').addEventListener('click', function() { modalEditar.classList.add('hidden'); });
     document.getElementById('btnGuardarEditar').addEventListener('click', function() {
       var id = document.getElementById('idTransaccionEditar').value;
@@ -111,6 +121,7 @@
       modalEditar.classList.add('hidden');
     });
 
+    // Exportar CSV
     document.getElementById('btnExportarCSV').addEventListener('click', function() {
       App.obtenerTransacciones(function(todas) {
         var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
@@ -128,6 +139,7 @@
       });
     });
 
+    // Gestión de métodos de pago
     document.getElementById('btnGestionarMetodos').addEventListener('click', function() {
       document.getElementById('panelMetodosPago').classList.toggle('hidden');
       renderizarListaMetodosPago();
@@ -154,10 +166,13 @@
       });
       lista.innerHTML = html;
       lista.querySelectorAll('.btn-delete').forEach(function(btn) {
-        btn.addEventListener('click', function() { App.eliminarMetodoPago(this.dataset.id); });
+        btn.addEventListener('click', function() {
+          App.eliminarMetodoPago(this.dataset.id);
+        });
       });
     }
 
+    // Dashboard
     function actualizarDashboard(transacciones) {
       var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       var metodoSeleccionado = filtroMetodo.value;
@@ -173,7 +188,7 @@
       bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
-      // KPIs (sin cambios)
+      // KPIs
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -215,6 +230,7 @@
         variacionEl.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
       }
 
+      // KPIs Metas
       App.obtenerMetas(function(metas) {
         var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
         var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
@@ -222,6 +238,7 @@
         document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
+      // Lista movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -339,6 +356,67 @@
       });
     }
 
+    // ==================== ADMIN ====================
+    function cargarUsuariosAdmin() {
+      var cont = document.getElementById('listaUsuariosAdmin');
+      if (!cont) return;
+      App.obtenerUsuariosVinculados(function(usuarios) {
+        if (usuarios.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
+          return;
+        }
+        var html = '';
+        usuarios.forEach(function(usuario) {
+          html += '<div class="usuario-admin-card flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl mb-2">' +
+            '<span class="font-medium">' + usuario.email + '</span>' +
+            '<div class="flex gap-2">' +
+              '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
+              '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
+            '</div>' +
+          '</div>';
+        });
+        cont.innerHTML = html;
+
+        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar vinculación?')) {
+              App.eliminarVinculacion(this.dataset.uid);
+            }
+          });
+        });
+
+        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var uid = this.dataset.uid;
+            App.obtenerTransaccionesDeUsuario(uid, function(transacciones) {
+              var detalleCont = document.getElementById('detalleUsuarioAdmin');
+              if (!detalleCont) return;
+              var detalleHtml = '<h4 class="font-bold mt-4">Transacciones</h4>';
+              if (transacciones.length === 0) {
+                detalleHtml += '<p class="texto-secundario">Sin transacciones</p>';
+              } else {
+                transacciones.forEach(function(t) {
+                  detalleHtml += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
+                });
+              }
+              detalleCont.innerHTML = detalleHtml;
+            });
+          });
+        });
+      });
+    }
+
+    // Botón vincular usuario
+    document.getElementById('btnVincularUsuario').addEventListener('click', function() {
+      var email = document.getElementById('emailUsuarioVincular').value.trim();
+      if (email) {
+        App.vincularUsuarioPorEmail(email, function() {
+          document.getElementById('emailUsuarioVincular').value = '';
+          cargarUsuariosAdmin();
+        });
+      }
+    });
+
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
@@ -359,6 +437,13 @@
           llenarSelectSubcategorias();
         });
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+        App.obtenerRolUsuario(function(rol) {
+          var btnAdmin = document.getElementById('btnAdmin');
+          if (btnAdmin) {
+            if (rol === 'admin') btnAdmin.classList.remove('hidden');
+            else btnAdmin.classList.add('hidden');
+          }
+        });
       });
     };
 
