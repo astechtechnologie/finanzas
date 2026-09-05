@@ -24,7 +24,6 @@
     var modalEditar = document.getElementById('modalEditarTransaccion');
     var fab = document.getElementById('fabAgregar');
     var filtroMes = document.getElementById('filtroMesHeader');
-    var filtroMetodo = document.getElementById('filtroMetodoPago');
 
     if (!vistas.inicio) return;
 
@@ -32,19 +31,26 @@
     function cambiarVista(nombreVista) {
       const clave = nombreVista.replace('vista', '').toLowerCase();
 
+      // Ocultar todas las vistas
       Object.keys(vistas).forEach(function(key) {
         if (vistas[key]) vistas[key].classList.remove('activa');
       });
 
+      // Mostrar la seleccionada
       if (vistas[clave]) vistas[clave].classList.add('activa');
 
-      navItems.forEach(function(item) { item.classList.remove('active'); });
+      // Actualizar barra de navegación
+      navItems.forEach(function(item) {
+        item.classList.remove('active');
+      });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
 
+      // Título
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
 
+      // Acciones específicas
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') {
         App.cargarPantallaPresupuesto();
       }
@@ -52,45 +58,55 @@
         renderizarListaCategorias();
       }
       if (clave === 'admin') {
-        cargarOrganizaciones();
-        cargarUsuariosAdmin();
-        cargarAuditoria();
-        cargarEstadisticas();
+        if (typeof App.obtenerRolUsuario === 'function') {
+          App.obtenerRolUsuario(function(rol) {
+            if (rol === 'admin') {
+              cargarOrganizaciones();
+              cargarUsuariosAdmin();
+              cargarAuditoria();
+              cargarEstadisticas();
+            } else {
+              alert('No tienes permisos de administrador');
+            }
+          });
+        }
       }
     }
 
+    // Exponer globalmente
     App.cambiarVista = function(nombre) { cambiarVista(nombre); };
 
+    // Asignar eventos a los botones de navegación
     navItems.forEach(function(item) {
-      item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
+      item.addEventListener('click', function() {
+        const vista = this.dataset.vista;
+        if (vista) cambiarVista(vista);
+      });
     });
 
     // ==================== ACCESOS DIRECTOS ====================
     function addListener(id, callback) {
-      var el = document.getElementById(id);
+      const el = document.getElementById(id);
       if (el) el.addEventListener('click', callback);
     }
 
     addListener('btnAccesoGasto', function() {
       tipoTransaccion = 'gasto';
-      document.getElementById('tabGasto').classList.add('active');
-      document.getElementById('tabIngreso').classList.remove('active');
+      document.getElementById('tabGasto')?.classList.add('active');
+      document.getElementById('tabIngreso')?.classList.remove('active');
       llenarSelectCategorias();
-      modal.classList.remove('hidden');
+      modal?.classList.remove('hidden');
     });
 
     addListener('btnAccesoIngreso', function() {
       tipoTransaccion = 'ingreso';
-      document.getElementById('tabIngreso').classList.add('active');
-      document.getElementById('tabGasto').classList.remove('active');
+      document.getElementById('tabIngreso')?.classList.add('active');
+      document.getElementById('tabGasto')?.classList.remove('active');
       llenarSelectCategorias();
-      modal.classList.remove('hidden');
+      modal?.classList.remove('hidden');
     });
 
-    addListener('btnAccesoPresupuesto', function() {
-      cambiarVista('vistaPresupuesto');
-    });
-
+    addListener('btnAccesoPresupuesto', function() { cambiarVista('vistaPresupuesto'); });
     addListener('btnAccesoMetas', function() {
       cambiarVista('vistaPresupuesto');
       setTimeout(function() {
@@ -98,7 +114,7 @@
       }, 300);
     });
 
-    // ==================== FILTROS ====================
+    // ==================== FILTRO DE MES ====================
     if (filtroMes) {
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
@@ -106,75 +122,69 @@
         if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
       });
     }
-    if (filtroMetodo) {
-      filtroMetodo.addEventListener('change', function() {
-        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
-      });
-    }
 
     // ==================== FAB ====================
-    if (fab) fab.addEventListener('click', function() { modal.classList.remove('hidden'); });
+    if (fab) fab.addEventListener('click', function() { modal?.classList.remove('hidden'); });
 
-    // ==================== MODAL AGREGAR ====================
-    addListener('btnCancelarModal', function() { modal.classList.add('hidden'); });
+    // ==================== MODALES ====================
+    addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
     addListener('btnGuardarModal', function() {
-      var cat = document.getElementById('categoria').value;
-      var subcat = document.getElementById('subcategoria').value || null;
-      var desc = document.getElementById('descripcion').value.trim();
-      var montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
-      var monto = parseFloat(montoLimpio) || 0;
-      var fecha = document.getElementById('fecha').value;
-      var metodoPago = document.getElementById('metodoPago').value || null;
+      const cat = document.getElementById('categoria').value;
+      const subcat = document.getElementById('subcategoria').value || null;
+      const desc = document.getElementById('descripcion').value.trim();
+      const montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
+      const monto = parseFloat(montoLimpio) || 0;
+      const fecha = document.getElementById('fecha').value;
+      const metodoPago = document.getElementById('metodoPago').value || null;
       if (!cat || !desc || !monto) return;
       App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago);
-      modal.classList.add('hidden');
+      modal?.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
     });
 
     addListener('tabIngreso', function() {
       tipoTransaccion = 'ingreso';
-      document.getElementById('tabIngreso').classList.add('active');
-      document.getElementById('tabGasto').classList.remove('active');
+      document.getElementById('tabIngreso')?.classList.add('active');
+      document.getElementById('tabGasto')?.classList.remove('active');
       llenarSelectCategorias();
     });
     addListener('tabGasto', function() {
       tipoTransaccion = 'gasto';
-      document.getElementById('tabGasto').classList.add('active');
-      document.getElementById('tabIngreso').classList.remove('active');
+      document.getElementById('tabGasto')?.classList.add('active');
+      document.getElementById('tabIngreso')?.classList.remove('active');
       llenarSelectCategorias();
     });
 
-    var fechaInput = document.getElementById('fecha');
+    const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
-    // ==================== MODAL EDITAR ====================
-    addListener('btnCancelarEditar', function() { modalEditar.classList.add('hidden'); });
+    addListener('btnCancelarEditar', function() { modalEditar?.classList.add('hidden'); });
     addListener('btnGuardarEditar', function() {
-      var id = document.getElementById('idTransaccionEditar').value;
-      var cat = document.getElementById('categoriaEditar').value;
-      var subcat = document.getElementById('subcategoriaEditar').value || null;
-      var desc = document.getElementById('descripcionEditar').value.trim();
-      var montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
-      var monto = parseFloat(montoLimpio) || 0;
-      var fecha = document.getElementById('fechaEditar').value;
-      var metodoPago = document.getElementById('metodoPagoEditar').value || null;
+      const id = document.getElementById('idTransaccionEditar').value;
+      const cat = document.getElementById('categoriaEditar').value;
+      const subcat = document.getElementById('subcategoriaEditar').value || null;
+      const desc = document.getElementById('descripcionEditar').value.trim();
+      const montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
+      const monto = parseFloat(montoLimpio) || 0;
+      const fecha = document.getElementById('fechaEditar').value;
+      const metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
       App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
-      modalEditar.classList.add('hidden');
+      modalEditar?.classList.add('hidden');
     });
 
     // ==================== EXPORTAR CSV ====================
     addListener('btnExportarCSV', function() {
       App.obtenerTransacciones(function(todas) {
-        var filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
-        var csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
+        const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+        let csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
         filtradas.forEach(function(t) {
           csv += t.tipo + ',' + t.categoria + ',' + (t.subcategoria || '') + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
         });
-        var blob = new Blob([csv], { type: 'text/csv' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         a.href = url;
         a.download = 'finanzas-' + mesSeleccionado + '.csv';
         a.click();
@@ -184,29 +194,26 @@
 
     // ==================== MÉTODOS DE PAGO ====================
     addListener('btnGestionarMetodos', function() {
-      document.getElementById('panelMetodosPago').classList.toggle('hidden');
+      document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
       renderizarListaMetodosPago();
     });
     addListener('btnAgregarMetodoPago', function() {
-      var nombre = document.getElementById('nombreMetodoPago').value.trim();
+      const nombre = document.getElementById('nombreMetodoPago').value.trim();
       if (!nombre) return;
       App.agregarMetodoPago(nombre);
       document.getElementById('nombreMetodoPago').value = '';
     });
 
     function renderizarListaMetodosPago() {
-      var lista = document.getElementById('listaMetodosPago');
+      const lista = document.getElementById('listaMetodosPago');
       if (!lista) return;
       if (metodosPago.length === 0) {
         lista.innerHTML = '<p class="texto-secundario">No hay métodos de pago</p>';
         return;
       }
-      var html = '';
+      let html = '';
       metodosPago.forEach(function(m) {
-        html += '<div class="metodo-pago-item">' +
-          '<span>' + m.nombre + '</span>' +
-          '<button class="btn-delete" data-id="' + m.id + '">✕</button>' +
-          '</div>';
+        html += '<div class="metodo-pago-item"><span>' + m.nombre + '</span><button class="btn-delete" data-id="' + m.id + '">✕</button></div>';
       });
       lista.innerHTML = html;
       lista.querySelectorAll('.btn-delete').forEach(function(btn) {
@@ -216,129 +223,35 @@
 
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
-      var filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
-      var metodoSeleccionado = filtroMetodo ? filtroMetodo.value : '';
-      if (metodoSeleccionado) filtradas = filtradas.filter(function(t) { return t.metodoPago === metodoSeleccionado; });
-
-      var ingresos = 0, gastos = 0;
+      const filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+      let ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
 
-      var totalIngresosEl = document.getElementById('totalIngresos');
-      var totalGastosEl = document.getElementById('totalGastos');
-      var balanceEl = document.getElementById('balance');
-      if (totalIngresosEl) totalIngresosEl.textContent = '$' + App.formatearMonto(ingresos);
-      if (totalGastosEl) totalGastosEl.textContent = '$' + App.formatearMonto(gastos);
-      var balance = ingresos - gastos;
-      if (balanceEl) {
-        balanceEl.textContent = '$' + App.formatearMonto(balance);
-        balanceEl.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+      const elIngresos = document.getElementById('totalIngresos');
+      const elGastos = document.getElementById('totalGastos');
+      const elBalance = document.getElementById('balance');
+      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresos);
+      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastos);
+      const balance = ingresos - gastos;
+      if (elBalance) {
+        elBalance.textContent = '$' + App.formatearMonto(balance);
+        elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
-      // KPIs
-      var partes = mesSeleccionado.split('-');
-      var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
-      var ahora = new Date();
-      var diasEnMes = new Date(año, mesNum, 0).getDate();
-      var diaActual = (ahora.getFullYear() === año && (ahora.getMonth() + 1) === mesNum) ? ahora.getDate() : diasEnMes;
-      var diasTranscurridos = Math.min(diaActual, diasEnMes);
-      var promedioDiario = diasTranscurridos > 0 ? gastos / diasTranscurridos : 0;
-      var kpiPromedio = document.getElementById('kpiPromedioDiario');
-      if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(promedioDiario);
+      // KPIs básicos
+      const kpiPromedio = document.getElementById('kpiPromedioDiario');
+      if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
 
-      var gastosPorCat = {};
-      filtradas.filter(function(t) { return t.tipo === 'gasto'; }).forEach(function(t) {
-        if (!gastosPorCat[t.categoria]) gastosPorCat[t.categoria] = 0;
-        gastosPorCat[t.categoria] += t.monto;
-      });
-      var catTop = Object.keys(gastosPorCat).reduce(function(a, b) { return gastosPorCat[a] > gastosPorCat[b] ? a : b; }, '');
-      var kpiCat = document.getElementById('kpiCategoriaTop');
-      if (kpiCat) {
-        if (catTop) {
-          var catObj = (App.categoriasState || []).find(function(c) { return c.nombre === catTop; });
-          kpiCat.textContent = (catObj ? catObj.emoji + ' ' : '') + catTop;
-        } else {
-          kpiCat.textContent = 'Sin datos';
-        }
-      }
-
-      var porcentajeAhorro = ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0;
-      var kpiAhorro = document.getElementById('kpiAhorro');
-      if (kpiAhorro) {
-        kpiAhorro.textContent = porcentajeAhorro.toFixed(1) + '%';
-        kpiAhorro.className = 'kpi-valor ' + (porcentajeAhorro >= 0 ? 'text-emerald-500' : 'text-red-500');
-      }
-
-      var mesAnterior = (mesNum === 1) ? (año - 1) + '-12' : año + '-' + String(mesNum - 1).padStart(2, '0');
-      var gastosMesAnterior = transacciones.filter(function(t) { return t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesAnterior); })
-                                    .reduce(function(s, t) { return s + t.monto; }, 0);
-      var diff = gastos - gastosMesAnterior;
-      var kpiVariacion = document.getElementById('kpiVariacion');
-      if (kpiVariacion) {
-        if (gastosMesAnterior === 0) {
-          kpiVariacion.textContent = 'Nuevo';
-          kpiVariacion.className = 'kpi-valor';
-        } else {
-          var signo = diff > 0 ? '↑' : '↓';
-          kpiVariacion.textContent = signo + ' $' + App.formatearMonto(Math.abs(diff));
-          kpiVariacion.className = 'kpi-valor ' + (diff < 0 ? 'text-emerald-500' : 'text-red-500');
-        }
-      }
-
-      App.obtenerMetas(function(metas) {
-        var totalAhorradoMetas = metas.reduce(function(s, m) { return s + (m.ahorrado || 0); }, 0);
-        var metasActivas = metas.filter(function(m) { return m.ahorrado < m.costoTotal; }).length;
-        var kpiMetas = document.getElementById('kpiMetas');
-        var kpiAhorroMetas = document.getElementById('kpiAhorroMetas');
-        if (kpiMetas) kpiMetas.textContent = metasActivas + ' activas';
-        if (kpiAhorroMetas) kpiAhorroMetas.textContent = '$' + App.formatearMonto(totalAhorradoMetas);
-      });
-
-      var lista = document.getElementById('listaTransacciones');
+      const lista = document.getElementById('listaTransacciones');
       if (!lista) return;
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
       } else {
-        var html = '';
-        var cats = App.categoriasState || [];
-        filtradas.sort(function(a, b) { return (b.fecha + b.id).localeCompare(a.fecha + a.id); });
+        let html = '';
         filtradas.forEach(function(t) {
-          var cat = cats.find(function(c) { return c.nombre === t.categoria; });
-          var emoji = cat ? cat.emoji : '📌';
-          var color = t.tipo === 'ingreso' ? 'text-emerald-500' : 'text-red-500';
-          var fecha = new Date(t.fecha + 'T00:00:00').toLocaleDateString();
-          var metodoInfo = t.metodoPago ? ' · ' + t.metodoPago : '';
-          var subInfo = t.subcategoria ? ' · ' + t.subcategoria : '';
-          html += '<div class="movimiento-item">' +
-            '<span class="emoji">' + emoji + '</span>' +
-            '<div class="descripcion"><strong>' + t.descripcion + '</strong><small>' + fecha + metodoInfo + subInfo + '</small></div>' +
-            '<span class="' + color + ' font-bold">' + (t.tipo === 'ingreso' ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</span>' +
-            '<button class="btn-editar" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-subcat="' + (t.subcategoria || '') + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '">✏️</button>' +
-            '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
-            '</div>';
+          html += '<div class="movimiento-item"><span>' + t.descripcion + '</span><span>$' + App.formatearMonto(t.monto) + '</span></div>';
         });
         lista.innerHTML = html;
-        lista.querySelectorAll('.btn-editar').forEach(function(b) {
-          b.addEventListener('click', function() {
-            document.getElementById('idTransaccionEditar').value = this.dataset.id;
-            document.getElementById('fechaEditar').value = this.dataset.fecha;
-            document.getElementById('descripcionEditar').value = this.dataset.desc;
-            document.getElementById('montoEditar').value = this.dataset.monto;
-            var tipo = this.dataset.tipo;
-            var selectEditar = document.getElementById('categoriaEditar');
-            var catsFiltradas = (App.categoriasState || []).filter(function(c) { return c.tipo === tipo; });
-            selectEditar.innerHTML = catsFiltradas.map(function(c) {
-              return '<option value="' + c.nombre + '"' + (c.nombre === this.dataset.cat ? ' selected' : '') + '>' + c.emoji + ' ' + c.nombre + '</option>';
-            }.bind(this)).join('');
-            document.getElementById('metodoPagoEditar').value = this.dataset.metodo;
-            document.getElementById('subcategoriaEditar').value = this.dataset.subcat;
-            modalEditar.classList.remove('hidden');
-          });
-        });
-        lista.querySelectorAll('.btn-delete').forEach(function(b) {
-          b.addEventListener('click', function() {
-            if (confirm('¿Eliminar esta transacción?')) App.eliminarTransaccion(this.dataset.id);
-          });
-        });
       }
 
       if (typeof App.actualizarGraficaTendencia === 'function') {
@@ -348,9 +261,9 @@
 
     // ==================== FUNCIONES AUXILIARES ====================
     function llenarSelectCategorias() {
-      var select = document.getElementById('categoria');
+      const select = document.getElementById('categoria');
       if (!select) return;
-      var cats = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
+      const cats = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
       select.innerHTML = cats.map(function(c) {
         return '<option value="' + c.nombre + '">' + c.emoji + ' ' + c.nombre + '</option>';
       }).join('');
@@ -358,25 +271,23 @@
     }
 
     function llenarSelectSubcategorias() {
-      var select = document.getElementById('subcategoria');
+      const select = document.getElementById('subcategoria');
       if (!select) return;
-      var catSeleccionada = document.getElementById('categoria').value;
-      var subcats = App.subcategoriasPorCategoria[catSeleccionada] || [];
-      var html = '<option value="">Sin subcategoría</option>';
-      subcats.forEach(function(sub) {
-        html += '<option value="' + sub + '">' + sub + '</option>';
-      });
+      const catSeleccionada = document.getElementById('categoria').value;
+      const subcats = App.subcategoriasPorCategoria[catSeleccionada] || [];
+      let html = '<option value="">Sin subcategoría</option>';
+      subcats.forEach(function(sub) { html += '<option value="' + sub + '">' + sub + '</option>'; });
       select.innerHTML = html;
     }
 
-    var selectCategoria = document.getElementById('categoria');
+    const selectCategoria = document.getElementById('categoria');
     if (selectCategoria) selectCategoria.addEventListener('change', llenarSelectSubcategorias);
 
     function llenarSelectMetodosPago() {
-      var selectAgregar = document.getElementById('metodoPago');
-      var selectEditar = document.getElementById('metodoPagoEditar');
-      var filtroSelect = document.getElementById('filtroMetodoPago');
-      var opciones = '<option value="">Método de pago (opcional)</option>';
+      const selectAgregar = document.getElementById('metodoPago');
+      const selectEditar = document.getElementById('metodoPagoEditar');
+      const filtroSelect = document.getElementById('filtroMetodoPago');
+      let opciones = '<option value="">Método de pago (opcional)</option>';
       metodosPago.forEach(function(m) { opciones += '<option value="' + m.nombre + '">' + m.nombre + '</option>'; });
       if (selectAgregar) selectAgregar.innerHTML = opciones;
       if (selectEditar) selectEditar.innerHTML = opciones;
@@ -386,24 +297,15 @@
     }
 
     function renderizarListaCategorias() {
-      var cont = document.getElementById('listaCategorias');
+      const cont = document.getElementById('listaCategorias');
       if (!cont) return;
       if (!App.categoriasState || App.categoriasState.length === 0) {
         cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
         return;
       }
-      var html = '';
+      let html = '';
       App.categoriasState.forEach(function(c) {
-        html += '<div class="cat-card">' +
-          '<div class="cat-info">' +
-            '<span class="cat-emoji">' + c.emoji + '</span>' +
-            '<div class="cat-detalles">' +
-              '<span class="cat-nombre">' + c.nombre + '</span>' +
-              '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
-            '</div>' +
-          '</div>' +
-          '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
-        '</div>';
+        html += '<div class="cat-card"><div class="cat-info"><span class="cat-emoji">' + c.emoji + '</span><div class="cat-detalles"><span class="cat-nombre">' + c.nombre + '</span><span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span></div></div><button class="btn-delete-cat" data-id="' + c.id + '">✕</button></div>';
       });
       cont.innerHTML = html;
       cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
@@ -415,19 +317,16 @@
 
     // ==================== ADMIN ====================
     function cargarOrganizaciones() {
-      var cont = document.getElementById('listaOrganizaciones');
+      const cont = document.getElementById('listaOrganizaciones');
       if (!cont) return;
       App.obtenerOrganizaciones(function(orgs) {
         if (orgs.length === 0) {
           cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>';
           return;
         }
-        var html = '';
+        let html = '';
         orgs.forEach(function(org) {
-          html += '<div class="org-item">' +
-            '<span>' + org.nombre + '</span>' +
-            '<button class="btn-eliminar-org" data-id="' + org.id + '">✕</button>' +
-            '</div>';
+          html += '<div class="org-item"><span>' + org.nombre + '</span><button class="btn-eliminar-org" data-id="' + org.id + '">✕</button></div>';
         });
         cont.innerHTML = html;
         cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
@@ -439,7 +338,7 @@
     }
 
     addListener('btnCrearOrganizacion', function() {
-      var nombre = document.getElementById('nombreOrganizacion').value.trim();
+      const nombre = document.getElementById('nombreOrganizacion').value.trim();
       if (nombre) {
         App.crearOrganizacion(nombre).then(function() {
           document.getElementById('nombreOrganizacion').value = '';
@@ -449,22 +348,16 @@
     });
 
     function cargarUsuariosAdmin() {
-      var cont = document.getElementById('listaUsuariosAdmin');
+      const cont = document.getElementById('listaUsuariosAdmin');
       if (!cont) return;
       App.obtenerUsuariosVinculados(function(usuarios) {
         if (usuarios.length === 0) {
           cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
           return;
         }
-        var html = '';
+        let html = '';
         usuarios.forEach(function(usuario) {
-          html += '<div class="usuario-admin-card">' +
-            '<span class="font-medium">' + usuario.email + '</span>' +
-            '<div class="flex gap-2">' +
-              '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
-              '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
-            '</div>' +
-          '</div>';
+          html += '<div class="usuario-admin-card"><span class="font-medium">' + usuario.email + '</span><div class="flex gap-2"><button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button><button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button></div></div>';
         });
         cont.innerHTML = html;
         cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
@@ -473,67 +366,45 @@
           });
         });
         cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            verDetalleUsuario(this.dataset.uid);
-          });
+          btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
         });
       });
     }
 
     function verDetalleUsuario(usuarioUid) {
-      var detalleCont = document.getElementById('detalleUsuarioAdmin');
+      const detalleCont = document.getElementById('detalleUsuarioAdmin');
       if (!detalleCont) return;
       App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
-        var totalIngresos = 0, totalGastos = 0;
-        transacciones.forEach(function(t) {
-          if (t.tipo === 'ingreso') totalIngresos += t.monto;
-          else totalGastos += t.monto;
-        });
-        var html = '<div class="admin-detalle">';
-        html += '<h4 class="font-bold">Resumen del usuario</h4>';
-        html += '<p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p>';
-        html += '<p>Gastos: $' + App.formatearMonto(totalGastos) + '</p>';
-        html += '<hr class="my-2">';
-        html += '<h5 class="font-semibold">Últimas transacciones</h5>';
-        if (transacciones.length === 0) {
-          html += '<p class="texto-secundario">Sin transacciones</p>';
-        } else {
-          transacciones.slice(0, 10).forEach(function(t) {
-            html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
-          });
-        }
+        let totalIngresos = 0, totalGastos = 0;
+        transacciones.forEach(function(t) { if (t.tipo === 'ingreso') totalIngresos += t.monto; else totalGastos += t.monto; });
+        let html = '<div class="admin-detalle"><h4 class="font-bold">Resumen del usuario</h4><p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p><p>Gastos: $' + App.formatearMonto(totalGastos) + '</p><hr class="my-2"><h5 class="font-semibold">Últimas transacciones</h5>';
+        if (transacciones.length === 0) html += '<p class="texto-secundario">Sin transacciones</p>';
+        else transacciones.slice(0, 10).forEach(function(t) { html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>'; });
         html += '</div>';
         detalleCont.innerHTML = html;
       });
     }
 
     function cargarAuditoria() {
-      var cont = document.getElementById('listaAuditoria');
+      const cont = document.getElementById('listaAuditoria');
       if (!cont) return;
       App.obtenerAuditoria(function(registros) {
-        if (registros.length === 0) {
-          cont.innerHTML = '<p class="texto-secundario">Sin registros</p>';
-          return;
-        }
-        var html = '';
-        registros.forEach(function(r) {
-          html += '<div class="text-sm">' + r.accion + ' - ' + new Date(r.fecha).toLocaleDateString() + '</div>';
-        });
+        if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
+        let html = '';
+        registros.forEach(function(r) { html += '<div class="text-sm">' + r.accion + ' - ' + new Date(r.fecha).toLocaleDateString() + '</div>'; });
         cont.innerHTML = html;
       });
     }
 
     function cargarEstadisticas() {
-      var cont = document.getElementById('estadisticasAdmin');
+      const cont = document.getElementById('estadisticasAdmin');
       if (!cont) return;
       App.obtenerEstadisticasGlobales(function(est) {
-        cont.innerHTML = '<p>Usuarios: ' + est.usuarios + '</p>' +
-          '<p>Transacciones: ' + est.transacciones + '</p>' +
-          '<p>Ingresos: $' + App.formatearMonto(est.ingresos) + '</p>' +
-          '<p>Gastos: $' + App.formatearMonto(est.gastos) + '</p>';
+        cont.innerHTML = '<p>Usuarios: ' + est.usuarios + '</p><p>Transacciones: ' + est.transacciones + '</p><p>Ingresos: $' + App.formatearMonto(est.ingresos) + '</p><p>Gastos: $' + App.formatearMonto(est.gastos) + '</p>';
       });
     }
 
+    // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
@@ -564,14 +435,14 @@
       });
     };
 
-    var formCat = document.getElementById('formCategoria');
+    const formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
         e.preventDefault();
-        var nombre = document.getElementById('nombreCategoria').value.trim();
-        var emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
-        var color = document.getElementById('colorCategoria').value;
-        var tipo = document.getElementById('tipoCategoria').value;
+        const nombre = document.getElementById('nombreCategoria').value.trim();
+        const emoji = document.getElementById('emojiCategoria').value.trim() || '📌';
+        const color = document.getElementById('colorCategoria').value;
+        const tipo = document.getElementById('tipoCategoria').value;
         if (!nombre) return;
         App.agregarCategoria(nombre, emoji, color, tipo);
         formCat.reset();
