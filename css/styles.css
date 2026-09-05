@@ -227,3 +227,49 @@ body {
   .kpi-grid { grid-template-columns: 1fr; }
   .resumen-grid { grid-template-columns: 1fr; }
 }
+/* ========== MEJORAS VISUALES ========== */
+.btn, .btn-primario, .btn-outline, .btn-peligro, .btn-outline-small {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-lg); }
+.btn:active { transform: scale(0.97); }
+
+.tarjeta, .presupuesto-resumen, .categoria-presupuesto, .meta-card, .suscripcion-card, .prestamo-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.meta-card:hover, .categoria-presupuesto:hover, .suscripcion-card:hover, .prestamo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-lg);
+}
+
+.vistas-container {
+  animation: fadeInSmooth 0.3s ease;
+}
+@keyframes fadeInSmooth {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-container {
+  backdrop-filter: blur(10px);
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+}
+.input-field:focus {
+  box-shadow: 0 0 0 3px rgba(232, 200, 76, 0.2);
+}
+.nav-item i { transition: transform 0.2s ease, color 0.2s ease; }
+.nav-item:hover i { transform: scale(1.1); }
+.nav-item.active { color: var(--primario); }
+
+/* Scrollbar más estilizado */
+.vistas-container::-webkit-scrollbar {
+  width: 4px;
+}
+.vistas-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.vistas-container::-webkit-scrollbar-thumb {
+  background: var(--nav-border);
+  border-radius: 4px;
+}
