@@ -52,7 +52,33 @@
         <input type="month" id="filtroMesHeader" class="input-mes">
       </div>
     </header>
-
+<!-- Vista Onboarding -->
+<div id="vistaOnboarding" class="vista">
+  <div class="onboarding-container">
+    <div class="onboarding-step active" data-step="1">
+      <h2>Bienvenido 👋</h2>
+      <p>Organiza tus finanzas personales en segundos.</p>
+      <button class="btn btn-primario" data-onboarding-next="2">Siguiente</button>
+    </div>
+    <div class="onboarding-step" data-step="2">
+      <h2>🏷️ Crea categorías</h2>
+      <p>Define categorías de ingreso y gasto para clasificar tus movimientos.</p>
+      <button class="btn btn-primario" data-onboarding-next="3">Siguiente</button>
+      <button class="btn btn-outline" data-onboarding-skip>Omitir</button>
+    </div>
+    <div class="onboarding-step" data-step="3">
+      <h2>💵 Presupuesto y metas</h2>
+      <p>Establece límites por categoría y planifica tus ahorros.</p>
+      <button class="btn btn-primario" data-onboarding-next="4">Siguiente</button>
+      <button class="btn btn-outline" data-onboarding-skip>Omitir</button>
+    </div>
+    <div class="onboarding-step" data-step="4">
+      <h2>🚀 ¡Listo!</h2>
+      <p>Empieza a registrar tus ingresos y gastos.</p>
+      <button class="btn btn-primario" data-onboarding-finish>Comenzar</button>
+    </div>
+  </div>
+</div>
     <main class="vistas-container">
       <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
