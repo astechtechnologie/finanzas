@@ -52,47 +52,49 @@
       if (clave === 'admin') {
         cargarOrganizaciones();
         cargarUsuariosAdmin();
+        cargarAuditoria();
+        cargarEstadisticas();
       }
     }
 
-    // Exponer globalmente
-    App.cambiarVista = function(nombre) {
-      cambiarVista(nombre);
-    };
+    App.cambiarVista = function(nombre) { cambiarVista(nombre); };
 
     navItems.forEach(function(item) {
-      item.addEventListener('click', function() {
-        cambiarVista(this.dataset.vista);
-      });
+      item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
 
     // ==================== ACCESOS DIRECTOS ====================
-    document.getElementById('btnAccesoGasto').addEventListener('click', function() {
-      tipoTransaccion = 'gasto';
-      document.getElementById('tabGasto').classList.add('active');
-      document.getElementById('tabIngreso').classList.remove('active');
-      llenarSelectCategorias();
-      modal.classList.remove('hidden');
-    });
-
-    document.getElementById('btnAccesoIngreso').addEventListener('click', function() {
-      tipoTransaccion = 'ingreso';
-      document.getElementById('tabIngreso').classList.add('active');
-      document.getElementById('tabGasto').classList.remove('active');
-      llenarSelectCategorias();
-      modal.classList.remove('hidden');
-    });
-
-    document.getElementById('btnAccesoPresupuesto').addEventListener('click', function() {
-      cambiarVista('vistaPresupuesto');
-    });
-
-    document.getElementById('btnAccesoMetas').addEventListener('click', function() {
-      cambiarVista('vistaPresupuesto');
-      setTimeout(function() {
-        document.getElementById('tabMetasAhorro')?.click();
-      }, 300);
-    });
+    var btnAccesoGasto = document.getElementById('btnAccesoGasto');
+    if (btnAccesoGasto) {
+      btnAccesoGasto.addEventListener('click', function() {
+        tipoTransaccion = 'gasto';
+        document.getElementById('tabGasto').classList.add('active');
+        document.getElementById('tabIngreso').classList.remove('active');
+        llenarSelectCategorias();
+        modal.classList.remove('hidden');
+      });
+    }
+    var btnAccesoIngreso = document.getElementById('btnAccesoIngreso');
+    if (btnAccesoIngreso) {
+      btnAccesoIngreso.addEventListener('click', function() {
+        tipoTransaccion = 'ingreso';
+        document.getElementById('tabIngreso').classList.add('active');
+        document.getElementById('tabGasto').classList.remove('active');
+        llenarSelectCategorias();
+        modal.classList.remove('hidden');
+      });
+    }
+    var btnAccesoPresupuesto = document.getElementById('btnAccesoPresupuesto');
+    if (btnAccesoPresupuesto) {
+      btnAccesoPresupuesto.addEventListener('click', function() { cambiarVista('vistaPresupuesto'); });
+    }
+    var btnAccesoMetas = document.getElementById('btnAccesoMetas');
+    if (btnAccesoMetas) {
+      btnAccesoMetas.addEventListener('click', function() {
+        cambiarVista('vistaPresupuesto');
+        setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
+      });
+    }
 
     // ==================== FILTROS ====================
     filtroMes.value = mesSeleccionado;
@@ -100,7 +102,6 @@
       mesSeleccionado = filtroMes.value;
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
-
     filtroMetodo.addEventListener('change', function() {
       if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
     });
@@ -137,7 +138,6 @@
       document.getElementById('tabIngreso').classList.remove('active');
       llenarSelectCategorias();
     });
-
     document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
     // ==================== MODAL EDITAR ====================
@@ -201,9 +201,7 @@
       });
       lista.innerHTML = html;
       lista.querySelectorAll('.btn-delete').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          App.eliminarMetodoPago(this.dataset.id);
-        });
+        btn.addEventListener('click', function() { App.eliminarMetodoPago(this.dataset.id); });
       });
     }
 
@@ -223,6 +221,7 @@
       bel.textContent = '$' + App.formatearMonto(balance);
       bel.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
+      // KPIs
       var partes = mesSeleccionado.split('-');
       var año = parseInt(partes[0]), mesNum = parseInt(partes[1]);
       var ahora = new Date();
@@ -271,6 +270,7 @@
         document.getElementById('kpiAhorroMetas').textContent = '$' + App.formatearMonto(totalAhorradoMetas);
       });
 
+      // Lista de movimientos
       var lista = document.getElementById('listaTransacciones');
       if (filtradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
@@ -425,125 +425,94 @@
     });
 
     function cargarUsuariosAdmin() {
-  var cont = document.getElementById('listaUsuariosAdmin');
-  if (!cont) return;
-
-  App.obtenerUsuariosVinculados(function(usuarios) {
-    if (usuarios.length === 0) {
-      cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
-      return;
-    }
-
-    var html = '';
-    var promesas = [];
-
-    usuarios.forEach(function(usuario) {
-      promesas.push(new Promise(function(resolve) {
-        App.obtenerUsuarioPorId(usuario.uid, function(datos) {
-          var rol = datos ? (datos.rol || 'normal') : 'normal';
-          var estado = datos ? (datos.activo !== false) : true;
-          usuario.rol = rol;
-          usuario.activo = estado;
-          resolve(usuario);
-        });
-      }));
-    });
-
-    Promise.all(promesas).then(function(usuariosCompletos) {
-      html = '';
-      usuariosCompletos.forEach(function(usuario) {
-        html += '<div class="usuario-admin-card">' +
-          '<div class="usuario-admin-info">' +
+      var cont = document.getElementById('listaUsuariosAdmin');
+      if (!cont) return;
+      App.obtenerUsuariosVinculados(function(usuarios) {
+        if (usuarios.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
+          return;
+        }
+        var html = '';
+        usuarios.forEach(function(usuario) {
+          html += '<div class="usuario-admin-card">' +
             '<span class="font-medium">' + usuario.email + '</span>' +
-            '<span class="texto-secundario text-xs">Rol: ' + usuario.rol + ' | ' + (usuario.activo ? 'Activo' : 'Inactivo') + '</span>' +
-          '</div>' +
-          '<div class="usuario-admin-acciones">' +
-            '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
-            '<button class="btn-cambiar-rol text-xs" data-uid="' + usuario.uid + '" data-rol="' + usuario.rol + '">Rol</button>' +
-            '<button class="btn-toggle-estado text-xs" data-uid="' + usuario.uid + '" data-activo="' + usuario.activo + '">' + (usuario.activo ? 'Desactivar' : 'Activar') + '</button>' +
-            '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
-          '</div>' +
-        '</div>';
-      });
-      cont.innerHTML = html;
-
-      // Eventos
-      cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          if (confirm('¿Eliminar vinculación?')) {
-            App.eliminarVinculacion(this.dataset.uid);
-          }
+            '<div class="flex gap-2">' +
+              '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
+              '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
+            '</div>' +
+          '</div>';
         });
-      });
+        cont.innerHTML = html;
 
-      cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          verDetalleUsuario(this.dataset.uid);
+        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar vinculación?')) App.eliminarVinculacion(this.dataset.uid);
+          });
         });
-      });
 
-      cont.querySelectorAll('.btn-cambiar-rol').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var uid = this.dataset.uid;
-          var rolActual = this.dataset.rol;
-          var nuevoRol = rolActual === 'admin' ? 'normal' : 'admin';
-          if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) {
-            App.actualizarRolUsuario(uid, nuevoRol);
-          }
+        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            verDetalleUsuario(this.dataset.uid);
+          });
         });
-      });
-
-      cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var uid = this.dataset.uid;
-          var activoActual = this.dataset.activo === 'true';
-          App.actualizarEstadoUsuario(uid, !activoActual);
-        });
-      });
-    });
-  });
-}
-
-function verDetalleUsuario(usuarioUid) {
-  var detalleCont = document.getElementById('detalleUsuarioAdmin');
-  if (!detalleCont) return;
-
-  App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
-    var totalIngresos = 0;
-    var totalGastos = 0;
-    transacciones.forEach(function(t) {
-      if (t.tipo === 'ingreso') totalIngresos += t.monto;
-      else totalGastos += t.monto;
-    });
-
-    var html = '<div class="admin-detalle">';
-    html += '<h4 class="font-bold">Resumen del usuario</h4>';
-    html += '<p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p>';
-    html += '<p>Gastos: $' + App.formatearMonto(totalGastos) + '</p>';
-    html += '<hr class="my-2">';
-    html += '<h5 class="font-semibold">Últimas transacciones</h5>';
-    if (transacciones.length === 0) {
-      html += '<p class="texto-secundario">Sin transacciones</p>';
-    } else {
-      transacciones.slice(0, 10).forEach(function(t) {
-        html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
       });
     }
-    html += '</div>';
-    detalleCont.innerHTML = html;
-  });
-}
 
-    document.getElementById('btnVincularUsuario').addEventListener('click', function() {
-      var email = document.getElementById('emailUsuarioVincular').value.trim();
-      if (email) {
-        App.vincularUsuarioPorEmail(email, function() {
-          document.getElementById('emailUsuarioVincular').value = '';
-          cargarUsuariosAdmin();
+    function verDetalleUsuario(usuarioUid) {
+      var detalleCont = document.getElementById('detalleUsuarioAdmin');
+      if (!detalleCont) return;
+      App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+        var totalIngresos = 0, totalGastos = 0;
+        transacciones.forEach(function(t) {
+          if (t.tipo === 'ingreso') totalIngresos += t.monto;
+          else totalGastos += t.monto;
         });
-      }
-    });
+        var html = '<div class="admin-detalle">';
+        html += '<h4 class="font-bold">Resumen del usuario</h4>';
+        html += '<p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p>';
+        html += '<p>Gastos: $' + App.formatearMonto(totalGastos) + '</p>';
+        html += '<hr class="my-2">';
+        html += '<h5 class="font-semibold">Últimas transacciones</h5>';
+        if (transacciones.length === 0) {
+          html += '<p class="texto-secundario">Sin transacciones</p>';
+        } else {
+          transacciones.slice(0, 10).forEach(function(t) {
+            html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
+          });
+        }
+        html += '</div>';
+        detalleCont.innerHTML = html;
+      });
+    }
 
+    function cargarAuditoria() {
+      var cont = document.getElementById('listaAuditoria');
+      if (!cont) return;
+      App.obtenerAuditoria(function(registros) {
+        if (registros.length === 0) {
+          cont.innerHTML = '<p class="texto-secundario">Sin registros</p>';
+          return;
+        }
+        var html = '';
+        registros.forEach(function(r) {
+          html += '<div class="text-sm">' + r.accion + ' - ' + new Date(r.fecha).toLocaleDateString() + '</div>';
+        });
+        cont.innerHTML = html;
+      });
+    }
+
+    function cargarEstadisticas() {
+      var cont = document.getElementById('estadisticasAdmin');
+      if (!cont) return;
+      App.obtenerEstadisticasGlobales(function(est) {
+        cont.innerHTML = '<p>Usuarios: ' + est.usuarios + '</p>' +
+          '<p>Transacciones: ' + est.transacciones + '</p>' +
+          '<p>Ingresos: $' + App.formatearMonto(est.ingresos) + '</p>' +
+          '<p>Gastos: $' + App.formatearMonto(est.gastos) + '</p>';
+      });
+    }
+
+    // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
