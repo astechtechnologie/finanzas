@@ -313,4 +313,39 @@
       callback(arr);
     });
   };
+
+  // ===== MARCA BLANCA / MULTIEMPRESA =====
+App.crearOrganizacion = function(nombre) {
+  return db.collection('organizaciones').add({
+    nombre: nombre,
+    adminId: uid()
+  });
+};
+
+App.obtenerOrganizaciones = function(callback) {
+  return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
+    const orgs = [];
+    snap.forEach(function(doc) {
+      orgs.push(Object.assign({ id: doc.id }, doc.data()));
+    });
+    callback(orgs);
+  });
+};
+
+App.eliminarOrganizacion = function(orgId) {
+  return db.collection('organizaciones').doc(orgId).delete();
+};
+
+App.vincularUsuarioAOrganizacion = function(email, orgId) {
+  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
+    if (!query.empty) {
+      const usuario = query.docs[0];
+      return db.collection('usuarios').doc(usuario.id).update({
+        orgId: orgId
+      });
+    } else {
+      alert('No se encontró usuario con ese email');
+    }
+  });
+};
 })();
