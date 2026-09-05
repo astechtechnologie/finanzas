@@ -1,3 +1,4 @@
+// storage.js – acceso a Firestore con funciones de administración avanzadas
 (function() {
   const App = window.App;
   const db = App.db;
@@ -314,52 +315,114 @@
     });
   };
 
-  // ===== MARCA BLANCA / MULTIEMPRESA =====
-App.crearOrganizacion = function(nombre) {
-  return db.collection('organizaciones').add({
-    nombre: nombre,
-    adminId: uid()
-  });
-};
+  App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
+    return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
+  };
 
-App.obtenerOrganizaciones = function(callback) {
-  return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
-    const orgs = [];
-    snap.forEach(function(doc) {
-      orgs.push(Object.assign({ id: doc.id }, doc.data()));
+  App.actualizarEstadoUsuario = function(usuarioUid, activo) {
+    return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
+  };
+
+  App.obtenerUsuarioPorId = function(usuarioUid, callback) {
+    db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
+      callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
     });
-    callback(orgs);
-  });
-};
+  };
 
-App.eliminarOrganizacion = function(orgId) {
-  return db.collection('organizaciones').doc(orgId).delete();
-};
+  // ===== ORGANIZACIONES =====
+  App.crearOrganizacion = function(nombre) {
+    return db.collection('organizaciones').add({
+      nombre: nombre,
+      adminId: uid()
+    });
+  };
 
-App.vincularUsuarioAOrganizacion = function(email, orgId) {
-  db.collection('usuarios').where('email', '==', email).get().then(function(query) {
-    if (!query.empty) {
-      const usuario = query.docs[0];
-      return db.collection('usuarios').doc(usuario.id).update({
-        orgId: orgId
+  App.obtenerOrganizaciones = function(callback) {
+    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
+      const orgs = [];
+      snap.forEach(function(doc) {
+        orgs.push(Object.assign({ id: doc.id }, doc.data()));
       });
-    } else {
-      alert('No se encontró usuario con ese email');
-    }
-  });
-};
-  // ===== ADMINISTRACIÓN AVANZADA =====
-App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
-  return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
-};
+      callback(orgs);
+    });
+  };
 
-App.actualizarEstadoUsuario = function(usuarioUid, activo) {
-  return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
-};
+  App.eliminarOrganizacion = function(orgId) {
+    return db.collection('organizaciones').doc(orgId).delete();
+  };
 
-App.obtenerUsuarioPorId = function(usuarioUid, callback) {
-  db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
-    callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
-  });
-};
+  // ===== AUDITORÍA =====
+  App.registrarAuditoria = function(accion, detalle) {
+    return db.collection('usuarios').doc(uid()).collection('auditoria').add({
+      accion: accion,
+      detalle: detalle,
+      fecha: new Date().toISOString()
+    });
+  };
+
+  App.obtenerAuditoria = function(callback) {
+    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+      const registros = [];
+      snap.forEach(function(doc) { registros.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(registros);
+    });
+  };
+
+  // ===== MENSAJERÍA =====
+  App.enviarMensajeAUsuario = function(usuarioUid, mensaje) {
+    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').add({
+      mensaje: mensaje,
+      de: uid(),
+      fecha: new Date().toISOString()
+    });
+  };
+
+  App.obtenerMensajesDeUsuario = function(usuarioUid, callback) {
+    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+      const mensajes = [];
+      snap.forEach(function(doc) { mensajes.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(mensajes);
+    });
+  };
+
+  // ===== ESTADÍSTICAS GLOBALES =====
+  App.obtenerEstadisticasGlobales = function(callback) {
+    // Obtener todos los usuarios vinculados
+    App.obtenerUsuariosVinculados(function(usuarios) {
+      if (usuarios.length === 0) {
+        callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
+        return;
+      }
+      let totalTransacciones = 0;
+      let totalIngresos = 0;
+      let totalGastos = 0;
+      let pendientes = usuarios.length;
+
+      usuarios.forEach(function(usuario) {
+        App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
+          transacciones.forEach(function(t) {
+            totalTransacciones++;
+            if (t.tipo === 'ingreso') totalIngresos += t.monto;
+            else totalGastos += t.monto;
+          });
+          pendientes--;
+          if (pendientes === 0) {
+            callback({
+              usuarios: usuarios.length,
+              transacciones: totalTransacciones,
+              ingresos: totalIngresos,
+              gastos: totalGastos
+            });
+          }
+        });
+      });
+    });
+  };
+
+  // ===== EXPORTAR / IMPORTAR DATOS =====
+  App.exportarDatosUsuario = function(usuarioUid, callback) {
+    // Esta función es un ejemplo; en producción usarías Cloud Functions.
+    alert('Exportación de datos aún en desarrollo');
+    if (callback) callback();
+  };
 })();
