@@ -425,53 +425,114 @@
     });
 
     function cargarUsuariosAdmin() {
-      var cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont) return;
-      App.obtenerUsuariosVinculados(function(usuarios) {
-        if (usuarios.length === 0) {
-          cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
-          return;
-        }
-        var html = '';
-        usuarios.forEach(function(usuario) {
-          html += '<div class="usuario-admin-card">' +
+  var cont = document.getElementById('listaUsuariosAdmin');
+  if (!cont) return;
+
+  App.obtenerUsuariosVinculados(function(usuarios) {
+    if (usuarios.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
+      return;
+    }
+
+    var html = '';
+    var promesas = [];
+
+    usuarios.forEach(function(usuario) {
+      promesas.push(new Promise(function(resolve) {
+        App.obtenerUsuarioPorId(usuario.uid, function(datos) {
+          var rol = datos ? (datos.rol || 'normal') : 'normal';
+          var estado = datos ? (datos.activo !== false) : true;
+          usuario.rol = rol;
+          usuario.activo = estado;
+          resolve(usuario);
+        });
+      }));
+    });
+
+    Promise.all(promesas).then(function(usuariosCompletos) {
+      html = '';
+      usuariosCompletos.forEach(function(usuario) {
+        html += '<div class="usuario-admin-card">' +
+          '<div class="usuario-admin-info">' +
             '<span class="font-medium">' + usuario.email + '</span>' +
-            '<div class="flex gap-2">' +
-              '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
-              '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
-            '</div>' +
-          '</div>';
-        });
-        cont.innerHTML = html;
+            '<span class="texto-secundario text-xs">Rol: ' + usuario.rol + ' | ' + (usuario.activo ? 'Activo' : 'Inactivo') + '</span>' +
+          '</div>' +
+          '<div class="usuario-admin-acciones">' +
+            '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>' +
+            '<button class="btn-cambiar-rol text-xs" data-uid="' + usuario.uid + '" data-rol="' + usuario.rol + '">Rol</button>' +
+            '<button class="btn-toggle-estado text-xs" data-uid="' + usuario.uid + '" data-activo="' + usuario.activo + '">' + (usuario.activo ? 'Desactivar' : 'Activar') + '</button>' +
+            '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>' +
+          '</div>' +
+        '</div>';
+      });
+      cont.innerHTML = html;
 
-        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar vinculación?')) {
-              App.eliminarVinculacion(this.dataset.uid);
-            }
-          });
-        });
-
-        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            var uid = this.dataset.uid;
-            App.obtenerTransaccionesDeUsuario(uid, function(transacciones) {
-              var detalleCont = document.getElementById('detalleUsuarioAdmin');
-              if (!detalleCont) return;
-              var detalleHtml = '<h4 class="font-bold mt-4">Transacciones</h4>';
-              if (transacciones.length === 0) {
-                detalleHtml += '<p class="texto-secundario">Sin transacciones</p>';
-              } else {
-                transacciones.forEach(function(t) {
-                  detalleHtml += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
-                });
-              }
-              detalleCont.innerHTML = detalleHtml;
-            });
-          });
+      // Eventos
+      cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar vinculación?')) {
+            App.eliminarVinculacion(this.dataset.uid);
+          }
         });
       });
+
+      cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          verDetalleUsuario(this.dataset.uid);
+        });
+      });
+
+      cont.querySelectorAll('.btn-cambiar-rol').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var uid = this.dataset.uid;
+          var rolActual = this.dataset.rol;
+          var nuevoRol = rolActual === 'admin' ? 'normal' : 'admin';
+          if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) {
+            App.actualizarRolUsuario(uid, nuevoRol);
+          }
+        });
+      });
+
+      cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var uid = this.dataset.uid;
+          var activoActual = this.dataset.activo === 'true';
+          App.actualizarEstadoUsuario(uid, !activoActual);
+        });
+      });
+    });
+  });
+}
+
+function verDetalleUsuario(usuarioUid) {
+  var detalleCont = document.getElementById('detalleUsuarioAdmin');
+  if (!detalleCont) return;
+
+  App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+    var totalIngresos = 0;
+    var totalGastos = 0;
+    transacciones.forEach(function(t) {
+      if (t.tipo === 'ingreso') totalIngresos += t.monto;
+      else totalGastos += t.monto;
+    });
+
+    var html = '<div class="admin-detalle">';
+    html += '<h4 class="font-bold">Resumen del usuario</h4>';
+    html += '<p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p>';
+    html += '<p>Gastos: $' + App.formatearMonto(totalGastos) + '</p>';
+    html += '<hr class="my-2">';
+    html += '<h5 class="font-semibold">Últimas transacciones</h5>';
+    if (transacciones.length === 0) {
+      html += '<p class="texto-secundario">Sin transacciones</p>';
+    } else {
+      transacciones.slice(0, 10).forEach(function(t) {
+        html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>';
+      });
     }
+    html += '</div>';
+    detalleCont.innerHTML = html;
+  });
+}
 
     document.getElementById('btnVincularUsuario').addEventListener('click', function() {
       var email = document.getElementById('emailUsuarioVincular').value.trim();
