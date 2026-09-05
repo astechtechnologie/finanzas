@@ -1,21 +1,18 @@
-// onboarding.js – Pantalla de bienvenida
 (function() {
   const App = window.App;
 
   function mostrarOnboarding() {
-  const el = document.getElementById('vistaOnboarding');
-  if (el) {
-    el.classList.add('activa');
+    const el = document.getElementById('vistaOnboarding');
+    if (el) el.classList.add('activa');
+    const inicio = document.getElementById('vistaInicio');
+    if (inicio) inicio.classList.remove('activa');
   }
-  const inicio = document.getElementById('vistaInicio');
-  if (inicio) {
-    inicio.classList.remove('activa');
-  }
-}
 
   function ocultarOnboarding() {
-    document.getElementById('vistaOnboarding').classList.remove('activa');
-    document.getElementById('vistaInicio').classList.add('activa');
+    const el = document.getElementById('vistaOnboarding');
+    if (el) el.classList.remove('activa');
+    const inicio = document.getElementById('vistaInicio');
+    if (inicio) inicio.classList.add('activa');
     localStorage.setItem('onboarding_completado', 'true');
   }
 
@@ -42,7 +39,8 @@
       if (!visto) {
         mostrarOnboarding();
       } else {
-        document.getElementById('vistaInicio').classList.add('activa');
+        const inicio = document.getElementById('vistaInicio');
+        if (inicio) inicio.classList.add('activa');
       }
       configurarEventos();
     }
