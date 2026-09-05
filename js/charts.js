@@ -1,4 +1,3 @@
-// charts.js – Gráficas
 (function() {
   const App = window.App;
   App.graficaIngresosChart = null;
@@ -35,8 +34,8 @@
       });
     }
 
-    dibujar('graficaIngresos', ingresosData, 'graficaIngresosChart', '#10b981');
-    dibujar('graficaGastos', gastosData, 'graficaGastosChart', '#ef4444');
+    dibujar('graficaIngresos', ingresosData, 'graficaIngresosChart', '#e8c84c');
+    dibujar('graficaGastos', gastosData, 'graficaGastosChart', '#4d4d4d');
   };
 
   App.actualizarGraficaTendencia = function(todas, mesActual) {
@@ -58,8 +57,8 @@
       data: {
         labels: etiquetas,
         datasets: [
-          { label: 'Ingresos', data: ingresosPorMes, backgroundColor: '#10b981' },
-          { label: 'Gastos', data: gastosPorMes, backgroundColor: '#ef4444' }
+          { label: 'Ingresos', data: ingresosPorMes, backgroundColor: '#e8c84c' },
+          { label: 'Gastos', data: gastosPorMes, backgroundColor: '#4d4d4d' }
         ]
       },
       options: {
@@ -75,7 +74,7 @@
     const ctx = document.getElementById('graficaPresupuesto')?.getContext('2d');
     if (!ctx) return;
     const p = Math.min(porcentaje, 100);
-    const color = porcentaje < 50 ? '#10b981' : porcentaje < 80 ? '#f59e0b' : porcentaje < 100 ? '#f97316' : '#ef4444';
+    const color = porcentaje < 50 ? '#e8c84c' : porcentaje < 80 ? '#f59e0b' : porcentaje < 100 ? '#f97316' : '#ff4444';
     App.graficaPresupuestoChart = new Chart(ctx, {
       type: 'doughnut',
       data: { datasets: [{ data: [p, 100 - p], backgroundColor: [color, '#e5e7eb'], borderWidth: 0 }] },
