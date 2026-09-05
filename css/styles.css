@@ -381,3 +381,62 @@ body {
     font-size: 1.5rem;
   }
 }
+/* ========== FIXES PARA IPHONE / SAFARI ========== */
+
+/* Evitar el uso de 100vh que causa desbordamientos en Safari */
+html, body {
+  height: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+.app-shell {
+  height: 100%;
+  min-height: 100dvh; /* Usar unidad dinámica para Safari */
+  padding-bottom: env(safe-area-inset-bottom); /* Respeta el notch / barra de inicio */
+}
+
+/* Ajustar la barra de navegación inferior para que no quede oculta por el notch */
+.bottom-nav {
+  padding-bottom: calc(0.8rem + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* Ajustar el FAB para que no se superponga con la barra de navegación */
+.fab {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+
+/* Evitar el resaltado azul al tocar botones en iOS */
+button, .nav-item, .btn, .fab, .btn-icon {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Ajustar tamaño de fuente para legibilidad en pantallas pequeñas */
+@media (max-width: 390px) {
+  .titulo-seccion { font-size: 1.1rem; }
+  .resumen-card strong { font-size: 1.4rem; }
+  .presupuesto-gasto { font-size: 1.6rem; }
+  .kpi-valor { font-size: 1.1rem; }
+  .input-field { font-size: 0.9rem; padding: 0.6rem 0.8rem; }
+  .btn { padding: 0.7rem 1.2rem; }
+}
+
+/* Ajustar desplazamiento en modales */
+.modal-content {
+  max-height: calc(90vh - env(safe-area-inset-bottom));
+}
+
+/* Corregir problema de overflow en vistas-container */
+.vistas-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+
+/* Ajustar tamaño del input de fecha para que no se corte */
+.input-mes {
+  max-width: 150px;
+}
