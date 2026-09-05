@@ -73,7 +73,7 @@
 
       var html = '';
 
-      // Resumen global
+      // Resumen
       html += '<div class="presupuesto-resumen">';
       html += '<div class="presupuesto-resumen-header">';
       html += '<span class="texto-secundario">' + (tipo === 'gasto' ? 'Total gastado' : 'Total ingresado') + '</span>';
@@ -95,7 +95,7 @@
       html += '</p>';
       html += '</div>';
 
-      // Botón añadir categoría
+      // Botón añadir
       html += '<button id="btnAgregarLimite" class="btn btn-primario btn-agregar-categoria"><i class="ph ph-plus"></i> Añadir categoría</button>';
 
       // Lista de categorías
@@ -125,7 +125,6 @@
         html += '</div>';
         html += '</div>';
 
-        // Subcategorías
         html += '<div class="subcategorias-lista hidden" data-subcategorias="' + c.nombre + '">';
         if (Object.keys(subcats).length > 0) {
           Object.keys(subcats).forEach(function(sub) {
@@ -149,7 +148,7 @@
       });
       html += '</div>';
 
-      // Formulario límite
+      // Formulario
       html += '<div id="formLimite" class="hidden form-limite">';
       html += '<h3 class="form-titulo">Añadir límite</h3>';
       html += '<select id="selectCategoriaLimite" class="input-field mb-2"></select>';
