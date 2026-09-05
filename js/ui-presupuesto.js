@@ -1,6 +1,7 @@
 (function() {
   const App = window.App;
 
+  // ==================== ESTRUCTURA GENERAL ====================
   function crearEstructura() {
     var html = '';
     html += '<div class="presupuesto-tabs">';
@@ -67,8 +68,8 @@
 
       var porcentaje = totalPresupuestado > 0 ? (totalReal / totalPresupuestado) * 100 : 0;
       var color = tipo === 'gasto'
-        ? (porcentaje > 100 ? '#ef4444' : porcentaje > 80 ? '#f97316' : '#10b981')
-        : (porcentaje < 100 ? '#ef4444' : '#10b981');
+        ? (porcentaje > 100 ? '#ff4444' : porcentaje > 80 ? '#f97316' : '#e8c84c')
+        : (porcentaje < 100 ? '#ff4444' : '#e8c84c');
 
       var html = '';
 
@@ -104,7 +105,7 @@
         var subcats = (limitesTipo[c.nombre] && limitesTipo[c.nombre].subcategorias) || {};
         var realCat = transFiltradas.filter(function(t) { return t.categoria === c.nombre; }).reduce(function(s, t) { return s + t.monto; }, 0);
         var pCat = limiteCat > 0 ? (realCat / limiteCat) * 100 : 0;
-        var colorBarra = pCat > 100 ? '#ef4444' : pCat > 80 ? '#f97316' : '#10b981';
+        var colorBarra = pCat > 100 ? '#ff4444' : pCat > 80 ? '#f97316' : '#e8c84c';
 
         html += '<div class="categoria-presupuesto">';
         html += '<div class="categoria-header" data-cat="' + c.nombre + '">';
@@ -136,7 +137,7 @@
             html += '<span class="subcategoria-nombre">' + sub + '</span>';
             html += '<span class="texto-secundario">$' + App.formatearMonto(realSub) + ' / $' + App.formatearMonto(limiteSub) + '</span>';
             html += '</div>';
-            html += '<div class="progress-bar subcategoria-progress"><div class="progress-fill" style="width:' + Math.min(pSub, 100) + '%; background-color:' + (pSub > 100 ? '#ef4444' : '#10b981') + ';"></div></div>';
+            html += '<div class="progress-bar subcategoria-progress"><div class="progress-fill" style="width:' + Math.min(pSub, 100) + '%; background-color:' + (pSub > 100 ? '#ff4444' : '#e8c84c') + ';"></div></div>';
             html += '</div>';
           });
         } else {
@@ -237,19 +238,19 @@
     });
   }
 
-  // ==================== METAS DE AHORRO (mantener) ====================
+  // ==================== METAS DE AHORRO ====================
   function renderizarMetas() {
-    // ... (sin cambios)
+    // ... (mantener el código actual)
   }
 
-  // ==================== SUSCRIPCIONES (mantener) ====================
+  // ==================== SUSCRIPCIONES ====================
   function renderizarSuscripciones() {
-    // ... (sin cambios)
+    // ... (mantener el código actual)
   }
 
-  // ==================== PRÉSTAMOS (mantener) ====================
+  // ==================== PRÉSTAMOS ====================
   function renderizarPrestamos() {
-    // ... (sin cambios)
+    // ... (mantener el código actual)
   }
 
   // ==================== CARGA INICIAL ====================
