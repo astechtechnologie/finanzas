@@ -273,3 +273,212 @@ body {
   background: var(--nav-border);
   border-radius: 4px;
 }
+/* ========== PRESUPUESTO MEJORADO ========== */
+.presupuesto-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.presupuesto-tab {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 1rem;
+  background: var(--nav-border);
+  color: var(--texto-secundario);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.presupuesto-tab.active {
+  background: var(--primario);
+  color: var(--texto);
+}
+
+.presupuesto-subtabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.presupuesto-subtab {
+  flex: 1;
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background: var(--nav-border);
+  color: var(--texto-secundario);
+  cursor: pointer;
+  border: none;
+}
+.presupuesto-subtab.active {
+  background: var(--primario);
+  color: var(--texto);
+}
+
+/* Resumen */
+.presupuesto-resumen {
+  background: var(--tarjeta);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--sombra);
+  border: var(--borde);
+}
+.presupuesto-resumen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.presupuesto-montos {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.presupuesto-gasto {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--texto);
+}
+.presupuesto-detalle {
+  font-size: 0.9rem;
+  color: var(--texto-secundario);
+  margin-top: 0.5rem;
+}
+
+/* Lista de categorías */
+.categorias-presupuesto {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.categoria-presupuesto {
+  background: var(--tarjeta);
+  border-radius: 1.25rem;
+  padding: 1rem;
+  box-shadow: var(--sombra-sm);
+  border: var(--borde);
+  transition: box-shadow 0.2s;
+}
+.categoria-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.categoria-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+.categoria-emoji {
+  font-size: 1.8rem;
+}
+.categoria-nombre {
+  font-weight: 600;
+  color: var(--texto);
+}
+.categoria-porcentaje {
+  font-size: 0.85rem;
+  color: var(--texto-secundario);
+  margin-left: auto;
+}
+.btn-expandir {
+  background: none;
+  border: none;
+  color: var(--texto-secundario);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+.categoria-progress {
+  margin-top: 0.5rem;
+}
+.categoria-detalles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+.categoria-acciones {
+  display: flex;
+  gap: 0.25rem;
+}
+.categoria-acciones button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--texto-secundario);
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+.categoria-acciones button:hover {
+  color: var(--primario);
+}
+.btn-eliminar-limite:hover {
+  color: #ff4444 !important;
+}
+
+/* Subcategorías */
+.subcategorias-lista {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--nav-border);
+}
+.subcategoria-item {
+  margin-bottom: 0.75rem;
+}
+.subcategoria-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+.subcategoria-nombre {
+  font-weight: 500;
+}
+.btn-agregar-subcat {
+  background: none;
+  border: none;
+  color: var(--primario);
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+/* Formulario */
+.form-limite {
+  background: var(--tarjeta);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: var(--sombra);
+  border: var(--borde);
+  margin-top: 1rem;
+}
+.form-titulo {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Animaciones */
+.categoria-presupuesto:hover {
+  box-shadow: var(--sombra-lg);
+}
+.categoria-header, .btn-expandir {
+  transition: color 0.2s;
+}
+.categoria-header:hover {
+  color: var(--primario);
+}
