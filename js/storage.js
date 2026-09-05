@@ -229,10 +229,13 @@
   };
   // ===== FUNCIONES DE ADMINISTRADOR =====
 App.obtenerRolUsuario = function(callback) {
-  const uid = App.auth.currentUser.uid;
-  db.collection('usuarios').doc(uid).get().then(function(doc) {
-    const data = doc.exists ? doc.data() : {};
-    callback(data.rol || 'normal');
+  const userId = uid();
+  db.collection('usuarios').doc(userId).get().then(function(doc) {
+    const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
+    callback(rol);
+  }).catch(function(error) {
+    console.warn('No se pudo obtener rol, usando normal', error);
+    callback('normal');
   });
 };
 
