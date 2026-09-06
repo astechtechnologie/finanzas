@@ -197,7 +197,6 @@
   <div class="admin-dashboard">
     <h2 class="admin-titulo">Panel de administración</h2>
 
-    <!-- Estadísticas globales -->
     <div class="admin-stats" id="estadisticasAdmin">
       <div class="stat-card"><i class="ph ph-users"></i><span class="stat-numero" id="statUsuarios">0</span><span class="stat-etiqueta">Clientes</span></div>
       <div class="stat-card"><i class="ph ph-arrow-left-right"></i><span class="stat-numero" id="statTransacciones">0</span><span class="stat-etiqueta">Transacciones</span></div>
@@ -205,7 +204,6 @@
       <div class="stat-card"><i class="ph ph-wallet"></i><span class="stat-numero" id="statGastos">$0</span><span class="stat-etiqueta">Gastos</span></div>
     </div>
 
-    <!-- Organizaciones -->
     <div class="admin-seccion">
       <div class="admin-seccion-header">
         <h3><i class="ph ph-building"></i> Organizaciones</h3>
@@ -218,22 +216,19 @@
       </div>
     </div>
 
-    <!-- Clientes -->
     <div class="admin-seccion">
       <div class="admin-seccion-header">
         <h3><i class="ph ph-users-three"></i> Clientes</h3>
       </div>
-      <div class="flex gap-2 mb-2">
+      <div class="cliente-busqueda">
         <input type="email" id="emailUsuarioVincular" placeholder="Email del cliente" class="input-field">
         <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
       </div>
       <div id="listaUsuariosAdmin"></div>
     </div>
 
-    <!-- Detalle del cliente -->
     <div id="detalleUsuarioAdmin" class="admin-detalle"></div>
 
-    <!-- Auditoría -->
     <div class="admin-seccion">
       <div class="admin-seccion-header">
         <h3><i class="ph ph-clock-history"></i> Auditoría</h3>
