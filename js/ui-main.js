@@ -64,7 +64,7 @@
       item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
 
-    // ==================== ICONOS DISPONIBLES ====================
+    // ==================== ICONOS ====================
     const iconosDisponibles = [
       'ph-house', 'ph-car', 'ph-bus', 'ph-airplane', 'ph-shopping-cart',
       'ph-graduation-cap', 'ph-heartbeat', 'ph-game-controller', 'ph-music-notes',
@@ -150,7 +150,7 @@
       setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
     });
 
-    // ==================== FILTRO DE MES ====================
+    // ==================== FILTRO MES ====================
     if (filtroMes) {
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
@@ -288,7 +288,7 @@
       if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
     }
 
-    // ==================== FUNCIONES AUXILIARES ====================
+    // ==================== CATEGORÍAS ====================
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       if (!select) return;
@@ -329,10 +329,7 @@
         html += '<div class="cat-card">' +
           '<div class="cat-info">' +
             '<span class="cat-emoji"><i class="ph ' + c.icono + '"></i></span>' +
-            '<div class="cat-detalles">' +
-              '<span class="cat-nombre">' + c.nombre + '</span>' +
-              '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
-            '</div>' +
+            '<div class="cat-detalles"><span class="cat-nombre">' + c.nombre + '</span><span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span></div>' +
           '</div>' +
           '<div class="categoria-acciones">' +
             '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '">✏️</button>' +
@@ -343,14 +340,10 @@
       cont.innerHTML = html;
 
       cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          abrirEdicionCategoria(this.dataset);
-        });
+        btn.addEventListener('click', function() { abrirEdicionCategoria(this.dataset); });
       });
       cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
-        });
+        btn.addEventListener('click', function() { if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id); });
       });
     }
 
@@ -364,10 +357,7 @@
       const icono = prompt('Icono (ej: ph-house):', datos.icono);
       if (!icono) return;
       App.actualizarCategoria(datos.id, { nombre: nombre.trim().toLowerCase(), tipo: tipo, color: color, icono: icono }).then(function() {
-        App.obtenerCategorias(function(cats) {
-          App.categoriasState = cats;
-          renderizarListaCategorias();
-        });
+        App.obtenerCategorias(function(cats) { App.categoriasState = cats; renderizarListaCategorias(); });
       });
     }
 
@@ -393,14 +383,9 @@
         let categoriaSugerida = '';
         (App.categoriasState || []).forEach(function(cat) {
           const palabras = sugerencias[cat.nombre] || [];
-          palabras.forEach(function(palabra) {
-            if (texto.includes(palabra)) categoriaSugerida = cat.nombre;
-          });
+          palabras.forEach(function(palabra) { if (texto.includes(palabra)) categoriaSugerida = cat.nombre; });
         });
-        if (categoriaSugerida) {
-          document.getElementById('categoria').value = categoriaSugerida;
-          llenarSelectSubcategorias();
-        }
+        if (categoriaSugerida) { document.getElementById('categoria').value = categoriaSugerida; llenarSelectSubcategorias(); }
       });
     }
 
@@ -416,9 +401,7 @@
         });
         cont.innerHTML = html;
         cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
-          });
+          btn.addEventListener('click', function() { if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id); });
         });
       });
     }
@@ -427,19 +410,59 @@
       const cont = document.getElementById('listaUsuariosAdmin');
       if (!cont) return;
       App.obtenerUsuariosVinculados(function(usuarios) {
-        if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>'; return; }
+        if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
         let html = '';
         usuarios.forEach(function(usuario) {
-          html += '<div class="usuario-admin-card"><span class="font-medium">' + usuario.email + '</span><div class="flex gap-2"><button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button><button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button></div></div>';
-        });
-        cont.innerHTML = html;
-        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar vinculación?')) App.eliminarVinculacion(this.dataset.uid);
+          App.obtenerUsuarioPorId(usuario.uid, function(datos) {
+            const rol = datos ? (datos.rol || 'normal') : 'normal';
+            const activo = datos ? (datos.activo !== false) : true;
+            usuario.rol = rol;
+            usuario.activo = activo;
+
+            App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
+              const mesActual = getMes();
+              let ingresos = 0, gastos = 0;
+              transacciones.forEach(function(t) {
+                if (t.fecha && t.fecha.startsWith(mesActual)) {
+                  if (t.tipo === 'ingreso') ingresos += t.monto;
+                  else gastos += t.monto;
+                }
+              });
+              const balance = ingresos - gastos;
+              const inicial = usuario.email.charAt(0).toUpperCase();
+
+              html += '<div class="cliente-card">';
+              html += '<div class="cliente-header"><div class="cliente-avatar">' + inicial + '</div><div class="cliente-info"><div class="cliente-nombre">' + usuario.email + '</div><div class="cliente-email">' + (activo ? 'Activo' : 'Inactivo') + '</div></div><span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></div>';
+              html += '<div class="cliente-metricas"><span>Ingresos: $' + App.formatearMonto(ingresos) + '</span><span>Gastos: $' + App.formatearMonto(gastos) + '</span><span>Balance: $' + App.formatearMonto(balance) + '</span></div>';
+              html += '<div class="cliente-acciones">';
+              html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
+              html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
+              html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
+              html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
+              html += '</div></div>';
+
+              cont.innerHTML = html;
+
+              cont.querySelectorAll('.btn-eliminar-cliente').forEach(function(btn) {
+                btn.addEventListener('click', function() { if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid); });
+              });
+              cont.querySelectorAll('.btn-ver-cliente').forEach(function(btn) {
+                btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
+              });
+              cont.querySelectorAll('.btn-editar-rol').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  const nuevoRol = this.dataset.rol === 'admin' ? 'normal' : 'admin';
+                  if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) App.actualizarRolUsuario(this.dataset.uid, nuevoRol);
+                });
+              });
+              cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  const nuevoEstado = this.dataset.activo !== 'true';
+                  App.actualizarEstadoUsuario(this.dataset.uid, nuevoEstado);
+                });
+              });
+            });
           });
-        });
-        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
-          btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
         });
       });
     }
@@ -447,19 +470,56 @@
     function verDetalleUsuario(usuarioUid) {
       const detalleCont = document.getElementById('detalleUsuarioAdmin');
       if (!detalleCont) return;
-      App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
-        let totalIngresos = 0, totalGastos = 0;
-        transacciones.forEach(function(t) { if (t.tipo === 'ingreso') totalIngresos += t.monto; else totalGastos += t.monto; });
-        let html = '<div class="admin-detalle"><h4 class="font-bold">Resumen del usuario</h4><p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p><p>Gastos: $' + App.formatearMonto(totalGastos) + '</p><hr class="my-2"><h5 class="font-semibold">Últimas transacciones</h5>';
-        if (transacciones.length === 0) html += '<p class="texto-secundario">Sin transacciones</p>';
-        else transacciones.slice(0, 10).forEach(function(t) { html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>'; });
-        html += '</div>';
-        detalleCont.innerHTML = html;
+      App.obtenerUsuarioPorId(usuarioUid, function(datosUsuario) {
+        if (!datosUsuario) return;
+        App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+          const mesActual = getMes();
+          let ingresos = 0, gastos = 0;
+          const porCategoria = {};
+          transacciones.forEach(function(t) {
+            if (t.fecha && t.fecha.startsWith(mesActual)) {
+              if (t.tipo === 'ingreso') ingresos += t.monto;
+              else { gastos += t.monto; porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + t.monto; }
+            }
+          });
+          const balance = ingresos - gastos;
+
+          let html = '<div class="detalle-cliente">';
+          html += '<div class="detalle-header"><div class="detalle-avatar">' + datosUsuario.email.charAt(0).toUpperCase() + '</div><div class="detalle-info"><div class="detalle-nombre">' + datosUsuario.email + '</div><div class="detalle-email">' + (datosUsuario.activo !== false ? 'Activo' : 'Inactivo') + '</div></div><button class="btn-eliminar-cliente" data-uid="' + usuarioUid + '"><i class="ph ph-x"></i></button></div>';
+          html += '<div class="detalle-stats"><div class="detalle-stat"><i class="ph ph-money"></i><div class="detalle-stat-numero">$' + App.formatearMonto(ingresos) + '</div><span>Ingresos</span></div><div class="detalle-stat"><i class="ph ph-wallet"></i><div class="detalle-stat-numero">$' + App.formatearMonto(gastos) + '</div><span>Gastos</span></div><div class="detalle-stat"><i class="ph ph-chart-line"></i><div class="detalle-stat-numero">$' + App.formatearMonto(balance) + '</div><span>Balance</span></div></div>';
+          html += '<div class="detalle-seccion"><h5><i class="ph ph-chart-pie"></i> Gastos por categoría</h5>';
+          if (Object.keys(porCategoria).length === 0) html += '<p class="texto-secundario">Sin gastos este mes</p>';
+          else Object.keys(porCategoria).forEach(function(cat) { html += '<div class="text-sm">' + cat + ': $' + App.formatearMonto(porCategoria[cat]) + '</div>'; });
+          html += '</div>';
+          html += '<div class="detalle-seccion"><h5><i class="ph ph-clock"></i> Últimas transacciones</h5>';
+          const recientes = transacciones.slice(0, 5);
+          if (recientes.length === 0) html += '<p class="texto-secundario">Sin transacciones</p>';
+          else recientes.forEach(function(t) { html += '<div class="detalle-transaccion"><div class="detalle-transaccion-info"><div class="detalle-transaccion-descripcion">' + t.descripcion + '</div><div class="detalle-transaccion-categoria">' + t.categoria + '</div></div><div class="detalle-transaccion-monto">$' + App.formatearMonto(t.monto) + '</div></div>'; });
+          html += '</div></div>';
+          detalleCont.innerHTML = html;
+        });
       });
     }
 
-    function cargarAuditoria() { /* ... */ }
-    function cargarEstadisticas() { /* ... */ }
+    function cargarAuditoria() {
+      const cont = document.getElementById('listaAuditoria');
+      if (!cont) return;
+      App.obtenerAuditoria(function(registros) {
+        if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
+        let html = '';
+        registros.forEach(function(r) { html += '<div class="text-sm"><i class="ph ph-clock"></i> ' + r.accion + ' - ' + new Date(r.fecha).toLocaleString() + '</div>'; });
+        cont.innerHTML = html;
+      });
+    }
+
+    function cargarEstadisticas() {
+      App.obtenerEstadisticasGlobales(function(est) {
+        document.getElementById('statUsuarios').textContent = est.usuarios;
+        document.getElementById('statTransacciones').textContent = est.transacciones;
+        document.getElementById('statIngresos').textContent = '$' + App.formatearMonto(est.ingresos);
+        document.getElementById('statGastos').textContent = '$' + App.formatearMonto(est.gastos);
+      });
+    }
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
@@ -483,7 +543,6 @@
       });
     };
 
-    // Formulario categoría
     const formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
