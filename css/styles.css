@@ -309,3 +309,128 @@ body {
   padding: 1rem;
   margin-top: 1rem;
 }
+/* ========== ADMIN PANEL MEJORADO ========== */
+.admin-dashboard {
+  background: var(--tarjeta);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--sombra);
+}
+.admin-titulo {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--primario);
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--fondo);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--nav-border);
+}
+.stat-card i {
+  font-size: 1.8rem;
+  color: var(--primario);
+}
+.stat-numero {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--texto);
+}
+.stat-etiqueta {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--texto-secundario);
+}
+
+.admin-seccion {
+  margin-bottom: 1.5rem;
+}
+.admin-seccion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.admin-seccion-header h3 {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.org-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--fondo);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.usuario-admin-card {
+  background: var(--fondo);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.usuario-admin-info {
+  display: flex;
+  flex-direction: column;
+}
+.usuario-admin-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.btn-ver-usuario-admin,
+.btn-cambiar-rol,
+.btn-toggle-estado,
+.btn-eliminar-vinculo {
+  background: none;
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  color: var(--texto-secundario);
+  font-size: 0.75rem;
+}
+.btn-ver-usuario-admin:hover,
+.btn-cambiar-rol:hover,
+.btn-toggle-estado:hover {
+  background: var(--primario);
+  color: var(--texto);
+}
+.btn-eliminar-vinculo:hover {
+  background: #ff4444;
+  color: white;
+}
+
+.admin-detalle {
+  background: var(--fondo);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 480px) {
+  .admin-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
