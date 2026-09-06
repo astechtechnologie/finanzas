@@ -317,25 +317,25 @@
 
     // ==================== ADMIN ====================
     function cargarOrganizaciones() {
-      const cont = document.getElementById('listaOrganizaciones');
-      if (!cont) return;
-      App.obtenerOrganizaciones(function(orgs) {
-        if (orgs.length === 0) {
-          cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>';
-          return;
-        }
-        let html = '';
-        orgs.forEach(function(org) {
-          html += '<div class="org-item"><span>' + org.nombre + '</span><button class="btn-eliminar-org" data-id="' + org.id + '">✕</button></div>';
-        });
-        cont.innerHTML = html;
-        cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
-          });
-        });
-      });
+  const cont = document.getElementById('listaOrganizaciones');
+  if (!cont) return;
+  App.obtenerOrganizaciones(function(orgs) {
+    if (orgs.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>';
+      return;
     }
+    let html = '';
+    orgs.forEach(function(org) {
+      html += '<div class="org-item"><span><i class="ph ph-building"></i> ' + org.nombre + '</span><button class="btn-eliminar-org" data-id="' + org.id + '">✕</button></div>';
+    });
+    cont.innerHTML = html;
+    cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
+      });
+    });
+  });
+}
 
     addListener('btnCrearOrganizacion', function() {
       const nombre = document.getElementById('nombreOrganizacion').value.trim();
@@ -348,18 +348,33 @@
     });
 
     function cargarUsuariosAdmin() {
-      const cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont) return;
-      App.obtenerUsuariosVinculados(function(usuarios) {
-        if (usuarios.length === 0) {
-          cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
-          return;
-        }
-        let html = '';
-        usuarios.forEach(function(usuario) {
-          html += '<div class="usuario-admin-card"><span class="font-medium">' + usuario.email + '</span><div class="flex gap-2"><button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button><button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button></div></div>';
-        });
+  const cont = document.getElementById('listaUsuariosAdmin');
+  if (!cont) return;
+  App.obtenerUsuariosVinculados(function(usuarios) {
+    if (usuarios.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>';
+      return;
+    }
+    let html = '';
+    usuarios.forEach(function(usuario) {
+      App.obtenerUsuarioPorId(usuario.uid, function(datos) {
+        const rol = datos ? (datos.rol || 'normal') : 'normal';
+        const estado = datos ? (datos.activo !== false) : true;
+        usuario.rol = rol;
+        usuario.activo = estado;
+
+        html += '<div class="usuario-admin-card">';
+        html += '<div class="usuario-admin-info"><span class="font-medium">' + usuario.email + '</span><span class="texto-secundario text-xs">Rol: ' + rol + ' | ' + (estado ? 'Activo' : 'Inactivo') + '</span></div>';
+        html += '<div class="usuario-admin-acciones">';
+        html += '<button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button>';
+        html += '<button class="btn-cambiar-rol text-xs" data-uid="' + usuario.uid + '" data-rol="' + rol + '">Rol</button>';
+        html += '<button class="btn-toggle-estado text-xs" data-uid="' + usuario.uid + '" data-activo="' + estado + '">' + (estado ? 'Desactivar' : 'Activar') + '</button>';
+        html += '<button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button>';
+        html += '</div></div>';
+
         cont.innerHTML = html;
+
+        // Eventos
         cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
           btn.addEventListener('click', function() {
             if (confirm('¿Eliminar vinculación?')) App.eliminarVinculacion(this.dataset.uid);
@@ -368,8 +383,22 @@
         cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
           btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
         });
+        cont.querySelectorAll('.btn-cambiar-rol').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            const nuevoRol = this.dataset.rol === 'admin' ? 'normal' : 'admin';
+            if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) App.actualizarRolUsuario(this.dataset.uid, nuevoRol);
+          });
+        });
+        cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            const nuevoEstado = this.dataset.activo !== 'true';
+            App.actualizarEstadoUsuario(this.dataset.uid, nuevoEstado);
+          });
+        });
       });
-    }
+    });
+  });
+}
 
     function verDetalleUsuario(usuarioUid) {
       const detalleCont = document.getElementById('detalleUsuarioAdmin');
@@ -385,24 +414,30 @@
       });
     }
 
-    function cargarAuditoria() {
-      const cont = document.getElementById('listaAuditoria');
-      if (!cont) return;
-      App.obtenerAuditoria(function(registros) {
-        if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
-        let html = '';
-        registros.forEach(function(r) { html += '<div class="text-sm">' + r.accion + ' - ' + new Date(r.fecha).toLocaleDateString() + '</div>'; });
-        cont.innerHTML = html;
-      });
+   function cargarAuditoria() {
+  const cont = document.getElementById('listaAuditoria');
+  if (!cont) return;
+  App.obtenerAuditoria(function(registros) {
+    if (registros.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario">Sin registros</p>';
+      return;
     }
+    let html = '';
+    registros.forEach(function(r) {
+      html += '<div class="text-sm"><i class="ph ph-clock"></i> ' + r.accion + ' - ' + new Date(r.fecha).toLocaleString() + '</div>';
+    });
+    cont.innerHTML = html;
+  });
+}
 
-    function cargarEstadisticas() {
-      const cont = document.getElementById('estadisticasAdmin');
-      if (!cont) return;
-      App.obtenerEstadisticasGlobales(function(est) {
-        cont.innerHTML = '<p>Usuarios: ' + est.usuarios + '</p><p>Transacciones: ' + est.transacciones + '</p><p>Ingresos: $' + App.formatearMonto(est.ingresos) + '</p><p>Gastos: $' + App.formatearMonto(est.gastos) + '</p>';
-      });
-    }
+function cargarEstadisticas() {
+  App.obtenerEstadisticasGlobales(function(est) {
+    document.getElementById('statUsuarios').textContent = est.usuarios;
+    document.getElementById('statTransacciones').textContent = est.transacciones;
+    document.getElementById('statIngresos').textContent = '$' + App.formatearMonto(est.ingresos);
+    document.getElementById('statGastos').textContent = '$' + App.formatearMonto(est.gastos);
+  });
+}
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
