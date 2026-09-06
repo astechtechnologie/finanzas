@@ -194,27 +194,55 @@
 
       <!-- Vista Admin -->
       <div id="vistaAdmin" class="vista">
-        <div class="admin-panel">
-          <h2>Organizaciones</h2>
-          <div id="listaOrganizaciones"></div>
-          <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
-          <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
-          <hr class="my-4">
-          <h2>Usuarios vinculados</h2>
-          <div id="listaUsuariosAdmin"></div>
-          <div class="flex gap-2 mt-3">
-            <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
-            <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
-          </div>
-          <div id="detalleUsuarioAdmin" class="mt-4"></div>
-          <hr class="my-4">
-          <h3>Auditoría</h3>
-          <div id="listaAuditoria" class="text-sm"></div>
-          <hr class="my-4">
-          <h3>Estadísticas</h3>
-          <div id="estadisticasAdmin"></div>
-        </div>
+  <div class="admin-dashboard">
+    <h2 class="admin-titulo">Panel de administración</h2>
+
+    <!-- Estadísticas globales -->
+    <div class="admin-stats" id="estadisticasAdmin">
+      <div class="stat-card"><i class="ph ph-users"></i><span class="stat-numero" id="statUsuarios">0</span><span class="stat-etiqueta">Clientes</span></div>
+      <div class="stat-card"><i class="ph ph-arrow-left-right"></i><span class="stat-numero" id="statTransacciones">0</span><span class="stat-etiqueta">Transacciones</span></div>
+      <div class="stat-card"><i class="ph ph-money"></i><span class="stat-numero" id="statIngresos">$0</span><span class="stat-etiqueta">Ingresos</span></div>
+      <div class="stat-card"><i class="ph ph-wallet"></i><span class="stat-numero" id="statGastos">$0</span><span class="stat-etiqueta">Gastos</span></div>
+    </div>
+
+    <!-- Organizaciones -->
+    <div class="admin-seccion">
+      <div class="admin-seccion-header">
+        <h3><i class="ph ph-building"></i> Organizaciones</h3>
+        <button id="btnMostrarFormOrg" class="btn btn-outline-small">+ Nueva</button>
       </div>
+      <div id="listaOrganizaciones"></div>
+      <div id="formOrganizacion" class="hidden mt-2">
+        <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field">
+        <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear</button>
+      </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="admin-seccion">
+      <div class="admin-seccion-header">
+        <h3><i class="ph ph-users-three"></i> Clientes</h3>
+      </div>
+      <div class="flex gap-2 mb-2">
+        <input type="email" id="emailUsuarioVincular" placeholder="Email del cliente" class="input-field">
+        <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
+      </div>
+      <div id="listaUsuariosAdmin"></div>
+    </div>
+
+    <!-- Detalle del cliente -->
+    <div id="detalleUsuarioAdmin" class="admin-detalle"></div>
+
+    <!-- Auditoría -->
+    <div class="admin-seccion">
+      <div class="admin-seccion-header">
+        <h3><i class="ph ph-clock-history"></i> Auditoría</h3>
+        <button id="btnExportarAuditoria" class="btn btn-outline-small">Exportar CSV</button>
+      </div>
+      <div id="listaAuditoria" class="text-sm"></div>
+    </div>
+  </div>
+</div>
     </main>
 
     <!-- Barra de navegación -->
