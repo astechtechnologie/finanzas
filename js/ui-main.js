@@ -377,4 +377,62 @@
       });
     }
   });
+  function renderizarListaCategorias(filtroTexto = '', orden = 'nombre') {
+  const cont = document.getElementById('listaCategorias');
+  if (!cont) return;
+  if (!App.categoriasState || App.categoriasState.length === 0) {
+    cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
+    return;
+  }
+
+  let cats = App.categoriasState;
+
+  // Filtrar por texto
+  if (filtroTexto) {
+    cats = cats.filter(c => c.nombre.includes(filtroTexto.toLowerCase()));
+  }
+
+  // Ordenar
+  if (orden === 'nombre') {
+    cats.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  } else if (orden === 'uso') {
+    // Aquí podrías usar un contador de transacciones por categoría
+    // Por ahora ordenamos por nombre (placeholder)
+    cats.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  } else if (orden === 'reciente') {
+    cats.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+  }
+
+  let html = '';
+  cats.forEach(function(c) {
+    html += '<div class="cat-card">' +
+      '<div class="cat-info">' +
+        '<span class="cat-emoji"><i class="ph ' + c.icono + '"></i></span>' +
+        '<div class="cat-detalles">' +
+          '<span class="cat-nombre">' + c.nombre + '</span>' +
+          '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="categoria-acciones">' +
+        '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '">✏️</button>' +
+        '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
+      '</div>' +
+    '</div>';
+  });
+  cont.innerHTML = html;
+
+  // Eventos editar
+  cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      abrirEdicionCategoria(this.dataset);
+    });
+  });
+
+  // Eventos eliminar
+  cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
+    });
+  });
+}
 })();
