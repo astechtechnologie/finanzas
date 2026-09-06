@@ -18,11 +18,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function(reg) {
-        reg.update(); // Fuerza comprobación de actualización al cargar
-      });
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
 </head>
 <body>
@@ -94,7 +90,6 @@
         </div>
         <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
 
-        <!-- Accesos rápidos -->
         <div class="accesos-rapidos">
           <button id="btnAccesoGasto" class="btn-acceso"><i class="ph ph-plus-circle"></i><span>Gasto</span></button>
           <button id="btnAccesoIngreso" class="btn-acceso"><i class="ph ph-money"></i><span>Ingreso</span></button>
@@ -102,7 +97,6 @@
           <button id="btnAccesoMetas" class="btn-acceso"><i class="ph ph-piggy-bank"></i><span>Metas</span></button>
         </div>
 
-        <!-- KPIs -->
         <div class="kpi-grid" id="kpiContainer">
           <div class="kpi-card"><span class="kpi-icon">📅</span><span class="kpi-label">Promedio diario</span><strong id="kpiPromedioDiario" class="kpi-valor">$0</strong></div>
           <div class="kpi-card"><span class="kpi-icon">🔥</span><span class="kpi-label">Categoría top</span><strong id="kpiCategoriaTop" class="kpi-valor">-</strong></div>
@@ -139,47 +133,20 @@
           <form id="formCategoria" class="form-categoria">
             <div class="form-row">
               <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
-              <div class="color-picker-wrapper"><input type="color" id="colorCategoria" value="#10b981" class="input-color"></div>
+              <div class="color-picker-wrapper">
+                <input type="color" id="colorCategoria" value="#e8c84c" class="input-color">
+              </div>
             </div>
             <div class="form-row">
               <select id="tipoCategoria" class="input-field flex-1">
                 <option value="gasto">Gasto</option>
                 <option value="ingreso">Ingreso</option>
               </select>
-              <div class="emoji-selector">
-                <input type="text" id="emojiCategoria" placeholder="🍕" maxlength="2" class="input-field emoji-input" readonly>
-                <div class="emoji-grid">
-                  <span onclick="document.getElementById('emojiCategoria').value='🍔'">🍔</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🍕'">🍕</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🍜'">🍜</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='☕'">☕</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🛒'">🛒</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🚌'">🚌</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🚗'">🚗</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='⛽'">⛽</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='✈️'">✈️</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🎮'">🎮</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🎬'">🎬</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🎵'">🎵</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='📚'">📚</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💡'">💡</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💧'">💧</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='📱'">📱</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💻'">💻</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🏠'">🏠</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🏋️'">🏋️</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💊'">💊</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🐶'">🐶</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🎁'">🎁</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='👕'">👕</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🧾'">🧾</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💳'">💳</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🏦'">🏦</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='💰'">💰</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='📈'">📈</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🎯'">🎯</span>
-                  <span onclick="document.getElementById('emojiCategoria').value='🌟'">🌟</span>
-                </div>
+              <div class="icono-selector">
+                <input type="hidden" id="iconoCategoria" value="ph-house">
+                <button type="button" id="btnMostrarIconos" class="btn-icono-seleccionado">
+                  <i class="ph ph-house"></i>
+                </button>
               </div>
             </div>
             <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
@@ -215,71 +182,27 @@
 
       <!-- Vista Admin -->
       <div id="vistaAdmin" class="vista">
-  <div class="admin-dashboard">
-    <h2 class="admin-titulo">Panel de administración</h2>
-
-    <!-- Estadísticas globales -->
-    <div class="admin-stats" id="estadisticasAdmin">
-      <div class="stat-card">
-        <i class="ph ph-users"></i>
-        <span class="stat-numero" id="statUsuarios">0</span>
-        <span class="stat-etiqueta">Usuarios</span>
+        <div class="admin-panel">
+          <h2>Organizaciones</h2>
+          <div id="listaOrganizaciones"></div>
+          <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field mt-2">
+          <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear organización</button>
+          <hr class="my-4">
+          <h2>Usuarios vinculados</h2>
+          <div id="listaUsuariosAdmin"></div>
+          <div class="flex gap-2 mt-3">
+            <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
+            <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
+          </div>
+          <div id="detalleUsuarioAdmin" class="mt-4"></div>
+          <hr class="my-4">
+          <h3>Auditoría</h3>
+          <div id="listaAuditoria" class="text-sm"></div>
+          <hr class="my-4">
+          <h3>Estadísticas</h3>
+          <div id="estadisticasAdmin"></div>
+        </div>
       </div>
-      <div class="stat-card">
-        <i class="ph ph-arrow-left-right"></i>
-        <span class="stat-numero" id="statTransacciones">0</span>
-        <span class="stat-etiqueta">Transacciones</span>
-      </div>
-      <div class="stat-card">
-        <i class="ph ph-money"></i>
-        <span class="stat-numero" id="statIngresos">$0</span>
-        <span class="stat-etiqueta">Ingresos</span>
-      </div>
-      <div class="stat-card">
-        <i class="ph ph-wallet"></i>
-        <span class="stat-numero" id="statGastos">$0</span>
-        <span class="stat-etiqueta">Gastos</span>
-      </div>
-    </div>
-
-    <!-- Gestión de organizaciones -->
-    <div class="admin-seccion">
-      <div class="admin-seccion-header">
-        <h3><i class="ph ph-building"></i> Organizaciones</h3>
-        <button id="btnMostrarFormOrg" class="btn btn-outline-small">+ Nueva</button>
-      </div>
-      <div id="listaOrganizaciones"></div>
-      <div id="formOrganizacion" class="hidden mt-2">
-        <input type="text" id="nombreOrganizacion" placeholder="Nombre de la organización" class="input-field">
-        <button id="btnCrearOrganizacion" class="btn btn-primario mt-2">Crear</button>
-      </div>
-    </div>
-
-    <!-- Gestión de usuarios -->
-    <div class="admin-seccion">
-      <div class="admin-seccion-header">
-        <h3><i class="ph ph-users-three"></i> Usuarios vinculados</h3>
-      </div>
-      <div class="flex gap-2 mb-2">
-        <input type="email" id="emailUsuarioVincular" placeholder="Email del usuario" class="input-field">
-        <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
-      </div>
-      <div id="listaUsuariosAdmin"></div>
-    </div>
-
-    <!-- Detalle de usuario -->
-    <div id="detalleUsuarioAdmin" class="admin-detalle"></div>
-
-    <!-- Auditoría -->
-    <div class="admin-seccion">
-      <div class="admin-seccion-header">
-        <h3><i class="ph ph-clock-history"></i> Auditoría</h3>
-        <button id="btnExportarAuditoria" class="btn btn-outline-small">Exportar CSV</button>
-      </div>
-      <div id="listaAuditoria" class="text-sm"></div>
-    </div>
-  </div>
-</div>
     </main>
 
     <!-- Barra de navegación -->
@@ -328,6 +251,15 @@
           <button id="btnGuardarEditar" class="btn btn-primario">Guardar cambios</button>
         </div>
       </div>
+    </div>
+
+    <!-- Selector de iconos (oculto) -->
+    <div id="selectorIconosModal" class="hidden selector-iconos-modal">
+      <div class="selector-iconos-header">
+        <input type="text" id="buscarIcono" placeholder="Buscar icono..." class="input-field">
+        <button type="button" id="btnCerrarSelectorIconos" class="btn btn-outline-small">Cerrar</button>
+      </div>
+      <div id="listaIconosCategoria" class="lista-iconos"></div>
     </div>
   </div>
 
