@@ -814,3 +814,13 @@ body {
     margin-left: auto;
   }
 }
+.cliente-busqueda {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.cliente-busqueda .input-field {
+  flex: 1;
+  min-width: 150px;
+}
