@@ -130,6 +130,17 @@
       <div id="vistaCategorias" class="vista">
         <div class="categorias-container">
           <h2>Mis categorías</h2>
+
+          <!-- Búsqueda y orden -->
+          <div class="categoria-controles">
+            <input type="text" id="buscarCategoria" placeholder="Buscar categoría..." class="input-field">
+            <select id="ordenCategorias" class="input-field">
+              <option value="nombre">Nombre</option>
+              <option value="uso">Uso frecuente</option>
+              <option value="reciente">Recientes</option>
+            </select>
+          </div>
+
           <form id="formCategoria" class="form-categoria">
             <div class="form-row">
               <input type="text" id="nombreCategoria" placeholder="Nombre de la categoría" required class="input-field flex-1">
@@ -151,6 +162,7 @@
             </div>
             <button type="submit" class="btn btn-primario w-full">Agregar categoría</button>
           </form>
+
           <div id="listaCategorias" class="lista-categorias mt-4"></div>
         </div>
       </div>
@@ -253,7 +265,7 @@
       </div>
     </div>
 
-    <!-- Selector de iconos (oculto) -->
+    <!-- Selector de iconos -->
     <div id="selectorIconosModal" class="hidden selector-iconos-modal">
       <div class="selector-iconos-header">
         <input type="text" id="buscarIcono" placeholder="Buscar icono..." class="input-field">
