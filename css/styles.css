@@ -742,3 +742,75 @@ body {
 .detalle-transaccion-monto {
   font-weight: 700;
 }
+/* ========== RESPONSIVE ADMIN ========== */
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding: 1rem;
+  }
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .stat-card {
+    padding: 0.75rem;
+  }
+  .stat-card i {
+    font-size: 1.5rem;
+  }
+  .stat-numero {
+    font-size: 1.1rem;
+  }
+
+  .cliente-card {
+    padding: 0.75rem;
+  }
+  .cliente-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cliente-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+  .cliente-nombre {
+    font-size: 0.9rem;
+  }
+  .cliente-metricas {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .cliente-acciones {
+    justify-content: space-between;
+  }
+  .btn-ver-cliente,
+  .btn-editar-rol,
+  .btn-toggle-estado,
+  .btn-eliminar-cliente {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .detalle-stats {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .detalle-stat {
+    padding: 0.5rem;
+  }
+  .detalle-header {
+    flex-wrap: wrap;
+  }
+  .detalle-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  .detalle-transaccion {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .detalle-transaccion-monto {
+    margin-left: auto;
+  }
+}
