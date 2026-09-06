@@ -40,15 +40,14 @@
       snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
       if (cats.length === 0) {
         const pre = [
-          { nombre: 'salud', emoji: '⚕️', color: '#ef4444', tipo: 'gasto' },
-          { nombre: 'comida', emoji: '🍔', color: '#FF6384', tipo: 'gasto' },
-          { nombre: 'transporte', emoji: '🚌', color: '#36A2EB', tipo: 'gasto' },
-          { nombre: 'ocio', emoji: '🎮', color: '#FFCE56', tipo: 'gasto' },
-          { nombre: 'servicios', emoji: '💡', color: '#4BC0C0', tipo: 'gasto' },
-          { nombre: 'otros', emoji: '📦', color: '#9966FF', tipo: 'gasto' },
-          { nombre: 'salario', emoji: '💼', color: '#10b981', tipo: 'ingreso' },
-          { nombre: 'freelance', emoji: '💻', color: '#34d399', tipo: 'ingreso' }
-        ];
+  { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
+  { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
+  { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
+  { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
+  { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
+  { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
+  { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
+];
         const batch = db.batch();
         pre.forEach(function(c) { batch.set(db.collection('usuarios/' + uid() + '/categorias').doc(), c); });
         batch.commit();
@@ -58,14 +57,14 @@
     });
   };
 
-  App.agregarCategoria = function(nombre, emoji, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({
-      nombre: nombre.trim().toLowerCase(),
-      emoji: emoji || '📌',
-      color: color || '#10b981',
-      tipo: tipo || 'gasto'
-    });
-  };
+  App.agregarCategoria = function(nombre, icono, color, tipo) {
+  return db.collection('usuarios/' + uid() + '/categorias').add({
+    nombre: nombre.trim().toLowerCase(),
+    icono: icono || 'ph-house',
+    color: color || '#e8c84c',
+    tipo: tipo || 'gasto'
+  });
+};
 
   App.eliminarCategoria = function(id) {
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
