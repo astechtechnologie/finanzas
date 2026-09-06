@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v11.1'; // ← Incrementa este número en cada actualización
+const CACHE_NAME = 'finanzas-v11.2'; // ← Incrementa este número en cada actualización
 
 const ARCHIVOS_CACHE = [
   './',
