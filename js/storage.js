@@ -424,4 +424,22 @@
     alert('Exportación de datos aún en desarrollo');
     if (callback) callback();
   };
+  // Editar categoría existente
+App.actualizarCategoria = function(id, datos) {
+  return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
+};
+
+// Obtener preferencia de orden
+App.obtenerOrdenCategorias = function(callback) {
+  const userId = uid();
+  db.collection('usuarios').doc(userId).get().then(function(doc) {
+    const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
+    callback(orden);
+  });
+};
+
+// Guardar preferencia de orden
+App.guardarOrdenCategorias = function(orden) {
+  return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
+};
 })();
