@@ -27,6 +27,7 @@
 
     if (!vistas.inicio) return;
 
+    // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
       const clave = nombreVista.replace('vista', '').toLowerCase();
       Object.keys(vistas).forEach(function(key) {
@@ -63,7 +64,7 @@
       item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
 
-    // Iconos disponibles (más de 100)
+    // ==================== ICONOS DISPONIBLES ====================
     const iconosDisponibles = [
       'ph-house', 'ph-car', 'ph-bus', 'ph-airplane', 'ph-shopping-cart',
       'ph-graduation-cap', 'ph-heartbeat', 'ph-game-controller', 'ph-music-notes',
@@ -111,20 +112,24 @@
       generarListaIconos();
     }
 
-    addListener('btnMostrarIconos', mostrarSelectorIconos);
-    addListener('btnCerrarSelectorIconos', function() {
-      document.getElementById('selectorIconosModal').classList.add('hidden');
-    });
-    addListener('buscarIcono', function() {
-      generarListaIconos(this.value.trim().toLowerCase());
-    });
-
     function addListener(id, callback) {
       const el = document.getElementById(id);
       if (el) el.addEventListener('click', callback);
     }
 
-    // Accesos directos
+    addListener('btnMostrarIconos', mostrarSelectorIconos);
+    addListener('btnCerrarSelectorIconos', function() {
+      document.getElementById('selectorIconosModal').classList.add('hidden');
+    });
+
+    const buscarIconoInput = document.getElementById('buscarIcono');
+    if (buscarIconoInput) {
+      buscarIconoInput.addEventListener('input', function() {
+        generarListaIconos(this.value.trim().toLowerCase());
+      });
+    }
+
+    // ==================== ACCESOS DIRECTOS ====================
     addListener('btnAccesoGasto', function() {
       tipoTransaccion = 'gasto';
       document.getElementById('tabGasto')?.classList.add('active');
@@ -145,7 +150,7 @@
       setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
     });
 
-    // Filtro mes
+    // ==================== FILTRO DE MES ====================
     if (filtroMes) {
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
@@ -154,10 +159,10 @@
       });
     }
 
-    // FAB
+    // ==================== FAB ====================
     if (fab) fab.addEventListener('click', function() { modal?.classList.remove('hidden'); });
 
-    // Modales
+    // ==================== MODALES ====================
     addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
     addListener('btnGuardarModal', function() {
       const cat = document.getElementById('categoria').value;
@@ -205,7 +210,7 @@
       modalEditar?.classList.add('hidden');
     });
 
-    // Exportar CSV
+    // ==================== EXPORTAR CSV ====================
     addListener('btnExportarCSV', function() {
       App.obtenerTransacciones(function(todas) {
         const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
@@ -223,7 +228,7 @@
       });
     });
 
-    // Métodos de pago
+    // ==================== MÉTODOS DE PAGO ====================
     addListener('btnGestionarMetodos', function() {
       document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
       renderizarListaMetodosPago();
@@ -249,11 +254,12 @@
       });
     }
 
-    // Dashboard
+    // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
       const filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
       let ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
+
       const elIngresos = document.getElementById('totalIngresos');
       const elGastos = document.getElementById('totalGastos');
       const elBalance = document.getElementById('balance');
@@ -264,8 +270,10 @@
         elBalance.textContent = '$' + App.formatearMonto(balance);
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
+
       const kpiPromedio = document.getElementById('kpiPromedioDiario');
       if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
+
       const lista = document.getElementById('listaTransacciones');
       if (!lista) return;
       if (filtradas.length === 0) { lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>'; }
@@ -276,10 +284,11 @@
         });
         lista.innerHTML = html;
       }
+
       if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
     }
 
-    // Funciones auxiliares
+    // ==================== FUNCIONES AUXILIARES ====================
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       if (!select) return;
@@ -303,15 +312,20 @@
     const selectCategoria = document.getElementById('categoria');
     if (selectCategoria) selectCategoria.addEventListener('change', llenarSelectSubcategorias);
 
-    function renderizarListaCategorias() {
+    function renderizarListaCategorias(filtroTexto = '', orden = 'nombre') {
       const cont = document.getElementById('listaCategorias');
       if (!cont) return;
       if (!App.categoriasState || App.categoriasState.length === 0) {
         cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
         return;
       }
+      let cats = App.categoriasState.slice();
+      if (filtroTexto) cats = cats.filter(c => c.nombre.includes(filtroTexto.toLowerCase()));
+      if (orden === 'nombre') cats.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      else if (orden === 'reciente') cats.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+
       let html = '';
-      App.categoriasState.forEach(function(c) {
+      cats.forEach(function(c) {
         html += '<div class="cat-card">' +
           '<div class="cat-info">' +
             '<span class="cat-emoji"><i class="ph ' + c.icono + '"></i></span>' +
@@ -320,24 +334,134 @@
               '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
             '</div>' +
           '</div>' +
-          '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
+          '<div class="categoria-acciones">' +
+            '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '">✏️</button>' +
+            '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
+          '</div>' +
         '</div>';
       });
       cont.innerHTML = html;
-      cont.querySelectorAll('.btn-delete-cat').forEach(function(b) {
-        b.addEventListener('click', function() {
+
+      cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          abrirEdicionCategoria(this.dataset);
+        });
+      });
+      cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
+        btn.addEventListener('click', function() {
           if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
         });
       });
     }
 
-    // Admin (resumido, mantén las funciones que ya tienes)
-    function cargarOrganizaciones() { /* ... tu código ... */ }
-    function cargarUsuariosAdmin() { /* ... tu código ... */ }
-    function cargarAuditoria() { /* ... tu código ... */ }
-    function cargarEstadisticas() { /* ... tu código ... */ }
+    function abrirEdicionCategoria(datos) {
+      const nombre = prompt('Nombre:', datos.nombre);
+      if (!nombre) return;
+      const tipo = prompt('Tipo (gasto/ingreso):', datos.tipo);
+      if (!tipo) return;
+      const color = prompt('Color (hex):', datos.color);
+      if (!color) return;
+      const icono = prompt('Icono (ej: ph-house):', datos.icono);
+      if (!icono) return;
+      App.actualizarCategoria(datos.id, { nombre: nombre.trim().toLowerCase(), tipo: tipo, color: color, icono: icono }).then(function() {
+        App.obtenerCategorias(function(cats) {
+          App.categoriasState = cats;
+          renderizarListaCategorias();
+        });
+      });
+    }
 
-    // Carga inicial
+    addListener('buscarCategoria', function() {
+      renderizarListaCategorias(this.value, document.getElementById('ordenCategorias').value);
+    });
+    addListener('ordenCategorias', function() {
+      App.guardarOrdenCategorias(this.value);
+      renderizarListaCategorias(document.getElementById('buscarCategoria').value, this.value);
+    });
+
+    // Sugerencia automática
+    const descripcionInput = document.getElementById('descripcion');
+    if (descripcionInput) {
+      descripcionInput.addEventListener('input', function() {
+        const texto = this.value.toLowerCase();
+        const sugerencias = {
+          'comida': ['supermercado', 'restaurante', 'cena', 'almuerzo'],
+          'transporte': ['uber', 'taxi', 'bus', 'gasolina'],
+          'salud': ['medicina', 'farmacia', 'doctor'],
+          'ocio': ['cine', 'juego', 'netflix']
+        };
+        let categoriaSugerida = '';
+        (App.categoriasState || []).forEach(function(cat) {
+          const palabras = sugerencias[cat.nombre] || [];
+          palabras.forEach(function(palabra) {
+            if (texto.includes(palabra)) categoriaSugerida = cat.nombre;
+          });
+        });
+        if (categoriaSugerida) {
+          document.getElementById('categoria').value = categoriaSugerida;
+          llenarSelectSubcategorias();
+        }
+      });
+    }
+
+    // ==================== ADMIN ====================
+    function cargarOrganizaciones() {
+      const cont = document.getElementById('listaOrganizaciones');
+      if (!cont) return;
+      App.obtenerOrganizaciones(function(orgs) {
+        if (orgs.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>'; return; }
+        let html = '';
+        orgs.forEach(function(org) {
+          html += '<div class="org-item"><span><i class="ph ph-building"></i> ' + org.nombre + '</span><button class="btn-eliminar-org" data-id="' + org.id + '">✕</button></div>';
+        });
+        cont.innerHTML = html;
+        cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id);
+          });
+        });
+      });
+    }
+
+    function cargarUsuariosAdmin() {
+      const cont = document.getElementById('listaUsuariosAdmin');
+      if (!cont) return;
+      App.obtenerUsuariosVinculados(function(usuarios) {
+        if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay usuarios vinculados</p>'; return; }
+        let html = '';
+        usuarios.forEach(function(usuario) {
+          html += '<div class="usuario-admin-card"><span class="font-medium">' + usuario.email + '</span><div class="flex gap-2"><button class="btn-ver-usuario-admin text-xs" data-uid="' + usuario.uid + '">Ver</button><button class="btn-eliminar-vinculo text-red-500" data-uid="' + usuario.uid + '">✕</button></div></div>';
+        });
+        cont.innerHTML = html;
+        cont.querySelectorAll('.btn-eliminar-vinculo').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (confirm('¿Eliminar vinculación?')) App.eliminarVinculacion(this.dataset.uid);
+          });
+        });
+        cont.querySelectorAll('.btn-ver-usuario-admin').forEach(function(btn) {
+          btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
+        });
+      });
+    }
+
+    function verDetalleUsuario(usuarioUid) {
+      const detalleCont = document.getElementById('detalleUsuarioAdmin');
+      if (!detalleCont) return;
+      App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+        let totalIngresos = 0, totalGastos = 0;
+        transacciones.forEach(function(t) { if (t.tipo === 'ingreso') totalIngresos += t.monto; else totalGastos += t.monto; });
+        let html = '<div class="admin-detalle"><h4 class="font-bold">Resumen del usuario</h4><p>Ingresos: $' + App.formatearMonto(totalIngresos) + '</p><p>Gastos: $' + App.formatearMonto(totalGastos) + '</p><hr class="my-2"><h5 class="font-semibold">Últimas transacciones</h5>';
+        if (transacciones.length === 0) html += '<p class="texto-secundario">Sin transacciones</p>';
+        else transacciones.slice(0, 10).forEach(function(t) { html += '<div class="text-sm">' + t.descripcion + ' - $' + App.formatearMonto(t.monto) + '</div>'; });
+        html += '</div>';
+        detalleCont.innerHTML = html;
+      });
+    }
+
+    function cargarAuditoria() { /* ... */ }
+    function cargarEstadisticas() { /* ... */ }
+
+    // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
@@ -359,7 +483,7 @@
       });
     };
 
-    // Formulario de categoría
+    // Formulario categoría
     const formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
@@ -377,62 +501,4 @@
       });
     }
   });
-  function renderizarListaCategorias(filtroTexto = '', orden = 'nombre') {
-  const cont = document.getElementById('listaCategorias');
-  if (!cont) return;
-  if (!App.categoriasState || App.categoriasState.length === 0) {
-    cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
-    return;
-  }
-
-  let cats = App.categoriasState;
-
-  // Filtrar por texto
-  if (filtroTexto) {
-    cats = cats.filter(c => c.nombre.includes(filtroTexto.toLowerCase()));
-  }
-
-  // Ordenar
-  if (orden === 'nombre') {
-    cats.sort((a, b) => a.nombre.localeCompare(b.nombre));
-  } else if (orden === 'uso') {
-    // Aquí podrías usar un contador de transacciones por categoría
-    // Por ahora ordenamos por nombre (placeholder)
-    cats.sort((a, b) => a.nombre.localeCompare(b.nombre));
-  } else if (orden === 'reciente') {
-    cats.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
-  }
-
-  let html = '';
-  cats.forEach(function(c) {
-    html += '<div class="cat-card">' +
-      '<div class="cat-info">' +
-        '<span class="cat-emoji"><i class="ph ' + c.icono + '"></i></span>' +
-        '<div class="cat-detalles">' +
-          '<span class="cat-nombre">' + c.nombre + '</span>' +
-          '<span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="categoria-acciones">' +
-        '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '">✏️</button>' +
-        '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
-      '</div>' +
-    '</div>';
-  });
-  cont.innerHTML = html;
-
-  // Eventos editar
-  cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      abrirEdicionCategoria(this.dataset);
-    });
-  });
-
-  // Eventos eliminar
-  cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id);
-    });
-  });
-}
 })();
