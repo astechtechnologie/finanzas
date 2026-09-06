@@ -500,3 +500,11 @@ body {
   background: var(--primario);
   border-color: var(--primario);
 }
+.categoria-controles {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.categoria-controles .input-field {
+  flex: 1;
+}
