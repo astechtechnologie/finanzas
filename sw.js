@@ -13,10 +13,10 @@ const ARCHIVOS_CACHE = [
   './js/ui-presupuesto.js',
   './js/app.js',
   './manifest.json',
-  './icon.svg'
+  './logo-192.png',
+  './logo-512.png'
 ];
 
-// Instalación
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -25,7 +25,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activación
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
@@ -34,7 +33,6 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Estrategia network-first
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
