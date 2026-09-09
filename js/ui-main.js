@@ -10,6 +10,7 @@
     var tipoTransaccion = 'ingreso';
     var metodosPago = [];
     App.subcategoriasPorCategoria = {};
+    App.espacioActual = 'personal'; // Espacio por defecto
 
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
@@ -24,10 +25,11 @@
     var modalEditar = document.getElementById('modalEditarTransaccion');
     var fab = document.getElementById('fabAgregar');
     var filtroMes = document.getElementById('filtroMesHeader');
+    var selectorEspacio = document.getElementById('selectorEspacio');
 
     if (!vistas.inicio) return;
 
-    // ==================== SALUDO PERSONALIZADO ====================
+    // ==================== SALUDO ====================
     const horaActual = new Date().getHours();
     let saludo = 'Buenos días';
     if (horaActual >= 12 && horaActual < 18) saludo = 'Buenas tardes';
@@ -72,7 +74,25 @@
       item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
 
-    // ==================== ICONOS DISPONIBLES ====================
+    // ==================== ESPACIOS ====================
+    function cargarEspacios() {
+      App.obtenerEspacios(function(espacios) {
+        if (!selectorEspacio) return;
+        selectorEspacio.innerHTML = espacios.map(function(e) {
+          return '<option value="' + e.id + '">' + e.nombre + '</option>';
+        }).join('');
+        selectorEspacio.value = App.espacioActual;
+      });
+    }
+
+    if (selectorEspacio) {
+      selectorEspacio.addEventListener('change', function() {
+        App.espacioActual = this.value;
+        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+      });
+    }
+
+    // ==================== ICONOS ====================
     const iconosDisponibles = [
       'ph-house', 'ph-car', 'ph-bus', 'ph-airplane', 'ph-shopping-cart',
       'ph-graduation-cap', 'ph-heartbeat', 'ph-game-controller', 'ph-music-notes',
@@ -158,7 +178,7 @@
       setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
     });
 
-    // ==================== FILTRO DE MES ====================
+    // ==================== FILTRO MES ====================
     if (filtroMes) {
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
@@ -180,8 +200,9 @@
       const monto = parseFloat(montoLimpio) || 0;
       const fecha = document.getElementById('fecha').value;
       const metodoPago = document.getElementById('metodoPago').value || null;
+      const espacioId = App.espacioActual;
       if (!cat || !desc || !monto) return;
-      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago);
+      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago, espacioId);
       modal?.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
@@ -221,7 +242,7 @@
     // ==================== EXPORTAR CSV ====================
     addListener('btnExportarCSV', function() {
       App.obtenerTransacciones(function(todas) {
-        const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+        const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.espacioActual; });
         let csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
         filtradas.forEach(function(t) {
           csv += t.tipo + ',' + t.categoria + ',' + (t.subcategoria || '') + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
@@ -264,7 +285,9 @@
 
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
-      const filtradas = transacciones.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado); });
+      const filtradas = transacciones.filter(function(t) {
+        return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.espacioActual;
+      });
       let ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
 
@@ -279,7 +302,6 @@
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
-      // KPIs
       const kpiPromedio = document.getElementById('kpiPromedioDiario');
       if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
 
@@ -311,10 +333,10 @@
         lista.innerHTML = html;
       }
 
-      if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
+      if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(filtradas, mesSeleccionado);
     }
 
-    // ==================== FUNCIONES AUXILIARES ====================
+    // ==================== CATEGORÍAS ====================
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       if (!select) return;
@@ -556,6 +578,7 @@
         App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
         App.actualizarBotonAdmin();
+        cargarEspacios();
       });
     };
 
