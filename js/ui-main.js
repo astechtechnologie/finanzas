@@ -34,10 +34,25 @@
   App.obtenerCuentas(function(cuentas) {
     const select = document.getElementById('selectorCuenta');
     if (!select) return;
+
     select.innerHTML = cuentas.map(function(c) {
       return '<option value="' + c.id + '">' + c.nombre + '</option>';
     }).join('');
+
+    // Si no hay cuenta actual definida, usar "Personal"
+    if (!App.cuentaActual || App.cuentaActual === 'personal') {
+      const personal = cuentas.find(function(c) { return c.nombre === 'Personal'; });
+      if (personal) {
+        App.cuentaActual = personal.id; // Asignar el ID real de Personal
+      } else if (cuentas.length > 0) {
+        App.cuentaActual = cuentas[0].id;
+      }
+    }
+
     select.value = App.cuentaActual;
+
+    // Recargar transacciones con la cuenta correcta
+    App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
   });
 }
 
