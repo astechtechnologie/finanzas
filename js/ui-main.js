@@ -39,7 +39,6 @@
 
     // ==================== CUENTAS ====================
     function cargarCuentas() {
-      if (typeof App.obtenerCuentas !== 'function') return;
       App.obtenerCuentas(function(cuentas) {
         const select = document.getElementById('selectorCuenta');
         if (!select) return;
@@ -88,14 +87,11 @@
         if (vistas[key]) vistas[key].classList.remove('activa');
       });
       if (vistas[clave]) vistas[clave].classList.add('activa');
-
       navItems.forEach(function(item) { item.classList.remove('active'); });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
-
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
-
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') App.cargarPantallaPresupuesto();
       if (clave === 'categorias') {
         App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
@@ -165,15 +161,13 @@
     }
 
     function mostrarSelectorIconos() {
-      const modalIconos = document.getElementById('selectorIconosModal');
-      if (modalIconos) modalIconos.classList.remove('hidden');
+      document.getElementById('selectorIconosModal').classList.remove('hidden');
       generarListaIconos();
     }
 
     addListener('btnMostrarIconos', mostrarSelectorIconos);
     addListener('btnCerrarSelectorIconos', function() {
-      const modalIconos = document.getElementById('selectorIconosModal');
-      if (modalIconos) modalIconos.classList.add('hidden');
+      document.getElementById('selectorIconosModal').classList.add('hidden');
     });
 
     const buscarIconoInput = document.getElementById('buscarIcono');
@@ -189,14 +183,14 @@
       document.getElementById('tabGasto')?.classList.add('active');
       document.getElementById('tabIngreso')?.classList.remove('active');
       llenarSelectCategorias();
-      if (modal) modal.classList.remove('hidden');
+      modal?.classList.remove('hidden');
     });
     addListener('btnAccesoIngreso', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso')?.classList.add('active');
       document.getElementById('tabGasto')?.classList.remove('active');
       llenarSelectCategorias();
-      if (modal) modal.classList.remove('hidden');
+      modal?.classList.remove('hidden');
     });
     addListener('btnAccesoPresupuesto', function() { cambiarVista('vistaPresupuesto'); });
     addListener('btnAccesoMetas', function() {
@@ -213,10 +207,10 @@
       });
     }
 
-    if (fab) fab.addEventListener('click', function() { if (modal) modal.classList.remove('hidden'); });
+    if (fab) fab.addEventListener('click', function() { modal?.classList.remove('hidden'); });
 
     // ==================== MODALES ====================
-    addListener('btnCancelarModal', function() { if (modal) modal.classList.add('hidden'); });
+    addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
     addListener('btnGuardarModal', function() {
       const cat = document.getElementById('categoria').value;
       const subcat = document.getElementById('subcategoria').value || null;
@@ -228,7 +222,7 @@
       const cuentaId = App.cuentaActual;
       if (!cat || !desc || !monto) return;
       App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago, cuentaId);
-      if (modal) modal.classList.add('hidden');
+      modal?.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
     });
@@ -249,7 +243,7 @@
     const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
-    addListener('btnCancelarEditar', function() { if (modalEditar) modalEditar.classList.add('hidden'); });
+    addListener('btnCancelarEditar', function() { modalEditar?.classList.add('hidden'); });
     addListener('btnGuardarEditar', function() {
       const id = document.getElementById('idTransaccionEditar').value;
       const cat = document.getElementById('categoriaEditar').value;
@@ -261,7 +255,7 @@
       const metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
       App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
-      if (modalEditar) modalEditar.classList.add('hidden');
+      modalEditar?.classList.add('hidden');
     });
 
     // ==================== EXPORTAR CSV ====================
@@ -284,8 +278,7 @@
 
     // ==================== MÉTODOS DE PAGO ====================
     addListener('btnGestionarMetodos', function() {
-      const panel = document.getElementById('panelMetodosPago');
-      if (panel) panel.classList.toggle('hidden');
+      document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
       renderizarListaMetodosPago();
     });
     addListener('btnAgregarMetodoPago', function() {
@@ -328,24 +321,18 @@
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
-      const kpiPromedio = document.getElementById('kpiPromedioDiario');
-      if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
-
-      App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
-        const limitesGastos = limites.gastos || {};
-        let totalPresupuesto = 0;
-        Object.keys(limitesGastos).forEach(cat => totalPresupuesto += (limitesGastos[cat].limite || 0));
-        if (totalPresupuesto > 0) {
-          const porcentaje = (gastos / totalPresupuesto) * 100;
-          const barraRapida = document.getElementById('barraPresupuestoRapida');
-          const fill = document.getElementById('fillPresupuestoRapido');
-          if (barraRapida && fill) {
-            barraRapida.classList.remove('hidden');
-            fill.style.width = Math.min(porcentaje, 100) + '%';
-            fill.style.backgroundColor = porcentaje > 100 ? '#ff4444' : porcentaje > 80 ? '#f97316' : '#e8c84c';
-          }
-        }
-      });
+      // Métricas de negocio si es empresa
+      if (App.cuentaActual && App.cuentaActual !== 'personal') {
+        App.obtenerVentas(function(ventas) {
+          const totalVentas = ventas.filter(v => v.fecha && v.fecha.startsWith(mesSeleccionado)).reduce((s, v) => s + v.monto, 0);
+          const ganancia = totalVentas - gastos;
+          const ticketPromedio = ventas.length > 0 ? totalVentas / ventas.length : 0;
+          const kpiGanancia = document.getElementById('kpiAhorro');
+          const kpiTicket = document.getElementById('kpiCategoriaTop');
+          if (kpiGanancia) kpiGanancia.textContent = '$' + App.formatearMonto(ganancia);
+          if (kpiTicket) kpiTicket.textContent = '$' + App.formatearMonto(ticketPromedio);
+        });
+      }
 
       const lista = document.getElementById('listaTransacciones');
       if (!lista) return;
@@ -445,7 +432,7 @@
     // ==================== ADMIN ====================
     function cargarOrganizaciones() {
       const cont = document.getElementById('listaOrganizaciones');
-      if (!cont || typeof App.obtenerOrganizaciones !== 'function') return;
+      if (!cont) return;
       App.obtenerOrganizaciones(function(orgs) {
         if (orgs.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>'; return; }
         let html = '';
@@ -461,7 +448,7 @@
 
     function cargarUsuariosAdmin() {
       const cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont || typeof App.obtenerUsuariosVinculados !== 'function') return;
+      if (!cont) return;
       App.obtenerUsuariosVinculados(function(usuarios) {
         if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
         let html = '';
@@ -556,7 +543,7 @@
 
     function cargarAuditoria() {
       const cont = document.getElementById('listaAuditoria');
-      if (!cont || typeof App.obtenerAuditoria !== 'function') return;
+      if (!cont) return;
       App.obtenerAuditoria(function(registros) {
         if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
         let html = '';
@@ -566,7 +553,6 @@
     }
 
     function cargarEstadisticas() {
-      if (typeof App.obtenerEstadisticasGlobales !== 'function') return;
       App.obtenerEstadisticasGlobales(function(est) {
         const elUsuarios = document.getElementById('statUsuarios');
         const elTransacciones = document.getElementById('statTransacciones');
@@ -582,7 +568,7 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      if (typeof App.obtenerCuentas === 'function') cargarCuentas();
+      cargarCuentas();
 
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
