@@ -234,4 +234,31 @@
     }
     renderizarPresupuestoMensual();
   };
+  // ===== CUENTAS =====
+App.obtenerCuentas = function(callback) {
+  const userId = uid();
+  return db.collection('usuarios/' + userId + '/cuentas').onSnapshot(function(snap) {
+    const cuentas = [];
+    snap.forEach(function(doc) { cuentas.push(Object.assign({ id: doc.id }, doc.data())); });
+    if (cuentas.length === 0) {
+      db.collection('usuarios/' + userId + '/cuentas').add({ nombre: 'Personal', tipo: 'personal', color: '#e8c84c' });
+      return;
+    }
+    callback(cuentas);
+  });
+};
+
+App.agregarCuenta = function(nombre, tipo, color) {
+  const userId = uid();
+  return db.collection('usuarios/' + userId + '/cuentas').add({
+    nombre: nombre.trim(),
+    tipo: tipo || 'personal',
+    color: color || '#e8c84c'
+  });
+};
+
+App.eliminarCuenta = function(cuentaId) {
+  const userId = uid();
+  return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
+};
 })();
