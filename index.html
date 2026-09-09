@@ -88,45 +88,60 @@
 
       <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
-        <div class="inicio-logo">
-          <img src="logo-192.png" alt="Finora" class="logo-inicio">
-        </div>
-        <div class="resumen-grid">
-          <div class="resumen-card ingreso-card"><span>Ingresos</span><strong id="totalIngresos">$0</strong></div>
-          <div class="resumen-card gasto-card"><span>Gastos</span><strong id="totalGastos">$0</strong></div>
-        </div>
-        <div class="balance-card"><span>Balance del mes</span><strong id="balance"></strong></div>
+  <div class="inicio-saludo">
+    <h2 id="saludoUsuario" class="saludo-texto">Buenos días</h2>
+    <p class="texto-secundario">Este es tu resumen del mes</p>
+  </div>
 
-        <div class="accesos-rapidos">
-          <button id="btnAccesoGasto" class="btn-acceso"><i class="ph ph-plus-circle"></i><span>Gasto</span></button>
-          <button id="btnAccesoIngreso" class="btn-acceso"><i class="ph ph-money"></i><span>Ingreso</span></button>
-          <button id="btnAccesoPresupuesto" class="btn-acceso"><i class="ph ph-wallet"></i><span>Presupuesto</span></button>
-          <button id="btnAccesoMetas" class="btn-acceso"><i class="ph ph-piggy-bank"></i><span>Metas</span></button>
-        </div>
+  <div class="resumen-grid">
+    <div class="resumen-card ingreso-card">
+      <i class="ph ph-trend-up"></i>
+      <span>Ingresos</span>
+      <strong id="totalIngresos">$0</strong>
+    </div>
+    <div class="resumen-card gasto-card">
+      <i class="ph ph-trend-down"></i>
+      <span>Gastos</span>
+      <strong id="totalGastos">$0</strong>
+    </div>
+  </div>
 
-        <div class="kpi-grid" id="kpiContainer">
-          <div class="kpi-card"><span class="kpi-icon">📅</span><span class="kpi-label">Promedio diario</span><strong id="kpiPromedioDiario" class="kpi-valor">$0</strong></div>
-          <div class="kpi-card"><span class="kpi-icon">🔥</span><span class="kpi-label">Categoría top</span><strong id="kpiCategoriaTop" class="kpi-valor">-</strong></div>
-          <div class="kpi-card"><span class="kpi-icon">🐷</span><span class="kpi-label">Ahorro</span><strong id="kpiAhorro" class="kpi-valor">0%</strong></div>
-          <div class="kpi-card"><span class="kpi-icon">📊</span><span class="kpi-label">vs Mes anterior</span><strong id="kpiVariacion" class="kpi-valor">-</strong></div>
-          <div class="kpi-card"><span class="kpi-icon">🎯</span><span class="kpi-label">Metas</span><strong id="kpiMetas" class="kpi-valor">0</strong></div>
-          <div class="kpi-card"><span class="kpi-icon">💰</span><span class="kpi-label">Ahorro en metas</span><strong id="kpiAhorroMetas" class="kpi-valor">$0</strong></div>
-        </div>
+  <div class="balance-card">
+    <span>Balance del mes</span>
+    <strong id="balance"></strong>
+    <div id="barraPresupuestoRapida" class="hidden mt-2">
+      <div class="progress-bar"><div id="fillPresupuestoRapido" class="progress-fill"></div></div>
+    </div>
+  </div>
 
-        <select id="filtroMetodoPago" class="input-field mb-2"><option value="">Todos los métodos de pago</option></select>
+  <div class="accesos-rapidos">
+    <button id="btnAccesoGasto" class="btn-acceso"><i class="ph ph-plus-circle"></i><span>Gasto</span></button>
+    <button id="btnAccesoIngreso" class="btn-acceso"><i class="ph ph-money"></i><span>Ingreso</span></button>
+    <button id="btnAccesoPresupuesto" class="btn-acceso"><i class="ph ph-wallet"></i><span>Presupuesto</span></button>
+    <button id="btnAccesoMetas" class="btn-acceso"><i class="ph ph-piggy-bank"></i><span>Metas</span></button>
+  </div>
 
-        <div class="tendencia-container tarjeta p-4 mb-4">
-          <h3 class="text-sm font-semibold mb-2">📈 Tendencia últimos meses</h3>
-          <canvas id="graficaTendencia" class="max-h-32"></canvas>
-        </div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><i class="ph ph-calendar"></i><span class="kpi-label">Promedio diario</span><strong id="kpiPromedioDiario" class="kpi-valor">$0</strong></div>
+    <div class="kpi-card"><i class="ph ph-fire"></i><span class="kpi-label">Categoría top</span><strong id="kpiCategoriaTop" class="kpi-valor">-</strong></div>
+    <div class="kpi-card"><i class="ph ph-piggy-bank"></i><span class="kpi-label">Ahorro</span><strong id="kpiAhorro" class="kpi-valor">0%</strong></div>
+    <div class="kpi-card"><i class="ph ph-chart-bar"></i><span class="kpi-label">vs Mes anterior</span><strong id="kpiVariacion" class="kpi-valor">-</strong></div>
+    <div class="kpi-card"><i class="ph ph-target"></i><span class="kpi-label">Metas</span><strong id="kpiMetas" class="kpi-valor">0</strong></div>
+    <div class="kpi-card"><i class="ph ph-bank"></i><span class="kpi-label">Ahorro en metas</span><strong id="kpiAhorroMetas" class="kpi-valor">$0</strong></div>
+  </div>
 
-        <div class="movimientos-container">
-          <h2>Movimientos</h2>
-          <div id="listaTransacciones"></div>
-        </div>
+  <div class="tendencia-container">
+    <h3 class="text-sm font-semibold mb-2">Tendencia últimos meses</h3>
+    <canvas id="graficaTendencia" class="max-h-32"></canvas>
+  </div>
 
-        <button id="fabAgregar" class="fab"><i class="ph ph-plus"></i></button>
-      </div>
+  <div class="movimientos-container">
+    <h2>Movimientos</h2>
+    <div id="listaTransacciones"></div>
+  </div>
+
+  <button id="fabAgregar" class="fab"><i class="ph ph-plus"></i></button>
+</div>
 
       <!-- Vista Presupuesto -->
       <div id="vistaPresupuesto" class="vista">
