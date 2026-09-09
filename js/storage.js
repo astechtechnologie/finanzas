@@ -442,4 +442,22 @@ App.obtenerOrdenCategorias = function(callback) {
 App.guardarOrdenCategorias = function(orden) {
   return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
 };
+  // ===== ESPACIOS (Personal, Negocio, etc.) =====
+App.obtenerEspacios = function(callback) {
+  const userId = uid();
+  return db.collection('usuarios/' + userId + '/espacios').onSnapshot(function(snap) {
+    const espacios = [];
+    snap.forEach(function(doc) { espacios.push(Object.assign({ id: doc.id }, doc.data())); });
+    if (espacios.length === 0) {
+      db.collection('usuarios/' + userId + '/espacios').add({ nombre: 'Personal', tipo: 'personal' });
+      return;
+    }
+    callback(espacios);
+  });
+};
+
+App.agregarEspacio = function(nombre, tipo) {
+  const userId = uid();
+  return db.collection('usuarios/' + userId + '/espacios').add({ nombre: nombre, tipo: tipo || 'personal' });
+};
 })();
