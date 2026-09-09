@@ -16,29 +16,107 @@
 
   // ==================== PRESUPUESTO MENSUAL ====================
   function renderizarPresupuestoMensual() {
-    var cont = document.getElementById('presupuestoContenido');
-    if (!cont) return;
-    var html = '';
-    html += '<div class="presupuesto-subtabs">';
-    html += '<button id="subtabGastos" class="presupuesto-subtab active">Gastos</button>';
-    html += '<button id="subtabIngresos" class="presupuesto-subtab">Ingresos</button>';
-    html += '</div>';
-    html += '<div id="presupuestoMensualContenido"></div>';
-    cont.innerHTML = html;
+  const cont = document.getElementById('presupuestoContenido');
+  if (!cont) return;
 
-    document.getElementById('subtabGastos').addEventListener('click', function() {
-      document.getElementById('subtabGastos').classList.add('active');
-      document.getElementById('subtabIngresos').classList.remove('active');
-      renderizarVistaPresupuesto('gasto');
-    });
-    document.getElementById('subtabIngresos').addEventListener('click', function() {
-      document.getElementById('subtabIngresos').classList.add('active');
-      document.getElementById('subtabGastos').classList.remove('active');
-      renderizarVistaPresupuesto('ingreso');
-    });
+  let pasoActual = 1;
+  let ingresos = 0;
+  let categoriasPresupuesto = [];
 
-    renderizarVistaPresupuesto('gasto');
+  function mostrarPaso1() {
+    cont.innerHTML = `
+      <div class="presupuesto-asistente">
+        <h3>Paso 1: Ingresa tus ingresos</h3>
+        <p>¿Cuánto dinero recibes este mes?</p>
+        <input type="number" id="inputIngresos" placeholder="Ej: 3000000" class="input-field">
+        <button id="btnPaso1" class="btn btn-primario w-full mt-2">Continuar</button>
+      </div>
+    `;
+    document.getElementById('btnPaso1').addEventListener('click', () => {
+      ingresos = parseFloat(document.getElementById('inputIngresos').value) || 0;
+      if (ingresos <= 0) return alert('Ingresa un monto válido');
+      pasoActual = 2;
+      mostrarPaso2();
+    });
   }
+
+  function mostrarPaso2() {
+    cont.innerHTML = `
+      <div class="presupuesto-asistente">
+        <h3>Paso 2: Asigna límites</h3>
+        <p>Distribuye tus gastos por categoría</p>
+        <div id="listaCategoriasPaso2"></div>
+        <p>Total asignado: <strong id="totalAsignado">$0</strong></p>
+        <p>Restante: <strong id="restanteAsignado">$${App.formatearMonto(ingresos)}</strong></p>
+        <button id="btnPaso2" class="btn btn-primario w-full mt-2">Continuar</button>
+      </div>
+    `;
+
+    App.obtenerCategorias(function(cats) {
+      categoriasPresupuesto = cats.filter(c => c.tipo === 'gasto');
+      const lista = document.getElementById('listaCategoriasPaso2');
+      lista.innerHTML = categoriasPresupuesto.map(c => {
+        return `<div class="cat-presupuesto-item">
+          <span><i class="ph ${c.icono}"></i> ${c.nombre}</span>
+          <input type="number" class="input-limite-cat" data-cat="${c.nombre}" placeholder="Límite" class="input-field">
+        </div>`;
+      }).join('');
+
+      // Actualizar totales al escribir
+      lista.querySelectorAll('.input-limite-cat').forEach(input => {
+        input.addEventListener('input', actualizarTotales);
+      });
+    });
+
+    function actualizarTotales() {
+      let total = 0;
+      document.querySelectorAll('.input-limite-cat').forEach(inp => {
+        total += parseFloat(inp.value) || 0;
+      });
+      document.getElementById('totalAsignado').textContent = '$' + App.formatearMonto(total);
+      document.getElementById('restanteAsignado').textContent = '$' + App.formatearMonto(ingresos - total);
+    }
+
+    document.getElementById('btnPaso2').addEventListener('click', () => {
+      pasoActual = 3;
+      mostrarPaso3();
+    });
+  }
+
+  function mostrarPaso3() {
+    let totalAsignado = 0;
+    document.querySelectorAll('.input-limite-cat').forEach(inp => {
+      totalAsignado += parseFloat(inp.value) || 0;
+    });
+
+    cont.innerHTML = `
+      <div class="presupuesto-asistente">
+        <h3>Paso 3: Resumen</h3>
+        <p>Ingresos: $${App.formatearMonto(ingresos)}</p>
+        <p>Total asignado: $${App.formatearMonto(totalAsignado)}</p>
+        <p>Restante para ahorro: $${App.formatearMonto(ingresos - totalAsignado)}</p>
+        <button id="btnGuardarPresupuesto" class="btn btn-primario w-full mt-2">Guardar presupuesto</button>
+      </div>
+    `;
+
+    document.getElementById('btnGuardarPresupuesto').addEventListener('click', () => {
+      const mes = App.obtenerMesActual();
+      const limites = {};
+      document.querySelectorAll('.input-limite-cat').forEach(inp => {
+        limites[inp.dataset.cat] = parseFloat(inp.value) || 0;
+      });
+      // Guardar en Firestore
+      Object.keys(limites).forEach(cat => {
+        App.guardarLimiteCategoria(mes, 'gasto', cat, limites[cat], () => {});
+      });
+      alert('Presupuesto guardado correctamente');
+      renderizarPresupuestoMensual(); // Volver a cargar
+    });
+  }
+
+  // Iniciar asistente
+  mostrarPaso1();
+}
 
   function renderizarVistaPresupuesto(tipo) {
     var cont = document.getElementById('presupuestoMensualContenido');
