@@ -953,3 +953,13 @@ body {
   margin: 0 auto;
   display: block;
 }
+.header-logo {
+  display: flex;
+  align-items: center;
+}
+.logo-header {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
