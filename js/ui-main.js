@@ -39,6 +39,7 @@
 
     // ==================== CUENTAS ====================
     function cargarCuentas() {
+      if (typeof App.obtenerCuentas !== 'function') return;
       App.obtenerCuentas(function(cuentas) {
         const select = document.getElementById('selectorCuenta');
         if (!select) return;
@@ -47,19 +48,13 @@
           return '<option value="' + c.id + '">' + c.nombre + '</option>';
         }).join('');
 
-        // Si no hay cuenta actual definida, usar "Personal"
         if (!App.cuentaActual || App.cuentaActual === 'personal') {
           const personal = cuentas.find(function(c) { return c.nombre === 'Personal'; });
-          if (personal) {
-            App.cuentaActual = personal.id;
-          } else if (cuentas.length > 0) {
-            App.cuentaActual = cuentas[0].id;
-          }
+          if (personal) App.cuentaActual = personal.id;
+          else if (cuentas.length > 0) App.cuentaActual = cuentas[0].id;
         }
 
         select.value = App.cuentaActual;
-
-        // Recargar transacciones con la cuenta correcta
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
     }
@@ -69,6 +64,11 @@
         App.cuentaActual = this.value;
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
+    }
+
+    function addListener(id, callback) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', callback);
     }
 
     addListener('btnNuevaCuenta', function() {
@@ -81,11 +81,6 @@
       }
     });
 
-    function addListener(id, callback) {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', callback);
-    }
-
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
       const clave = nombreVista.replace('vista', '').toLowerCase();
@@ -93,11 +88,14 @@
         if (vistas[key]) vistas[key].classList.remove('activa');
       });
       if (vistas[clave]) vistas[clave].classList.add('activa');
+
       navItems.forEach(function(item) { item.classList.remove('active'); });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
+
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
+
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') App.cargarPantallaPresupuesto();
       if (clave === 'categorias') {
         App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
@@ -167,13 +165,15 @@
     }
 
     function mostrarSelectorIconos() {
-      document.getElementById('selectorIconosModal').classList.remove('hidden');
+      const modalIconos = document.getElementById('selectorIconosModal');
+      if (modalIconos) modalIconos.classList.remove('hidden');
       generarListaIconos();
     }
 
     addListener('btnMostrarIconos', mostrarSelectorIconos);
     addListener('btnCerrarSelectorIconos', function() {
-      document.getElementById('selectorIconosModal').classList.add('hidden');
+      const modalIconos = document.getElementById('selectorIconosModal');
+      if (modalIconos) modalIconos.classList.add('hidden');
     });
 
     const buscarIconoInput = document.getElementById('buscarIcono');
@@ -189,14 +189,14 @@
       document.getElementById('tabGasto')?.classList.add('active');
       document.getElementById('tabIngreso')?.classList.remove('active');
       llenarSelectCategorias();
-      modal?.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
     });
     addListener('btnAccesoIngreso', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso')?.classList.add('active');
       document.getElementById('tabGasto')?.classList.remove('active');
       llenarSelectCategorias();
-      modal?.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
     });
     addListener('btnAccesoPresupuesto', function() { cambiarVista('vistaPresupuesto'); });
     addListener('btnAccesoMetas', function() {
@@ -213,11 +213,10 @@
       });
     }
 
-    // ==================== FAB ====================
-    if (fab) fab.addEventListener('click', function() { modal?.classList.remove('hidden'); });
+    if (fab) fab.addEventListener('click', function() { if (modal) modal.classList.remove('hidden'); });
 
     // ==================== MODALES ====================
-    addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
+    addListener('btnCancelarModal', function() { if (modal) modal.classList.add('hidden'); });
     addListener('btnGuardarModal', function() {
       const cat = document.getElementById('categoria').value;
       const subcat = document.getElementById('subcategoria').value || null;
@@ -229,7 +228,7 @@
       const cuentaId = App.cuentaActual;
       if (!cat || !desc || !monto) return;
       App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago, cuentaId);
-      modal?.classList.add('hidden');
+      if (modal) modal.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
     });
@@ -250,7 +249,7 @@
     const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
-    addListener('btnCancelarEditar', function() { modalEditar?.classList.add('hidden'); });
+    addListener('btnCancelarEditar', function() { if (modalEditar) modalEditar.classList.add('hidden'); });
     addListener('btnGuardarEditar', function() {
       const id = document.getElementById('idTransaccionEditar').value;
       const cat = document.getElementById('categoriaEditar').value;
@@ -262,7 +261,7 @@
       const metodoPago = document.getElementById('metodoPagoEditar').value || null;
       if (!id || !cat || !desc || isNaN(monto)) return;
       App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc, monto: monto, fecha: fecha, metodoPago: metodoPago });
-      modalEditar?.classList.add('hidden');
+      if (modalEditar) modalEditar.classList.add('hidden');
     });
 
     // ==================== EXPORTAR CSV ====================
@@ -285,7 +284,8 @@
 
     // ==================== MÉTODOS DE PAGO ====================
     addListener('btnGestionarMetodos', function() {
-      document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
+      const panel = document.getElementById('panelMetodosPago');
+      if (panel) panel.classList.toggle('hidden');
       renderizarListaMetodosPago();
     });
     addListener('btnAgregarMetodoPago', function() {
@@ -442,30 +442,10 @@
       renderizarListaCategorias(document.getElementById('buscarCategoria').value, this.value);
     });
 
-    // Sugerencia automática
-    const descripcionInput = document.getElementById('descripcion');
-    if (descripcionInput) {
-      descripcionInput.addEventListener('input', function() {
-        const texto = this.value.toLowerCase();
-        const sugerencias = {
-          'comida': ['supermercado', 'restaurante', 'cena', 'almuerzo'],
-          'transporte': ['uber', 'taxi', 'bus', 'gasolina'],
-          'salud': ['medicina', 'farmacia', 'doctor'],
-          'ocio': ['cine', 'juego', 'netflix']
-        };
-        let categoriaSugerida = '';
-        (App.categoriasState || []).forEach(function(cat) {
-          const palabras = sugerencias[cat.nombre] || [];
-          palabras.forEach(function(palabra) { if (texto.includes(palabra)) categoriaSugerida = cat.nombre; });
-        });
-        if (categoriaSugerida) { document.getElementById('categoria').value = categoriaSugerida; llenarSelectSubcategorias(); }
-      });
-    }
-
     // ==================== ADMIN ====================
     function cargarOrganizaciones() {
       const cont = document.getElementById('listaOrganizaciones');
-      if (!cont) return;
+      if (!cont || typeof App.obtenerOrganizaciones !== 'function') return;
       App.obtenerOrganizaciones(function(orgs) {
         if (orgs.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>'; return; }
         let html = '';
@@ -481,7 +461,7 @@
 
     function cargarUsuariosAdmin() {
       const cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont) return;
+      if (!cont || typeof App.obtenerUsuariosVinculados !== 'function') return;
       App.obtenerUsuariosVinculados(function(usuarios) {
         if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
         let html = '';
@@ -576,7 +556,7 @@
 
     function cargarAuditoria() {
       const cont = document.getElementById('listaAuditoria');
-      if (!cont) return;
+      if (!cont || typeof App.obtenerAuditoria !== 'function') return;
       App.obtenerAuditoria(function(registros) {
         if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
         let html = '';
@@ -586,31 +566,32 @@
     }
 
     function cargarEstadisticas() {
+      if (typeof App.obtenerEstadisticasGlobales !== 'function') return;
       App.obtenerEstadisticasGlobales(function(est) {
-        document.getElementById('statUsuarios').textContent = est.usuarios;
-        document.getElementById('statTransacciones').textContent = est.transacciones;
-        document.getElementById('statIngresos').textContent = '$' + App.formatearMonto(est.ingresos);
-        document.getElementById('statGastos').textContent = '$' + App.formatearMonto(est.gastos);
+        const elUsuarios = document.getElementById('statUsuarios');
+        const elTransacciones = document.getElementById('statTransacciones');
+        const elIngresos = document.getElementById('statIngresos');
+        const elGastos = document.getElementById('statGastos');
+
+        if (elUsuarios) elUsuarios.textContent = est.usuarios;
+        if (elTransacciones) elTransacciones.textContent = est.transacciones;
+        if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(est.ingresos);
+        if (elGastos) elGastos.textContent = '$' + App.formatearMonto(est.gastos);
       });
     }
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      cargarCuentas();
+      if (typeof App.obtenerCuentas === 'function') cargarCuentas();
 
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
         llenarSelectCategorias();
         renderizarListaCategorias();
 
-        App.obtenerMetodosPago(function(metodos) {
-          metodosPago = metodos;
-        });
+        App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
 
-        App.obtenerTransacciones(function(t) {
-          actualizarDashboard(t);
-        }, App.cuentaActual);
-
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
         App.actualizarBotonAdmin();
       });
     };
