@@ -215,8 +215,53 @@
       <button class="nav-item hidden" data-vista="vistaAdmin" id="btnAdmin"><i class="ph ph-users"></i><span>Admin</span></button>
     </nav>
 
-    <!-- Modales -->
-    <!-- ... (mantén los modales existentes) ... -->
+    <!-- Modal AGREGAR transacción -->
+    <div id="modalTransaccion" class="modal hidden">
+      <div class="modal-content">
+        <h2>Nueva transacción</h2>
+        <div class="tab-group">
+          <button id="tabIngreso" class="tab active">Ingreso</button>
+          <button id="tabGasto" class="tab">Gasto</button>
+        </div>
+        <input type="date" id="fecha" class="input-field">
+        <select id="categoria" class="input-field"></select>
+        <select id="subcategoria" class="input-field"><option value="">Sin subcategoría</option></select>
+        <select id="metodoPago" class="input-field"><option value="">Método de pago (opcional)</option></select>
+        <input type="text" id="descripcion" placeholder="Descripción" class="input-field">
+        <input type="text" id="monto" placeholder="Monto" inputmode="decimal" class="input-field">
+        <div class="modal-buttons">
+          <button id="btnCancelarModal" class="btn btn-outline">Cancelar</button>
+          <button id="btnGuardarModal" class="btn btn-primario">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal EDITAR transacción -->
+    <div id="modalEditarTransaccion" class="modal hidden">
+      <div class="modal-content">
+        <h2>Editar transacción</h2>
+        <input type="date" id="fechaEditar" class="input-field">
+        <select id="categoriaEditar" class="input-field"></select>
+        <select id="subcategoriaEditar" class="input-field"><option value="">Sin subcategoría</option></select>
+        <select id="metodoPagoEditar" class="input-field"><option value="">Método de pago (opcional)</option></select>
+        <input type="text" id="descripcionEditar" placeholder="Descripción" class="input-field">
+        <input type="text" id="montoEditar" placeholder="Monto" inputmode="decimal" class="input-field">
+        <input type="hidden" id="idTransaccionEditar">
+        <div class="modal-buttons">
+          <button id="btnCancelarEditar" class="btn btn-outline">Cancelar</button>
+          <button id="btnGuardarEditar" class="btn btn-primario">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de iconos -->
+    <div id="selectorIconosModal" class="hidden selector-iconos-modal">
+      <div class="selector-iconos-header">
+        <input type="text" id="buscarIcono" placeholder="Buscar icono..." class="input-field">
+        <button type="button" id="btnCerrarSelectorIconos" class="btn btn-outline-small">Cerrar</button>
+      </div>
+      <div id="listaIconosCategoria" class="lista-iconos"></div>
+    </div>
   </div>
 
   <!-- Scripts -->
