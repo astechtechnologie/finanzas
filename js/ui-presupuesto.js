@@ -143,30 +143,38 @@
 
   // ==================== SUSCRIPCIONES ====================
   function renderizarSuscripciones() {
-    const cont = document.getElementById('presupuestoContenido');
-    if (!cont) return;
-    cont.innerHTML = '<p class="texto-secundario">Cargando suscripciones...</p>';
-    App.obtenerSuscripciones(function(subs) {
-      if (subs.length === 0) {
-        cont.innerHTML = '<p class="texto-secundario">No hay suscripciones</p>';
-        return;
-      }
-      let totalMensual = 0;
-      subs.forEach(s => totalMensual += s.costo);
-      cont.innerHTML = `
-        <p class="font-bold">Total mensual: $${App.formatearMonto(totalMensual)}</p>
-        ${subs.map(s => <div class="suscripcion-card">${s.nombre} - $${App.formatearMonto(s.costo)}</div>).join('')}
-        <button id="btnNuevaSuscripcion" class="btn btn-primario w-full mt-3"><i class="ph ph-plus"></i> Nueva suscripción</button>
-      `;
-      document.getElementById('btnNuevaSuscripcion').addEventListener('click', () => {
-        const nombre = prompt('Nombre:');
-        const costo = parseFloat(prompt('Costo mensual:'));
-        if (nombre && costo > 0) {
-          App.agregarSuscripcion({ nombre, costo, frecuencia: 'mensual' }).then(() => renderizarSuscripciones());
-        }
-      });
+  var cont = document.getElementById('presupuestoContenido');
+  if (!cont) return;
+  cont.innerHTML = '<p class="texto-secundario">Cargando suscripciones...</p>';
+
+  App.obtenerSuscripciones(function(subs) {
+    if (subs.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario">No hay suscripciones</p>';
+      return;
+    }
+
+    var totalMensual = 0;
+    subs.forEach(function(s) { totalMensual += s.costo; });
+
+    var html = '<p class="font-bold">Total mensual: $' + App.formatearMonto(totalMensual) + '</p>';
+    subs.forEach(function(s) {
+      html += '<div class="suscripcion-card">' + s.nombre + ' - $' + App.formatearMonto(s.costo) + '</div>';
     });
-  }
+    html += '<button id="btnNuevaSuscripcion" class="btn btn-primario w-full mt-3"><i class="ph ph-plus"></i> Nueva suscripción</button>';
+
+    cont.innerHTML = html;
+
+    document.getElementById('btnNuevaSuscripcion').addEventListener('click', function() {
+      var nombre = prompt('Nombre:');
+      var costo = parseFloat(prompt('Costo mensual:'));
+      if (nombre && costo > 0) {
+        App.agregarSuscripcion({ nombre: nombre, costo: costo, frecuencia: 'mensual' }).then(function() {
+          renderizarSuscripciones();
+        });
+      }
+    });
+  });
+}
 
   // ==================== PRÉSTAMOS ====================
   function renderizarPrestamos() {
