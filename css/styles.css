@@ -994,3 +994,43 @@ body {
   margin: 0 auto;
   display: block;
 }
+/* ========== INICIO MEJORADO ========== */
+.inicio-saludo {
+  margin-bottom: 1rem;
+}
+.saludo-texto {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.resumen-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  color: var(--texto);
+}
+.resumen-card i {
+  font-size: 1.5rem;
+}
+.resumen-card strong {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.kpi-card {
+  background: var(--tarjeta);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: var(--sombra-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.kpi-card i {
+  font-size: 1.5rem;
+  color: var(--primario);
+}
