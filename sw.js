@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finanzas-v12.17';
+const CACHE_NAME = 'finanzas-v12.18';
 
 const ARCHIVOS_CACHE = [
   './',
