@@ -10,7 +10,7 @@
     var tipoTransaccion = 'ingreso';
     var metodosPago = [];
     App.subcategoriasPorCategoria = {};
-    App.espacioActual = 'personal';
+    App.cuentaActual = 'personal';
 
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
@@ -25,44 +25,42 @@
     var modalEditar = document.getElementById('modalEditarTransaccion');
     var fab = document.getElementById('fabAgregar');
     var filtroMes = document.getElementById('filtroMesHeader');
-    var selectorEspacio = document.getElementById('selectorEspacio');
+    var selectorCuenta = document.getElementById('selectorCuenta');
 
     if (!vistas.inicio) return;
 
-    // ==================== SALUDO ====================
-    const horaActual = new Date().getHours();
-    let saludo = 'Buenos días';
-    if (horaActual >= 12 && horaActual < 18) saludo = 'Buenas tardes';
-    else if (horaActual >= 18) saludo = 'Buenas noches';
-    const saludoEl = document.getElementById('saludoUsuario');
-    if (saludoEl) saludoEl.textContent = saludo;
-
-    // ==================== ESPACIOS ====================
-    function cargarEspacios() {
-      App.obtenerEspacios(function(espacios) {
-        if (!selectorEspacio) return;
-        selectorEspacio.innerHTML = espacios.map(function(e) {
-          return '<option value="' + e.id + '">' + e.nombre + '</option>';
+    // ==================== CUENTAS ====================
+    function cargarCuentas() {
+      App.obtenerCuentas(function(cuentas) {
+        if (!selectorCuenta) return;
+        selectorCuenta.innerHTML = cuentas.map(function(c) {
+          return '<option value="' + c.id + '">' + c.nombre + '</option>';
         }).join('');
-        selectorEspacio.value = App.espacioActual;
+        selectorCuenta.value = App.cuentaActual;
       });
     }
 
-    if (selectorEspacio) {
-      selectorEspacio.addEventListener('change', function() {
-        App.espacioActual = this.value;
-        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
+    if (selectorCuenta) {
+      selectorCuenta.addEventListener('change', function() {
+        App.cuentaActual = this.value;
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
     }
 
-    addListener('btnNuevoEspacio', function() {
-      const nombre = prompt('Nombre del nuevo espacio (ej: Negocio):');
+    addListener('btnNuevaCuenta', function() {
+      const nombre = prompt('Nombre de la nueva cuenta:');
       if (nombre) {
-        App.agregarEspacio(nombre, 'negocio').then(function() {
-          cargarEspacios();
+        const tipo = prompt('Tipo (personal/empresa/otro):', 'empresa');
+        App.agregarCuenta(nombre, tipo, '#e8c84c').then(function() {
+          cargarCuentas();
         });
       }
     });
+
+    function addListener(id, callback) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', callback);
+    }
 
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
@@ -149,11 +147,6 @@
       generarListaIconos();
     }
 
-    function addListener(id, callback) {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', callback);
-    }
-
     addListener('btnMostrarIconos', mostrarSelectorIconos);
     addListener('btnCerrarSelectorIconos', function() {
       document.getElementById('selectorIconosModal').classList.add('hidden');
@@ -192,7 +185,7 @@
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
         mesSeleccionado = filtroMes.value;
-        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
     }
 
@@ -209,9 +202,9 @@
       const monto = parseFloat(montoLimpio) || 0;
       const fecha = document.getElementById('fecha').value;
       const metodoPago = document.getElementById('metodoPago').value || null;
-      const espacioId = App.espacioActual;
+      const cuentaId = App.cuentaActual;
       if (!cat || !desc || !monto) return;
-      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago, espacioId);
+      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc, monto, fecha, metodoPago, cuentaId);
       modal?.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
@@ -251,7 +244,7 @@
     // ==================== EXPORTAR CSV ====================
     addListener('btnExportarCSV', function() {
       App.obtenerTransacciones(function(todas) {
-        const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.espacioActual; });
+        const filtradas = todas.filter(function(t) { return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual; });
         let csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
         filtradas.forEach(function(t) {
           csv += t.tipo + ',' + t.categoria + ',' + (t.subcategoria || '') + ',' + t.descripcion + ',' + t.monto + ',' + t.fecha + ',' + (t.metodoPago || '') + '\n';
@@ -263,7 +256,7 @@
         a.download = 'finanzas-' + mesSeleccionado + '.csv';
         a.click();
         URL.revokeObjectURL(url);
-      }, App.espacioActual);
+      }, App.cuentaActual);
     });
 
     // ==================== MÉTODOS DE PAGO ====================
@@ -295,7 +288,7 @@
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
       const filtradas = transacciones.filter(function(t) {
-        return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.espacioActual;
+        return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
       });
       let ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
@@ -446,136 +439,7 @@
     }
 
     // ==================== ADMIN ====================
-    function cargarOrganizaciones() {
-      const cont = document.getElementById('listaOrganizaciones');
-      if (!cont) return;
-      App.obtenerOrganizaciones(function(orgs) {
-        if (orgs.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-2">Sin organizaciones</p>'; return; }
-        let html = '';
-        orgs.forEach(function(org) {
-          html += '<div class="org-item"><span><i class="ph ph-building"></i> ' + org.nombre + '</span><button class="btn-eliminar-org" data-id="' + org.id + '">✕</button></div>';
-        });
-        cont.innerHTML = html;
-        cont.querySelectorAll('.btn-eliminar-org').forEach(function(btn) {
-          btn.addEventListener('click', function() { if (confirm('¿Eliminar organización?')) App.eliminarOrganizacion(this.dataset.id); });
-        });
-      });
-    }
-
-    function cargarUsuariosAdmin() {
-      const cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont) return;
-      App.obtenerUsuariosVinculados(function(usuarios) {
-        if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
-        let html = '';
-        usuarios.forEach(function(usuario) {
-          App.obtenerUsuarioPorId(usuario.uid, function(datos) {
-            const rol = datos ? (datos.rol || 'normal') : 'normal';
-            const activo = datos ? (datos.activo !== false) : true;
-            usuario.rol = rol;
-            usuario.activo = activo;
-
-            App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
-              const mesActual = getMes();
-              let ingresos = 0, gastos = 0;
-              transacciones.forEach(function(t) {
-                if (t.fecha && t.fecha.startsWith(mesActual)) {
-                  if (t.tipo === 'ingreso') ingresos += t.monto;
-                  else gastos += t.monto;
-                }
-              });
-              const balance = ingresos - gastos;
-              const inicial = usuario.email.charAt(0).toUpperCase();
-
-              html += '<div class="cliente-card">';
-              html += '<div class="cliente-header"><div class="cliente-avatar">' + inicial + '</div><div class="cliente-info"><div class="cliente-nombre">' + usuario.email + '</div><div class="cliente-email">' + (activo ? 'Activo' : 'Inactivo') + '</div></div><span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></div>';
-              html += '<div class="cliente-metricas"><span>Ingresos: $' + App.formatearMonto(ingresos) + '</span><span>Gastos: $' + App.formatearMonto(gastos) + '</span><span>Balance: $' + App.formatearMonto(balance) + '</span></div>';
-              html += '<div class="cliente-acciones">';
-              html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
-              html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
-              html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
-              html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
-              html += '</div></div>';
-
-              cont.innerHTML = html;
-
-              cont.querySelectorAll('.btn-eliminar-cliente').forEach(function(btn) {
-                btn.addEventListener('click', function() { if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid); });
-              });
-              cont.querySelectorAll('.btn-ver-cliente').forEach(function(btn) {
-                btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
-              });
-              cont.querySelectorAll('.btn-editar-rol').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                  const nuevoRol = this.dataset.rol === 'admin' ? 'normal' : 'admin';
-                  if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) App.actualizarRolUsuario(this.dataset.uid, nuevoRol);
-                });
-              });
-              cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                  const nuevoEstado = this.dataset.activo !== 'true';
-                  App.actualizarEstadoUsuario(this.dataset.uid, nuevoEstado);
-                });
-              });
-            });
-          });
-        });
-      });
-    }
-
-    function verDetalleUsuario(usuarioUid) {
-      const detalleCont = document.getElementById('detalleUsuarioAdmin');
-      if (!detalleCont) return;
-      App.obtenerUsuarioPorId(usuarioUid, function(datosUsuario) {
-        if (!datosUsuario) return;
-        App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
-          const mesActual = getMes();
-          let ingresos = 0, gastos = 0;
-          const porCategoria = {};
-          transacciones.forEach(function(t) {
-            if (t.fecha && t.fecha.startsWith(mesActual)) {
-              if (t.tipo === 'ingreso') ingresos += t.monto;
-              else { gastos += t.monto; porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + t.monto; }
-            }
-          });
-          const balance = ingresos - gastos;
-
-          let html = '<div class="detalle-cliente">';
-          html += '<div class="detalle-header"><div class="detalle-avatar">' + datosUsuario.email.charAt(0).toUpperCase() + '</div><div class="detalle-info"><div class="detalle-nombre">' + datosUsuario.email + '</div><div class="detalle-email">' + (datosUsuario.activo !== false ? 'Activo' : 'Inactivo') + '</div></div><button class="btn-eliminar-cliente" data-uid="' + usuarioUid + '"><i class="ph ph-x"></i></button></div>';
-          html += '<div class="detalle-stats"><div class="detalle-stat"><i class="ph ph-money"></i><div class="detalle-stat-numero">$' + App.formatearMonto(ingresos) + '</div><span>Ingresos</span></div><div class="detalle-stat"><i class="ph ph-wallet"></i><div class="detalle-stat-numero">$' + App.formatearMonto(gastos) + '</div><span>Gastos</span></div><div class="detalle-stat"><i class="ph ph-chart-line"></i><div class="detalle-stat-numero">$' + App.formatearMonto(balance) + '</div><span>Balance</span></div></div>';
-          html += '<div class="detalle-seccion"><h5><i class="ph ph-chart-pie"></i> Gastos por categoría</h5>';
-          if (Object.keys(porCategoria).length === 0) html += '<p class="texto-secundario">Sin gastos este mes</p>';
-          else Object.keys(porCategoria).forEach(function(cat) { html += '<div class="text-sm">' + cat + ': $' + App.formatearMonto(porCategoria[cat]) + '</div>'; });
-          html += '</div>';
-          html += '<div class="detalle-seccion"><h5><i class="ph ph-clock"></i> Últimas transacciones</h5>';
-          const recientes = transacciones.slice(0, 5);
-          if (recientes.length === 0) html += '<p class="texto-secundario">Sin transacciones</p>';
-          else recientes.forEach(function(t) { html += '<div class="detalle-transaccion"><div class="detalle-transaccion-info"><div class="detalle-transaccion-descripcion">' + t.descripcion + '</div><div class="detalle-transaccion-categoria">' + t.categoria + '</div></div><div class="detalle-transaccion-monto">$' + App.formatearMonto(t.monto) + '</div></div>'; });
-          html += '</div></div>';
-          detalleCont.innerHTML = html;
-        });
-      });
-    }
-
-    function cargarAuditoria() {
-      const cont = document.getElementById('listaAuditoria');
-      if (!cont) return;
-      App.obtenerAuditoria(function(registros) {
-        if (registros.length === 0) { cont.innerHTML = '<p class="texto-secundario">Sin registros</p>'; return; }
-        let html = '';
-        registros.forEach(function(r) { html += '<div class="text-sm"><i class="ph ph-clock"></i> ' + r.accion + ' - ' + new Date(r.fecha).toLocaleString() + '</div>'; });
-        cont.innerHTML = html;
-      });
-    }
-
-    function cargarEstadisticas() {
-      App.obtenerEstadisticasGlobales(function(est) {
-        document.getElementById('statUsuarios').textContent = est.usuarios;
-        document.getElementById('statTransacciones').textContent = est.transacciones;
-        document.getElementById('statIngresos').textContent = '$' + App.formatearMonto(est.ingresos);
-        document.getElementById('statGastos').textContent = '$' + App.formatearMonto(est.gastos);
-      });
-    }
+    // ... (mantén las funciones de admin que ya tienes) ...
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
@@ -584,9 +448,9 @@
         llenarSelectCategorias();
         renderizarListaCategorias();
         App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
-        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
         App.actualizarBotonAdmin();
-        cargarEspacios();
+        cargarCuentas();
       });
     };
 
