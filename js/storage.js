@@ -1,491 +1,237 @@
-// storage.js – acceso a Firestore con funciones de administración avanzadas y espacios
 (function() {
   const App = window.App;
-  const db = App.db;
-  function uid() { return App.auth.currentUser.uid; }
 
-  // ===== TRANSACCIONES =====
-  App.obtenerTransacciones = function(callback, espacioId) {
-    const ref = db.collection('usuarios/' + uid() + '/transacciones');
-    const query = espacioId ? ref.where('espacioId', '==', espacioId) : ref;
-    return query.orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const arr = [];
-      snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(arr);
-    });
-  };
+  function crearEstructura() {
+    var html = '';
+    html += '<div class="presupuesto-tabs">';
+    html += '<button id="tabPresupuestoMensual" class="presupuesto-tab active"><i class="ph ph-wallet"></i> Presupuesto</button>';
+    html += '<button id="tabMetasAhorro" class="presupuesto-tab"><i class="ph ph-piggy-bank"></i> Metas</button>';
+    html += '<button id="tabSuscripciones" class="presupuesto-tab"><i class="ph ph-repeat"></i> Suscripciones</button>';
+    html += '<button id="tabPrestamos" class="presupuesto-tab"><i class="ph ph-handshake"></i> Préstamos</button>';
+    html += '</div>';
+    html += '<div id="presupuestoContenido" class="mt-4"></div>';
+    return html;
+  }
 
-  App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioId) {
-    return db.collection('usuarios/' + uid() + '/transacciones').add({
-      tipo: tipo,
-      categoria: categoria,
-      subcategoria: subcategoria || null,
-      descripcion: descripcion,
-      monto: parseFloat(monto),
-      fecha: fecha,
-      metodoPago: metodoPago || null,
-      espacioId: espacioId || 'personal'
-    });
-  };
+  function renderizarPresupuestoMensual() {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
 
-  App.actualizarTransaccion = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/transacciones').doc(id).update(datos);
-  };
+    var ingresos = 0;
+    var mesPresupuesto = App.obtenerMesActual ? App.obtenerMesActual() : '';
+    var categoriasPresupuesto = [];
 
-  App.eliminarTransaccion = function(id) {
-    return db.collection('usuarios/' + uid() + '/transacciones').doc(id).delete();
-  };
-
-  // ===== CATEGORÍAS =====
-  App.obtenerCategorias = function(callback) {
-    return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(function(snap) {
-      const cats = [];
-      snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
-      if (cats.length === 0) {
-        const pre = [
-          { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
-          { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
-          { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
-          { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
-          { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
-          { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
-          { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
-        ];
-        const batch = db.batch();
-        pre.forEach(function(c) { batch.set(db.collection('usuarios/' + uid() + '/categorias').doc(), c); });
-        batch.commit();
-        return;
-      }
-      callback(cats);
-    });
-  };
-
-  App.agregarCategoria = function(nombre, icono, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({
-      nombre: nombre.trim().toLowerCase(),
-      icono: icono || 'ph-house',
-      color: color || '#e8c84c',
-      tipo: tipo || 'gasto'
-    });
-  };
-
-  App.eliminarCategoria = function(id) {
-    return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
-  };
-
-  // ===== PRESUPUESTOS MENSUALES =====
-  App.obtenerLimitesCategorias = function(mes, callback) {
-    db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes).get().then(function(doc) {
-      if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
-      const data = doc.data();
-      callback({
-        gastos: data.gastos || {},
-        ingresos: data.ingresos || {}
+    function mostrarPaso0() {
+      cont.innerHTML = '<div class="presupuesto-asistente">' +
+        '<h3>Elige el mes</h3>' +
+        '<input type="month" id="inputMesPresupuesto" class="input-field" value="' + mesPresupuesto + '">' +
+        '<button id="btnPaso0" class="btn btn-primario w-full mt-2">Continuar</button>' +
+        '</div>';
+      document.getElementById('btnPaso0').addEventListener('click', function() {
+        mesPresupuesto = document.getElementById('inputMesPresupuesto').value;
+        mostrarPaso1();
       });
-    });
-  };
-
-  App.guardarLimiteCategoria = function(mes, tipo, categoria, limite, callback) {
-    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-    db.runTransaction(function(transaction) {
-      return transaction.get(ref).then(function(doc) {
-        const data = doc.exists ? doc.data() : {};
-        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const categorias = data[campo] || {};
-        if (!categorias[categoria]) categorias[categoria] = { limite: 0, subcategorias: {} };
-        categorias[categoria].limite = limite;
-        data[campo] = categorias;
-        return transaction.set(ref, data, { merge: true });
-      });
-    }).then(callback);
-  };
-
-  App.guardarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, limite, callback) {
-    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-    db.runTransaction(function(transaction) {
-      return transaction.get(ref).then(function(doc) {
-        const data = doc.exists ? doc.data() : {};
-        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const categorias = data[campo] || {};
-        if (!categorias[categoria]) categorias[categoria] = { limite: 0, subcategorias: {} };
-        if (!categorias[categoria].subcategorias) categorias[categoria].subcategorias = {};
-        categorias[categoria].subcategorias[subcategoria] = { limite: limite };
-        data[campo] = categorias;
-        return transaction.set(ref, data, { merge: true });
-      });
-    }).then(callback);
-  };
-
-  App.eliminarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, callback) {
-    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-    db.runTransaction(function(transaction) {
-      return transaction.get(ref).then(function(doc) {
-        if (!doc.exists) return;
-        const data = doc.data();
-        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const categorias = data[campo] || {};
-        if (categorias[categoria] && categorias[categoria].subcategorias) {
-          delete categorias[categoria].subcategorias[subcategoria];
-          if (Object.keys(categorias[categoria].subcategorias).length === 0) {
-            delete categorias[categoria].subcategorias;
-          }
-        }
-        data[campo] = categorias;
-        return transaction.set(ref, data, { merge: true });
-      });
-    }).then(callback);
-  };
-
-  App.obtenerHistorialPresupuestos = function(callback) {
-    const meses = [];
-    const hoy = new Date();
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-      meses.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
     }
-    Promise.all(meses.map(function(m) {
-      return db.collection('usuarios').doc(uid()).collection('presupuestos').doc(m).get();
-    })).then(function(docs) {
-      callback(docs.map(function(doc, i) {
-        return {
-          mes: meses[i],
-          gastos: doc.exists ? Object.values(doc.data().gastos || doc.data().categorias || {}).reduce(function(a, b) { return a + b; }, 0) : 0,
-          ingresos: doc.exists ? Object.values(doc.data().ingresos || {}).reduce(function(a, b) { return a + b; }, 0) : 0
-        };
-      }));
-    });
-  };
 
-  // ===== METAS DE AHORRO =====
-  App.obtenerMetas = function(callback) {
-    return db.collection('usuarios/' + uid() + '/metas').onSnapshot(function(snap) {
-      const metas = [];
-      snap.forEach(function(doc) { metas.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(metas);
-    });
-  };
-
-  App.agregarMeta = function(meta) {
-    return db.collection('usuarios/' + uid() + '/metas').add(meta);
-  };
-
-  App.actualizarMeta = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(id).update(datos);
-  };
-
-  App.eliminarMeta = function(id) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(id).delete();
-  };
-
-  App.obtenerItemsMeta = function(metaId, callback) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').onSnapshot(function(snap) {
-      const items = [];
-      snap.forEach(function(doc) { items.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(items);
-    });
-  };
-
-  App.agregarItemMeta = function(metaId, item) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').add(item);
-  };
-
-  App.actualizarItemMeta = function(metaId, itemId, datos) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').doc(itemId).update(datos);
-  };
-
-  App.eliminarItemMeta = function(metaId, itemId) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').doc(itemId).delete();
-  };
-
-  // ===== SUSCRIPCIONES =====
-  App.obtenerSuscripciones = function(callback) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').onSnapshot(function(snap) {
-      const suscripciones = [];
-      snap.forEach(function(doc) { suscripciones.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(suscripciones);
-    });
-  };
-
-  App.agregarSuscripcion = function(suscripcion) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').add(suscripcion);
-  };
-
-  App.actualizarSuscripcion = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).update(datos);
-  };
-
-  App.eliminarSuscripcion = function(id) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).delete();
-  };
-
-  // ===== MÉTODOS DE PAGO =====
-  App.obtenerMetodosPago = function(callback) {
-    return db.collection('usuarios/' + uid() + '/metodos_pago').onSnapshot(function(snap) {
-      const metodos = [];
-      snap.forEach(function(doc) { metodos.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(metodos);
-    });
-  };
-
-  App.agregarMetodoPago = function(nombre) {
-    return db.collection('usuarios/' + uid() + '/metodos_pago').add({ nombre: nombre.trim() });
-  };
-
-  App.eliminarMetodoPago = function(id) {
-    return db.collection('usuarios/' + uid() + '/metodos_pago').doc(id).delete();
-  };
-
-  // ===== PRÉSTAMOS =====
-  App.obtenerPrestamos = function(callback) {
-    return db.collection('usuarios/' + uid() + '/prestamos').onSnapshot(function(snap) {
-      const prestamos = [];
-      snap.forEach(function(doc) { prestamos.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(prestamos);
-    });
-  };
-
-  App.agregarPrestamo = function(prestamo) {
-    return db.collection('usuarios/' + uid() + '/prestamos').add(prestamo);
-  };
-
-  App.actualizarPrestamo = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/prestamos').doc(id).update(datos);
-  };
-
-  App.eliminarPrestamo = function(id) {
-    return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
-  };
-
-  // ===== ADMINISTRADOR =====
-  App.obtenerRolUsuario = function(callback) {
-    const userId = uid();
-    db.collection('usuarios').doc(userId).get().then(function(doc) {
-      const rol = doc.exists ? (doc.data().rol || 'normal') : 'normal';
-      callback(rol);
-    }).catch(function(error) {
-      console.warn('No se pudo obtener rol, usando normal', error);
-      callback('normal');
-    });
-  };
-
-  App.obtenerUsuariosVinculados = function(callback) {
-    return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
-      const usuarios = [];
-      snap.forEach(function(doc) {
-        usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
+    function mostrarPaso1() {
+      cont.innerHTML = '<div class="presupuesto-asistente">' +
+        '<h3>Ingresos del mes</h3>' +
+        '<p>¿Cuánto dinero recibirás en ' + mesPresupuesto + '?</p>' +
+        '<input type="number" id="inputIngresos" placeholder="Ej: 3000000" class="input-field">' +
+        '<button id="btnPaso1" class="btn btn-primario w-full mt-2">Continuar</button>' +
+        '</div>';
+      document.getElementById('btnPaso1').addEventListener('click', function() {
+        ingresos = parseFloat(document.getElementById('inputIngresos').value) || 0;
+        if (ingresos <= 0) { alert('Ingresa un monto válido'); return; }
+        mostrarPaso2();
       });
-      callback(usuarios);
-    });
-  };
-
-  App.vincularUsuarioPorEmail = function(email, callback) {
-    if (!email) {
-      alert('Ingresa un correo electrónico');
-      return;
     }
-    db.collection('usuarios').where('email', '==', email).get().then(function(query) {
-      if (!query.empty) {
-        const usuario = query.docs[0];
-        const adminUid = uid();
-        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
-          email: email
-        }).then(function() {
-          alert('Usuario vinculado correctamente');
-          if (callback) callback();
-        }).catch(function(error) {
-          console.error('Error al vincular:', error);
-          alert('Error al vincular: ' + error.message);
+
+    function mostrarPaso2() {
+      cont.innerHTML = '<div class="presupuesto-asistente">' +
+        '<h3>Distribuye tus gastos</h3>' +
+        '<p>Asigna un límite a cada categoría</p>' +
+        '<div id="listaCategoriasPaso2"></div>' +
+        '<hr>' +
+        '<p>Total asignado: <strong id="totalAsignado">$0</strong></p>' +
+        '<p>Restante: <strong id="restanteAsignado">$' + App.formatearMonto(ingresos) + '</strong></p>' +
+        '<button id="btnPaso2" class="btn btn-primario w-full mt-2">Revisar resumen</button>' +
+        '</div>';
+
+      App.obtenerCategorias(function(cats) {
+        categoriasPresupuesto = cats.filter(function(c) { return c.tipo === 'gasto'; });
+        var lista = document.getElementById('listaCategoriasPaso2');
+        var html = '';
+        categoriasPresupuesto.forEach(function(c) {
+          html += '<div class="cat-presupuesto-item">' +
+            '<span><i class="ph ' + c.icono + '"></i> ' + c.nombre + '</span>' +
+            '<input type="number" class="input-limite-cat" data-cat="' + c.nombre + '" placeholder="0" class="input-field">' +
+            '</div>';
         });
+        lista.innerHTML = html;
+
+        lista.querySelectorAll('.input-limite-cat').forEach(function(input) {
+          input.addEventListener('input', actualizarTotales);
+        });
+      });
+
+      function actualizarTotales() {
+        var total = 0;
+        document.querySelectorAll('.input-limite-cat').forEach(function(inp) {
+          total += parseFloat(inp.value) || 0;
+        });
+        document.getElementById('totalAsignado').textContent = '$' + App.formatearMonto(total);
+        var restante = ingresos - total;
+        var restanteEl = document.getElementById('restanteAsignado');
+        restanteEl.textContent = '$' + App.formatearMonto(restante);
+        restanteEl.style.color = restante < 0 ? '#ff4444' : 'inherit';
+      }
+
+      document.getElementById('btnPaso2').addEventListener('click', mostrarPaso3);
+    }
+
+    function mostrarPaso3() {
+      var totalAsignado = 0;
+      document.querySelectorAll('.input-limite-cat').forEach(function(inp) {
+        totalAsignado += parseFloat(inp.value) || 0;
+      });
+      var ahorro = ingresos - totalAsignado;
+
+      cont.innerHTML = '<div class="presupuesto-asistente">' +
+        '<h3>Resumen del presupuesto</h3>' +
+        '<p>Mes: ' + mesPresupuesto + '</p>' +
+        '<p>Ingresos: $' + App.formatearMonto(ingresos) + '</p>' +
+        '<p>Total gastos: $' + App.formatearMonto(totalAsignado) + '</p>' +
+        '<p>Ahorro: $' + App.formatearMonto(ahorro) + '</p>' +
+        '<button id="btnGuardarPresupuesto" class="btn btn-primario w-full mt-2">Guardar presupuesto</button>' +
+        '</div>';
+
+      document.getElementById('btnGuardarPresupuesto').addEventListener('click', function() {
+        document.querySelectorAll('.input-limite-cat').forEach(function(inp) {
+          App.guardarLimiteCategoria(mesPresupuesto, 'gasto', inp.dataset.cat, parseFloat(inp.value) || 0, function() {});
+        });
+        alert('Presupuesto guardado');
+        renderizarPresupuestoMensual();
+      });
+    }
+
+    mostrarPaso0();
+  }
+
+  // ==================== METAS ====================
+  function renderizarMetas() {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="texto-secundario">Cargando metas...</p>';
+    App.obtenerMetas(function(metas) {
+      var html = '<button id="btnNuevaMeta" class="btn btn-primario w-full mb-3"><i class="ph ph-plus"></i> Nueva meta</button>';
+      html += '<div id="listaMetas" class="metas-lista"></div>';
+      cont.innerHTML = html;
+      var lista = document.getElementById('listaMetas');
+      if (metas.length === 0) {
+        lista.innerHTML = '<p class="texto-secundario text-center">No hay metas</p>';
       } else {
-        alert('No se encontró usuario con ese email');
-      }
-    }).catch(function(error) {
-      console.error('Error buscando usuario:', error);
-      alert('Error buscando: ' + error.message);
-    });
-  };
-
-  App.eliminarVinculacion = function(usuarioUid) {
-    return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
-  };
-
-  App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
-    return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const arr = [];
-      snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(arr);
-    });
-  };
-
-  App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
-    return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
-  };
-
-  App.actualizarEstadoUsuario = function(usuarioUid, activo) {
-    return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
-  };
-
-  App.obtenerUsuarioPorId = function(usuarioUid, callback) {
-    db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
-      callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
-    });
-  };
-
-  // ===== ORGANIZACIONES =====
-  App.crearOrganizacion = function(nombre) {
-    return db.collection('organizaciones').add({
-      nombre: nombre,
-      adminId: uid()
-    });
-  };
-
-  App.obtenerOrganizaciones = function(callback) {
-    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
-      const orgs = [];
-      snap.forEach(function(doc) {
-        orgs.push(Object.assign({ id: doc.id }, doc.data()));
-      });
-      callback(orgs);
-    });
-  };
-
-  App.eliminarOrganizacion = function(orgId) {
-    return db.collection('organizaciones').doc(orgId).delete();
-  };
-
-  // ===== AUDITORÍA =====
-  App.registrarAuditoria = function(accion, detalle) {
-    return db.collection('usuarios').doc(uid()).collection('auditoria').add({
-      accion: accion,
-      detalle: detalle,
-      fecha: new Date().toISOString()
-    });
-  };
-
-  App.obtenerAuditoria = function(callback) {
-    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const registros = [];
-      snap.forEach(function(doc) { registros.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(registros);
-    });
-  };
-
-  // ===== MENSAJERÍA =====
-  App.enviarMensajeAUsuario = function(usuarioUid, mensaje) {
-    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').add({
-      mensaje: mensaje,
-      de: uid(),
-      fecha: new Date().toISOString()
-    });
-  };
-
-  App.obtenerMensajesDeUsuario = function(usuarioUid, callback) {
-    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const mensajes = [];
-      snap.forEach(function(doc) { mensajes.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(mensajes);
-    });
-  };
-
-  // ===== ESTADÍSTICAS GLOBALES =====
-  App.obtenerEstadisticasGlobales = function(callback) {
-    App.obtenerUsuariosVinculados(function(usuarios) {
-      if (usuarios.length === 0) {
-        callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
-        return;
-      }
-      let totalTransacciones = 0;
-      let totalIngresos = 0;
-      let totalGastos = 0;
-      let pendientes = usuarios.length;
-
-      usuarios.forEach(function(usuario) {
-        App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
-          transacciones.forEach(function(t) {
-            totalTransacciones++;
-            if (t.tipo === 'ingreso') totalIngresos += t.monto;
-            else totalGastos += t.monto;
-          });
-          pendientes--;
-          if (pendientes === 0) {
-            callback({
-              usuarios: usuarios.length,
-              transacciones: totalTransacciones,
-              ingresos: totalIngresos,
-              gastos: totalGastos
-            });
-          }
+        var htmlMetas = '';
+        metas.forEach(function(m) {
+          var p = m.costoTotal > 0 ? (m.ahorrado / m.costoTotal) * 100 : 0;
+          htmlMetas += '<div class="meta-card">' +
+            '<strong>' + m.nombre + '</strong>' +
+            '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.min(p, 100) + '%; background:#e8c84c;"></div></div>' +
+            '<small>' + App.formatearMonto(m.ahorrado) + ' de ' + App.formatearMonto(m.costoTotal) + '</small>' +
+            '</div>';
         });
+        lista.innerHTML = htmlMetas;
+      }
+      document.getElementById('btnNuevaMeta').addEventListener('click', function() {
+        var nombre = prompt('Nombre de la meta:');
+        var costo = parseFloat(prompt('Costo total:'));
+        if (nombre && costo > 0) {
+          App.agregarMeta({ nombre: nombre, costoTotal: costo, ahorrado: 0 }).then(function() { renderizarMetas(); });
+        }
       });
     });
-  };
+  }
 
-  // ===== EXPORTAR / IMPORTAR DATOS =====
-  App.exportarDatosUsuario = function(usuarioUid, callback) {
-    alert('Exportación de datos aún en desarrollo');
-    if (callback) callback();
-  };
-
-  // ===== CATEGORÍAS: editar y orden =====
-  App.actualizarCategoria = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
-  };
-
-  App.obtenerOrdenCategorias = function(callback) {
-    const userId = uid();
-    db.collection('usuarios').doc(userId).get().then(function(doc) {
-      const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
-      callback(orden);
-    });
-  };
-
-  App.guardarOrdenCategorias = function(orden) {
-    return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
-  };
-
-  // ===== ESPACIOS =====
-  App.obtenerEspacios = function(callback) {
-    const userId = uid();
-    return db.collection('usuarios/' + userId + '/espacios').onSnapshot(function(snap) {
-      const espacios = [];
-      snap.forEach(function(doc) { espacios.push(Object.assign({ id: doc.id }, doc.data())); });
-      if (espacios.length === 0) {
-        db.collection('usuarios/' + userId + '/espacios').add({ nombre: 'Personal', tipo: 'personal' });
+  // ==================== SUSCRIPCIONES ====================
+  function renderizarSuscripciones() {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="texto-secundario">Cargando suscripciones...</p>';
+    App.obtenerSuscripciones(function(subs) {
+      if (subs.length === 0) {
+        cont.innerHTML = '<p class="texto-secundario">No hay suscripciones</p>';
         return;
       }
-      callback(espacios);
+      var total = 0;
+      subs.forEach(function(s) { total += s.costo; });
+      var html = '<p class="font-bold">Total mensual: $' + App.formatearMonto(total) + '</p>';
+      subs.forEach(function(s) {
+        html += '<div class="suscripcion-card">' + s.nombre + ' - $' + App.formatearMonto(s.costo) + '</div>';
+      });
+      html += '<button id="btnNuevaSuscripcion" class="btn btn-primario w-full mt-3"><i class="ph ph-plus"></i> Nueva suscripción</button>';
+      cont.innerHTML = html;
+      document.getElementById('btnNuevaSuscripcion').addEventListener('click', function() {
+        var nombre = prompt('Nombre:');
+        var costo = parseFloat(prompt('Costo mensual:'));
+        if (nombre && costo > 0) {
+          App.agregarSuscripcion({ nombre: nombre, costo: costo, frecuencia: 'mensual' }).then(function() { renderizarSuscripciones(); });
+        }
+      });
     });
-  };
+  }
 
-  App.agregarEspacio = function(nombre, tipo) {
-    const userId = uid();
-    return db.collection('usuarios/' + userId + '/espacios').add({ nombre: nombre, tipo: tipo || 'personal' });
-  };
-  // ===== CUENTAS =====
-App.obtenerCuentas = function(callback) {
-  const userId = uid();
-  return db.collection('usuarios/' + userId + '/cuentas').onSnapshot(function(snap) {
-    const cuentas = [];
-    snap.forEach(function(doc) { cuentas.push(Object.assign({ id: doc.id }, doc.data())); });
-    if (cuentas.length === 0) {
-      db.collection('usuarios/' + userId + '/cuentas').add({ nombre: 'Personal', tipo: 'personal', color: '#e8c84c' });
-      return;
+  // ==================== PRÉSTAMOS ====================
+  function renderizarPrestamos() {
+    var cont = document.getElementById('presupuestoContenido');
+    if (!cont) return;
+    cont.innerHTML = '<p class="texto-secundario">Cargando préstamos...</p>';
+    App.obtenerPrestamos(function(prestamos) {
+      if (prestamos.length === 0) {
+        cont.innerHTML = '<p class="texto-secundario">No hay préstamos</p>';
+        return;
+      }
+      var html = '';
+      prestamos.forEach(function(p) {
+        html += '<div class="prestamo-card">' +
+          '<strong>' + p.nombre + '</strong> - $' + App.formatearMonto(p.monto) + ' (' + p.tipo + ')' +
+          '<br><small>Pagado: $' + App.formatearMonto(p.pagado) + '</small>' +
+          '</div>';
+      });
+      cont.innerHTML = html;
+    });
+  }
+
+  // ==================== INICIALIZACIÓN ====================
+  App.cargarPantallaPresupuesto = function() {
+    var contenedor = document.getElementById('contenidoPresupuesto');
+    if (!contenedor) return;
+    if (!document.getElementById('presupuestoContenido')) {
+      contenedor.innerHTML = crearEstructura();
+
+      document.getElementById('tabPresupuestoMensual').addEventListener('click', function() {
+        setActiveTab('tabPresupuestoMensual');
+        renderizarPresupuestoMensual();
+      });
+      document.getElementById('tabMetasAhorro').addEventListener('click', function() {
+        setActiveTab('tabMetasAhorro');
+        renderizarMetas();
+      });
+      document.getElementById('tabSuscripciones').addEventListener('click', function() {
+        setActiveTab('tabSuscripciones');
+        renderizarSuscripciones();
+      });
+      document.getElementById('tabPrestamos').addEventListener('click', function() {
+        setActiveTab('tabPrestamos');
+        renderizarPrestamos();
+      });
+
+      function setActiveTab(activeId) {
+        ['tabPresupuestoMensual', 'tabMetasAhorro', 'tabSuscripciones', 'tabPrestamos'].forEach(function(id) {
+          document.getElementById(id).classList.remove('active');
+        });
+        document.getElementById(activeId).classList.add('active');
+      }
     }
-    callback(cuentas);
-  });
-};
-
-App.agregarCuenta = function(nombre, tipo, color) {
-  const userId = uid();
-  return db.collection('usuarios/' + userId + '/cuentas').add({
-    nombre: nombre.trim(),
-    tipo: tipo || 'personal',
-    color: color || '#e8c84c'
-  });
-};
-
-App.eliminarCuenta = function(cuentaId) {
-  const userId = uid();
-  return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
-};
+    renderizarPresupuestoMensual();
+  };
 })();
