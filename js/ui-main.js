@@ -10,7 +10,7 @@
     var tipoTransaccion = 'ingreso';
     var metodosPago = [];
     App.subcategoriasPorCategoria = {};
-    App.espacioActual = 'personal'; // Espacio por defecto
+    App.espacioActual = 'personal';
 
     var vistas = {
       inicio: document.getElementById('vistaInicio'),
@@ -36,6 +36,33 @@
     else if (horaActual >= 18) saludo = 'Buenas noches';
     const saludoEl = document.getElementById('saludoUsuario');
     if (saludoEl) saludoEl.textContent = saludo;
+
+    // ==================== ESPACIOS ====================
+    function cargarEspacios() {
+      App.obtenerEspacios(function(espacios) {
+        if (!selectorEspacio) return;
+        selectorEspacio.innerHTML = espacios.map(function(e) {
+          return '<option value="' + e.id + '">' + e.nombre + '</option>';
+        }).join('');
+        selectorEspacio.value = App.espacioActual;
+      });
+    }
+
+    if (selectorEspacio) {
+      selectorEspacio.addEventListener('change', function() {
+        App.espacioActual = this.value;
+        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
+      });
+    }
+
+    addListener('btnNuevoEspacio', function() {
+      const nombre = prompt('Nombre del nuevo espacio (ej: Negocio):');
+      if (nombre) {
+        App.agregarEspacio(nombre, 'negocio').then(function() {
+          cargarEspacios();
+        });
+      }
+    });
 
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
@@ -73,24 +100,6 @@
     navItems.forEach(function(item) {
       item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
-
-    // ==================== ESPACIOS ====================
-    function cargarEspacios() {
-      App.obtenerEspacios(function(espacios) {
-        if (!selectorEspacio) return;
-        selectorEspacio.innerHTML = espacios.map(function(e) {
-          return '<option value="' + e.id + '">' + e.nombre + '</option>';
-        }).join('');
-        selectorEspacio.value = App.espacioActual;
-      });
-    }
-
-    if (selectorEspacio) {
-      selectorEspacio.addEventListener('change', function() {
-        App.espacioActual = this.value;
-        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
-      });
-    }
 
     // ==================== ICONOS ====================
     const iconosDisponibles = [
@@ -183,7 +192,7 @@
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
         mesSeleccionado = filtroMes.value;
-        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+        if (App.auth.currentUser) App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
       });
     }
 
@@ -254,7 +263,7 @@
         a.download = 'finanzas-' + mesSeleccionado + '.csv';
         a.click();
         URL.revokeObjectURL(url);
-      });
+      }, App.espacioActual);
     });
 
     // ==================== MÉTODOS DE PAGO ====================
@@ -305,7 +314,6 @@
       const kpiPromedio = document.getElementById('kpiPromedioDiario');
       if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
 
-      // Barra rápida de presupuesto
       App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
         const limitesGastos = limites.gastos || {};
         let totalPresupuesto = 0;
@@ -576,7 +584,7 @@
         llenarSelectCategorias();
         renderizarListaCategorias();
         App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
-        App.obtenerTransacciones(function(t) { actualizarDashboard(t); });
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.espacioActual);
         App.actualizarBotonAdmin();
         cargarEspacios();
       });
