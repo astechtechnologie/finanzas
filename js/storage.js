@@ -1,4 +1,4 @@
-// storage.js – acceso a Firestore con funciones de administración avanzadas y cuentas
+// storage.js – acceso a Firestore con modo negocio
 (function() {
   const App = window.App;
   const db = App.db;
@@ -73,15 +73,12 @@
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
   };
 
-  // ===== PRESUPUESTOS MENSUALES =====
+  // ===== PRESUPUESTOS =====
   App.obtenerLimitesCategorias = function(mes, callback) {
     db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes).get().then(function(doc) {
       if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
       const data = doc.data();
-      callback({
-        gastos: data.gastos || {},
-        ingresos: data.ingresos || {}
-      });
+      callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
     });
   };
 
@@ -100,63 +97,7 @@
     }).then(callback);
   };
 
-  App.guardarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, limite, callback) {
-    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-    db.runTransaction(function(transaction) {
-      return transaction.get(ref).then(function(doc) {
-        const data = doc.exists ? doc.data() : {};
-        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const categorias = data[campo] || {};
-        if (!categorias[categoria]) categorias[categoria] = { limite: 0, subcategorias: {} };
-        if (!categorias[categoria].subcategorias) categorias[categoria].subcategorias = {};
-        categorias[categoria].subcategorias[subcategoria] = { limite: limite };
-        data[campo] = categorias;
-        return transaction.set(ref, data, { merge: true });
-      });
-    }).then(callback);
-  };
-
-  App.eliminarLimiteSubcategoria = function(mes, tipo, categoria, subcategoria, callback) {
-    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-    db.runTransaction(function(transaction) {
-      return transaction.get(ref).then(function(doc) {
-        if (!doc.exists) return;
-        const data = doc.data();
-        const campo = tipo === 'ingreso' ? 'ingresos' : 'gastos';
-        const categorias = data[campo] || {};
-        if (categorias[categoria] && categorias[categoria].subcategorias) {
-          delete categorias[categoria].subcategorias[subcategoria];
-          if (Object.keys(categorias[categoria].subcategorias).length === 0) {
-            delete categorias[categoria].subcategorias;
-          }
-        }
-        data[campo] = categorias;
-        return transaction.set(ref, data, { merge: true });
-      });
-    }).then(callback);
-  };
-
-  App.obtenerHistorialPresupuestos = function(callback) {
-    const meses = [];
-    const hoy = new Date();
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-      meses.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
-    }
-    Promise.all(meses.map(function(m) {
-      return db.collection('usuarios').doc(uid()).collection('presupuestos').doc(m).get();
-    })).then(function(docs) {
-      callback(docs.map(function(doc, i) {
-        return {
-          mes: meses[i],
-          gastos: doc.exists ? Object.values(doc.data().gastos || doc.data().categorias || {}).reduce(function(a, b) { return a + b; }, 0) : 0,
-          ingresos: doc.exists ? Object.values(doc.data().ingresos || {}).reduce(function(a, b) { return a + b; }, 0) : 0
-        };
-      }));
-    });
-  };
-
-  // ===== METAS DE AHORRO =====
+  // ===== METAS =====
   App.obtenerMetas = function(callback) {
     return db.collection('usuarios/' + uid() + '/metas').onSnapshot(function(snap) {
       const metas = [];
@@ -175,26 +116,6 @@
 
   App.eliminarMeta = function(id) {
     return db.collection('usuarios/' + uid() + '/metas').doc(id).delete();
-  };
-
-  App.obtenerItemsMeta = function(metaId, callback) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').onSnapshot(function(snap) {
-      const items = [];
-      snap.forEach(function(doc) { items.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(items);
-    });
-  };
-
-  App.agregarItemMeta = function(metaId, item) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').add(item);
-  };
-
-  App.actualizarItemMeta = function(metaId, itemId, datos) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').doc(itemId).update(datos);
-  };
-
-  App.eliminarItemMeta = function(metaId, itemId) {
-    return db.collection('usuarios/' + uid() + '/metas').doc(metaId).collection('items').doc(itemId).delete();
   };
 
   // ===== SUSCRIPCIONES =====
@@ -256,7 +177,7 @@
     return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
   };
 
-  // ===== ADMINISTRADOR =====
+  // ===== ADMIN =====
   App.obtenerRolUsuario = function(callback) {
     const userId = uid();
     db.collection('usuarios').doc(userId).get().then(function(doc) {
@@ -271,39 +192,9 @@
   App.obtenerUsuariosVinculados = function(callback) {
     return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
       const usuarios = [];
-      snap.forEach(function(doc) {
-        usuarios.push(Object.assign({ uid: doc.id }, doc.data()));
-      });
+      snap.forEach(function(doc) { usuarios.push(Object.assign({ uid: doc.id }, doc.data())); });
       callback(usuarios);
     });
-  };
-
-  App.vincularUsuarioPorEmail = function(email, callback) {
-    if (!email) { alert('Ingresa un correo electrónico'); return; }
-    db.collection('usuarios').where('email', '==', email).get().then(function(query) {
-      if (!query.empty) {
-        const usuario = query.docs[0];
-        const adminUid = uid();
-        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
-          email: email
-        }).then(function() {
-          alert('Usuario vinculado correctamente');
-          if (callback) callback();
-        }).catch(function(error) {
-          console.error('Error al vincular:', error);
-          alert('Error al vincular: ' + error.message);
-        });
-      } else {
-        alert('No se encontró usuario con ese email');
-      }
-    }).catch(function(error) {
-      console.error('Error buscando usuario:', error);
-      alert('Error buscando: ' + error.message);
-    });
-  };
-
-  App.eliminarVinculacion = function(usuarioUid) {
-    return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
   };
 
   App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
@@ -314,125 +205,34 @@
     });
   };
 
-  App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
-    return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
+  // ===== MODO NEGOCIO =====
+  App.agregarCliente = function(nombre, email) {
+    return db.collection('usuarios/' + uid() + '/clientes').add({ nombre: nombre, email: email });
   };
 
-  App.actualizarEstadoUsuario = function(usuarioUid, activo) {
-    return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
-  };
-
-  App.obtenerUsuarioPorId = function(usuarioUid, callback) {
-    db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
-      callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
+  App.obtenerClientes = function(callback) {
+    return db.collection('usuarios/' + uid() + '/clientes').onSnapshot(function(snap) {
+      const clientes = [];
+      snap.forEach(function(doc) { clientes.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(clientes);
     });
   };
 
-  // ===== ORGANIZACIONES =====
-  App.crearOrganizacion = function(nombre) {
-    return db.collection('organizaciones').add({ nombre: nombre, adminId: uid() });
-  };
-
-  App.obtenerOrganizaciones = function(callback) {
-    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
-      const orgs = [];
-      snap.forEach(function(doc) { orgs.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(orgs);
-    });
-  };
-
-  App.eliminarOrganizacion = function(orgId) {
-    return db.collection('organizaciones').doc(orgId).delete();
-  };
-
-  // ===== AUDITORÍA =====
-  App.registrarAuditoria = function(accion, detalle) {
-    return db.collection('usuarios').doc(uid()).collection('auditoria').add({
-      accion: accion,
-      detalle: detalle,
+  App.registrarVenta = function(clienteId, monto, descripcion) {
+    return db.collection('usuarios/' + uid() + '/ventas').add({
+      clienteId: clienteId,
+      monto: parseFloat(monto),
+      descripcion: descripcion,
       fecha: new Date().toISOString()
     });
   };
 
-  App.obtenerAuditoria = function(callback) {
-    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const registros = [];
-      snap.forEach(function(doc) { registros.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(registros);
+  App.obtenerVentas = function(callback) {
+    return db.collection('usuarios/' + uid() + '/ventas').onSnapshot(function(snap) {
+      const ventas = [];
+      snap.forEach(function(doc) { ventas.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(ventas);
     });
-  };
-
-  // ===== MENSAJERÍA =====
-  App.enviarMensajeAUsuario = function(usuarioUid, mensaje) {
-    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').add({
-      mensaje: mensaje,
-      de: uid(),
-      fecha: new Date().toISOString()
-    });
-  };
-
-  App.obtenerMensajesDeUsuario = function(usuarioUid, callback) {
-    return db.collection('usuarios').doc(usuarioUid).collection('mensajes').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const mensajes = [];
-      snap.forEach(function(doc) { mensajes.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(mensajes);
-    });
-  };
-
-  // ===== ESTADÍSTICAS GLOBALES =====
-  App.obtenerEstadisticasGlobales = function(callback) {
-    App.obtenerUsuariosVinculados(function(usuarios) {
-      if (usuarios.length === 0) {
-        callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
-        return;
-      }
-      let totalTransacciones = 0;
-      let totalIngresos = 0;
-      let totalGastos = 0;
-      let pendientes = usuarios.length;
-
-      usuarios.forEach(function(usuario) {
-        App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
-          transacciones.forEach(function(t) {
-            totalTransacciones++;
-            if (t.tipo === 'ingreso') totalIngresos += t.monto;
-            else totalGastos += t.monto;
-          });
-          pendientes--;
-          if (pendientes === 0) {
-            callback({
-              usuarios: usuarios.length,
-              transacciones: totalTransacciones,
-              ingresos: totalIngresos,
-              gastos: totalGastos
-            });
-          }
-        });
-      });
-    });
-  };
-
-  // ===== EXPORTAR / IMPORTAR DATOS =====
-  App.exportarDatosUsuario = function(usuarioUid, callback) {
-    alert('Exportación de datos aún en desarrollo');
-    if (callback) callback();
-  };
-
-  // ===== CATEGORÍAS: editar y orden =====
-  App.actualizarCategoria = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
-  };
-
-  App.obtenerOrdenCategorias = function(callback) {
-    const userId = uid();
-    db.collection('usuarios').doc(userId).get().then(function(doc) {
-      const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
-      callback(orden);
-    });
-  };
-
-  App.guardarOrdenCategorias = function(orden) {
-    return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
   };
 
   // ===== CUENTAS =====
