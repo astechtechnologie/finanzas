@@ -31,14 +31,15 @@
 
     // ==================== CUENTAS ====================
     function cargarCuentas() {
-      App.obtenerCuentas(function(cuentas) {
-        if (!selectorCuenta) return;
-        selectorCuenta.innerHTML = cuentas.map(function(c) {
-          return '<option value="' + c.id + '">' + c.nombre + '</option>';
-        }).join('');
-        selectorCuenta.value = App.cuentaActual;
-      });
-    }
+  App.obtenerCuentas(function(cuentas) {
+    const select = document.getElementById('selectorCuenta');
+    if (!select) return;
+    select.innerHTML = cuentas.map(function(c) {
+      return '<option value="' + c.id + '">' + c.nombre + '</option>';
+    }).join('');
+    select.value = App.cuentaActual;
+  });
+}
 
     if (selectorCuenta) {
       selectorCuenta.addEventListener('change', function() {
@@ -443,16 +444,25 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      App.obtenerCategorias(function(cats) {
-        App.categoriasState = cats;
-        llenarSelectCategorias();
-        renderizarListaCategorias();
-        App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
-        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
-        App.actualizarBotonAdmin();
-        cargarCuentas();
-      });
-    };
+  cargarCuentas(); // Primero cargar cuentas para definir App.cuentaActual
+
+  App.obtenerCategorias(function(cats) {
+    App.categoriasState = cats;
+    llenarSelectCategorias();
+    renderizarListaCategorias();
+
+    App.obtenerMetodosPago(function(metodos) {
+      metodosPago = metodos;
+    });
+
+    // Ahora sí, cargar transacciones de la cuenta correcta
+    App.obtenerTransacciones(function(t) {
+      actualizarDashboard(t);
+    }, App.cuentaActual);
+
+    App.actualizarBotonAdmin();
+  });
+};
 
     App.actualizarBotonAdmin = function() {
       App.obtenerRolUsuario(function(rol) {
