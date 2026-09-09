@@ -1,19 +1,21 @@
-// storage.js – acceso a Firestore con funciones de administración avanzadas
+// storage.js – acceso a Firestore con funciones de administración avanzadas y espacios
 (function() {
   const App = window.App;
   const db = App.db;
   function uid() { return App.auth.currentUser.uid; }
 
   // ===== TRANSACCIONES =====
-  App.obtenerTransacciones = function(callback) {
-    return db.collection('usuarios/' + uid() + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+  App.obtenerTransacciones = function(callback, espacioId) {
+    const ref = db.collection('usuarios/' + uid() + '/transacciones');
+    const query = espacioId ? ref.where('espacioId', '==', espacioId) : ref;
+    return query.orderBy('fecha', 'desc').onSnapshot(function(snap) {
       const arr = [];
       snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
       callback(arr);
     });
   };
 
-  App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago) {
+  App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioId) {
     return db.collection('usuarios/' + uid() + '/transacciones').add({
       tipo: tipo,
       categoria: categoria,
@@ -21,7 +23,8 @@
       descripcion: descripcion,
       monto: parseFloat(monto),
       fecha: fecha,
-      metodoPago: metodoPago || null
+      metodoPago: metodoPago || null,
+      espacioId: espacioId || 'personal'
     });
   };
 
@@ -40,14 +43,14 @@
       snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
       if (cats.length === 0) {
         const pre = [
-  { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
-  { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
-  { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
-  { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
-  { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
-  { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
-  { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
-];
+          { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
+          { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
+          { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
+          { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
+          { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
+          { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
+          { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
+        ];
         const batch = db.batch();
         pre.forEach(function(c) { batch.set(db.collection('usuarios/' + uid() + '/categorias').doc(), c); });
         batch.commit();
@@ -58,13 +61,13 @@
   };
 
   App.agregarCategoria = function(nombre, icono, color, tipo) {
-  return db.collection('usuarios/' + uid() + '/categorias').add({
-    nombre: nombre.trim().toLowerCase(),
-    icono: icono || 'ph-house',
-    color: color || '#e8c84c',
-    tipo: tipo || 'gasto'
-  });
-};
+    return db.collection('usuarios/' + uid() + '/categorias').add({
+      nombre: nombre.trim().toLowerCase(),
+      icono: icono || 'ph-house',
+      color: color || '#e8c84c',
+      tipo: tipo || 'gasto'
+    });
+  };
 
   App.eliminarCategoria = function(id) {
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
@@ -386,7 +389,6 @@
 
   // ===== ESTADÍSTICAS GLOBALES =====
   App.obtenerEstadisticasGlobales = function(callback) {
-    // Obtener todos los usuarios vinculados
     App.obtenerUsuariosVinculados(function(usuarios) {
       if (usuarios.length === 0) {
         callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
@@ -420,44 +422,43 @@
 
   // ===== EXPORTAR / IMPORTAR DATOS =====
   App.exportarDatosUsuario = function(usuarioUid, callback) {
-    // Esta función es un ejemplo; en producción usarías Cloud Functions.
     alert('Exportación de datos aún en desarrollo');
     if (callback) callback();
   };
-  // Editar categoría existente
-App.actualizarCategoria = function(id, datos) {
-  return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
-};
 
-// Obtener preferencia de orden
-App.obtenerOrdenCategorias = function(callback) {
-  const userId = uid();
-  db.collection('usuarios').doc(userId).get().then(function(doc) {
-    const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
-    callback(orden);
-  });
-};
+  // ===== CATEGORÍAS: editar y orden =====
+  App.actualizarCategoria = function(id, datos) {
+    return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
+  };
 
-// Guardar preferencia de orden
-App.guardarOrdenCategorias = function(orden) {
-  return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
-};
-  // ===== ESPACIOS (Personal, Negocio, etc.) =====
-App.obtenerEspacios = function(callback) {
-  const userId = uid();
-  return db.collection('usuarios/' + userId + '/espacios').onSnapshot(function(snap) {
-    const espacios = [];
-    snap.forEach(function(doc) { espacios.push(Object.assign({ id: doc.id }, doc.data())); });
-    if (espacios.length === 0) {
-      db.collection('usuarios/' + userId + '/espacios').add({ nombre: 'Personal', tipo: 'personal' });
-      return;
-    }
-    callback(espacios);
-  });
-};
+  App.obtenerOrdenCategorias = function(callback) {
+    const userId = uid();
+    db.collection('usuarios').doc(userId).get().then(function(doc) {
+      const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
+      callback(orden);
+    });
+  };
 
-App.agregarEspacio = function(nombre, tipo) {
-  const userId = uid();
-  return db.collection('usuarios/' + userId + '/espacios').add({ nombre: nombre, tipo: tipo || 'personal' });
-};
+  App.guardarOrdenCategorias = function(orden) {
+    return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
+  };
+
+  // ===== ESPACIOS =====
+  App.obtenerEspacios = function(callback) {
+    const userId = uid();
+    return db.collection('usuarios/' + userId + '/espacios').onSnapshot(function(snap) {
+      const espacios = [];
+      snap.forEach(function(doc) { espacios.push(Object.assign({ id: doc.id }, doc.data())); });
+      if (espacios.length === 0) {
+        db.collection('usuarios/' + userId + '/espacios').add({ nombre: 'Personal', tipo: 'personal' });
+        return;
+      }
+      callback(espacios);
+    });
+  };
+
+  App.agregarEspacio = function(nombre, tipo) {
+    const userId = uid();
+    return db.collection('usuarios/' + userId + '/espacios').add({ nombre: nombre, tipo: tipo || 'personal' });
+  };
 })();
