@@ -957,3 +957,20 @@ body {
   width: 120px;
   text-align: right;
 }
+.presupuesto-asistente {
+  background: var(--tarjeta);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--sombra);
+}
+.cat-presupuesto-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--nav-border);
+}
+.cat-presupuesto-item input {
+  width: 120px;
+  text-align: right;
+}
