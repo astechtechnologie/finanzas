@@ -27,6 +27,14 @@
 
     if (!vistas.inicio) return;
 
+    // ==================== SALUDO PERSONALIZADO ====================
+    const horaActual = new Date().getHours();
+    let saludo = 'Buenos días';
+    if (horaActual >= 12 && horaActual < 18) saludo = 'Buenas tardes';
+    else if (horaActual >= 18) saludo = 'Buenas noches';
+    const saludoEl = document.getElementById('saludoUsuario');
+    if (saludoEl) saludoEl.textContent = saludo;
+
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
       const clave = nombreVista.replace('vista', '').toLowerCase();
@@ -64,7 +72,7 @@
       item.addEventListener('click', function() { cambiarVista(this.dataset.vista); });
     });
 
-    // ==================== ICONOS ====================
+    // ==================== ICONOS DISPONIBLES ====================
     const iconosDisponibles = [
       'ph-house', 'ph-car', 'ph-bus', 'ph-airplane', 'ph-shopping-cart',
       'ph-graduation-cap', 'ph-heartbeat', 'ph-game-controller', 'ph-music-notes',
@@ -150,7 +158,7 @@
       setTimeout(function() { document.getElementById('tabMetasAhorro')?.click(); }, 300);
     });
 
-    // ==================== FILTRO MES ====================
+    // ==================== FILTRO DE MES ====================
     if (filtroMes) {
       filtroMes.value = mesSeleccionado;
       filtroMes.addEventListener('change', function() {
@@ -271,8 +279,26 @@
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
+      // KPIs
       const kpiPromedio = document.getElementById('kpiPromedioDiario');
       if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
+
+      // Barra rápida de presupuesto
+      App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
+        const limitesGastos = limites.gastos || {};
+        let totalPresupuesto = 0;
+        Object.keys(limitesGastos).forEach(cat => totalPresupuesto += (limitesGastos[cat].limite || 0));
+        if (totalPresupuesto > 0) {
+          const porcentaje = (gastos / totalPresupuesto) * 100;
+          const barraRapida = document.getElementById('barraPresupuestoRapida');
+          const fill = document.getElementById('fillPresupuestoRapido');
+          if (barraRapida && fill) {
+            barraRapida.classList.remove('hidden');
+            fill.style.width = Math.min(porcentaje, 100) + '%';
+            fill.style.backgroundColor = porcentaje > 100 ? '#ff4444' : porcentaje > 80 ? '#f97316' : '#e8c84c';
+          }
+        }
+      });
 
       const lista = document.getElementById('listaTransacciones');
       if (!lista) return;
@@ -288,7 +314,7 @@
       if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(transacciones, mesSeleccionado);
     }
 
-    // ==================== CATEGORÍAS ====================
+    // ==================== FUNCIONES AUXILIARES ====================
     function llenarSelectCategorias() {
       const select = document.getElementById('categoria');
       if (!select) return;
