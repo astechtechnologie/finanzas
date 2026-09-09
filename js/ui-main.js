@@ -1,7 +1,5 @@
 (function() {
   const App = window.App;
-(function() {
-  const App = window.App;
 
   function getMes() {
     return (typeof App.obtenerMesActual === 'function') ? App.obtenerMesActual() : new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
