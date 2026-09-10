@@ -304,49 +304,48 @@
 
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
-      const filtradas = transacciones.filter(function(t) {
-        return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
+  const filtradas = transacciones.filter(function(t) {
+    return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
+  });
+  let ingresos = 0, gastos = 0;
+  filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
+
+  const elIngresos = document.getElementById('totalIngresos');
+  const elGastos = document.getElementById('totalGastos');
+  const elBalance = document.getElementById('balance');
+  if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresos);
+  if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastos);
+  const balance = ingresos - gastos;
+  if (elBalance) {
+    elBalance.textContent = '$' + App.formatearMonto(balance);
+    elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+  }
+
+  const lista = document.getElementById('listaTransacciones');
+  if (!lista) return;
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
+  } else {
+    let html = '';
+    filtradas.forEach(function(t) {
+      html += '<div class="movimiento-item">' +
+        '<span>' + t.descripcion + '</span>' +
+        '<span>$' + App.formatearMonto(t.monto) + '</span>' +
+        '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
+        '</div>';
+    });
+    lista.innerHTML = html;
+
+    // Evento para eliminar
+    lista.querySelectorAll('.btn-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (confirm('¿Eliminar este movimiento?')) {
+          App.eliminarTransaccion(this.dataset.id);
+        }
       });
-      let ingresos = 0, gastos = 0;
-      filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
-
-      const elIngresos = document.getElementById('totalIngresos');
-      const elGastos = document.getElementById('totalGastos');
-      const elBalance = document.getElementById('balance');
-      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresos);
-      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastos);
-      const balance = ingresos - gastos;
-      if (elBalance) {
-        elBalance.textContent = '$' + App.formatearMonto(balance);
-        elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
-      }
-
-      // Métricas de negocio si es empresa
-      if (App.cuentaActual && App.cuentaActual !== 'personal') {
-        App.obtenerVentas(function(ventas) {
-          const totalVentas = ventas.filter(v => v.fecha && v.fecha.startsWith(mesSeleccionado)).reduce((s, v) => s + v.monto, 0);
-          const ganancia = totalVentas - gastos;
-          const ticketPromedio = ventas.length > 0 ? totalVentas / ventas.length : 0;
-          const kpiGanancia = document.getElementById('kpiAhorro');
-          const kpiTicket = document.getElementById('kpiCategoriaTop');
-          if (kpiGanancia) kpiGanancia.textContent = '$' + App.formatearMonto(ganancia);
-          if (kpiTicket) kpiTicket.textContent = '$' + App.formatearMonto(ticketPromedio);
-        });
-      }
-
-      const lista = document.getElementById('listaTransacciones');
-      if (!lista) return;
-      if (filtradas.length === 0) { lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>'; }
-      else {
-        let html = '';
-        filtradas.forEach(function(t) {
-          html += '<div class="movimiento-item"><span>' + t.descripcion + '</span><span>$' + App.formatearMonto(t.monto) + '</span></div>';
-        });
-        lista.innerHTML = html;
-      }
-
-      if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(filtradas, mesSeleccionado);
-    }
+    });
+  }
+}
 
     // ==================== CATEGORÍAS ====================
     function llenarSelectCategorias() {
