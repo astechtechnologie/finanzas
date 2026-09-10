@@ -262,4 +262,25 @@
     const userId = uid();
     return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
   };
+  // ===== ORGANIZACIONES =====
+App.crearOrganizacion = function(nombre) {
+  return db.collection('organizaciones').add({
+    nombre: nombre,
+    adminId: uid()
+  });
+};
+
+App.obtenerOrganizaciones = function(callback) {
+  return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
+    const orgs = [];
+    snap.forEach(function(doc) {
+      orgs.push(Object.assign({ id: doc.id }, doc.data()));
+    });
+    callback(orgs);
+  });
+};
+
+App.eliminarOrganizacion = function(orgId) {
+  return db.collection('organizaciones').doc(orgId).delete();
+};
 })();
