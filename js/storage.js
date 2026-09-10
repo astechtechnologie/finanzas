@@ -245,6 +245,39 @@
     });
   };
 
+  // ===== ESTADÍSTICAS GLOBALES =====
+  App.obtenerEstadisticasGlobales = function(callback) {
+    App.obtenerUsuariosVinculados(function(usuarios) {
+      if (usuarios.length === 0) {
+        callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
+        return;
+      }
+      let totalTransacciones = 0;
+      let totalIngresos = 0;
+      let totalGastos = 0;
+      let pendientes = usuarios.length;
+
+      usuarios.forEach(function(usuario) {
+        App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
+          transacciones.forEach(function(t) {
+            totalTransacciones++;
+            if (t.tipo === 'ingreso') totalIngresos += t.monto;
+            else totalGastos += t.monto;
+          });
+          pendientes--;
+          if (pendientes === 0) {
+            callback({
+              usuarios: usuarios.length,
+              transacciones: totalTransacciones,
+              ingresos: totalIngresos,
+              gastos: totalGastos
+            });
+          }
+        });
+      });
+    });
+  };
+
   // ===== MODO NEGOCIO =====
   App.agregarCliente = function(nombre, email) {
     return db.collection('usuarios/' + uid() + '/clientes').add({ nombre: nombre, email: email });
