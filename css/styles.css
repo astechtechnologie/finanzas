@@ -1061,3 +1061,421 @@ body {
 .cliente-card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
+/* ============================================ */
+/* PANEL DE ADMINISTRACIÓN PROFESIONAL          */
+/* ============================================ */
+
+.admin-dashboard {
+  background: var(--fondo);
+  padding: 0.5rem 0;
+}
+
+.admin-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--nav-border);
+}
+.admin-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--texto);
+  margin-bottom: 0.25rem;
+}
+.admin-header p {
+  color: var(--texto-secundario);
+  font-size: 0.9rem;
+}
+
+/* Tarjetas de estadísticas */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 1rem;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  transition: box-shadow 0.2s ease;
+}
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.stat-card i {
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(232, 200, 76, 0.15);
+  color: var(--primario);
+}
+.stat-numero {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--texto);
+  line-height: 1.2;
+}
+.stat-etiqueta {
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Secciones */
+.admin-seccion {
+  margin-bottom: 2rem;
+}
+.admin-seccion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.admin-seccion-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--texto);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.admin-seccion-header h3 i {
+  color: var(--primario);
+}
+
+/* Organizaciones */
+.org-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+.org-item i {
+  color: var(--texto-secundario);
+  margin-right: 0.5rem;
+}
+
+/* Búsqueda de clientes */
+.cliente-busqueda {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.cliente-busqueda .input-field {
+  flex: 1;
+  min-width: 180px;
+}
+
+/* Tarjetas de clientes */
+.cliente-card {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.cliente-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+
+.cliente-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.cliente-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primario), #d4b53a);
+  color: var(--texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.cliente-info {
+  flex: 1;
+  min-width: 0;
+}
+.cliente-nombre {
+  font-weight: 600;
+  color: var(--texto);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+.cliente-email {
+  font-size: 0.8rem;
+  color: var(--texto-secundario);
+  overflow-wrap: anywhere;
+}
+.cliente-estado {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.cliente-estado.activo {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+.cliente-estado.inactivo {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.cliente-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--nav-border);
+  border-bottom: 1px solid var(--nav-border);
+}
+.cliente-metricas > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cliente-metricas > span strong {
+  font-size: 0.9rem;
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.cliente-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.btn-ver-cliente,
+.btn-editar-rol,
+.btn-toggle-estado,
+.btn-eliminar-cliente {
+  background: var(--fondo);
+  border: 1px solid var(--nav-border);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--texto);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+.btn-ver-cliente:hover {
+  background: var(--primario);
+  border-color: var(--primario);
+  color: var(--texto);
+}
+.btn-editar-rol:hover {
+  background: #e0e7ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+.btn-toggle-estado:hover {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+.btn-eliminar-cliente:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Detalle de cliente */
+.admin-detalle:empty {
+  display: none;
+}
+.detalle-cliente {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.detalle-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.detalle-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primario), #d4b53a);
+  color: var(--texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.detalle-info { flex: 1; min-width: 0; }
+.detalle-nombre {
+  font-weight: 700;
+  font-size: 1.15rem;
+  overflow-wrap: anywhere;
+}
+.detalle-email {
+  font-size: 0.85rem;
+  color: var(--texto-secundario);
+  overflow-wrap: anywhere;
+}
+
+.detalle-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.detalle-stat {
+  background: var(--fondo);
+  border: 1px solid var(--nav-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  text-align: center;
+  min-width: 0;
+}
+.detalle-stat i {
+  font-size: 1.25rem;
+  color: var(--primario);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.detalle-stat-numero {
+  font-weight: 700;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+.detalle-stat span {
+  font-size: 0.7rem;
+  color: var(--texto-secundario);
+  text-transform: uppercase;
+}
+
+.detalle-seccion {
+  margin-bottom: 1.5rem;
+}
+.detalle-seccion h5 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.detalle-seccion h5 i {
+  color: var(--primario);
+}
+.detalle-transaccion {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--nav-border);
+  flex-wrap: wrap;
+}
+.detalle-transaccion-info { flex: 1; min-width: 0; }
+.detalle-transaccion-descripcion {
+  font-weight: 500;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.detalle-transaccion-categoria {
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+  overflow-wrap: anywhere;
+}
+.detalle-transaccion-monto {
+  font-weight: 700;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Auditoría */
+#listaAuditoria {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+#listaAuditoria > div {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--nav-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+#listaAuditoria > div:last-child {
+  border-bottom: none;
+}
+#listaAuditoria i {
+  color: var(--texto-secundario);
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .admin-header h2 {
+    font-size: 1.4rem;
+  }
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .stat-card {
+    padding: 0.9rem 0.75rem;
+  }
+  .stat-card i {
+    font-size: 1.1rem;
+    padding: 0.4rem;
+  }
+  .stat-numero {
+    font-size: 1.2rem;
+  }
+  .cliente-metricas {
+    grid-template-columns: repeat(3, 1fr);
+    font-size: 0.7rem;
+  }
+  .detalle-stats {
+    grid-template-columns: 1fr;
+  }
+}
