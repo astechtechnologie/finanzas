@@ -446,65 +446,165 @@
     }
 
     function cargarUsuariosAdmin() {
-      const cont = document.getElementById('listaUsuariosAdmin');
-      if (!cont) return;
-      App.obtenerUsuariosVinculados(function(usuarios) {
-        if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
-        let html = '';
-        usuarios.forEach(function(usuario) {
-          App.obtenerUsuarioPorId(usuario.uid, function(datos) {
-            const rol = datos ? (datos.rol || 'normal') : 'normal';
-            const activo = datos ? (datos.activo !== false) : true;
-            usuario.rol = rol;
-            usuario.activo = activo;
+  const cont = document.getElementById('listaUsuariosAdmin');
+  if (!cont) return;
+  App.obtenerUsuariosVinculados(function(usuarios) {
+    if (usuarios.length === 0) {
+      cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>';
+      return;
+    }
 
-            App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
-              const mesActual = getMes();
-              let ingresos = 0, gastos = 0;
-              transacciones.forEach(function(t) {
-                if (t.fecha && t.fecha.startsWith(mesActual)) {
-                  if (t.tipo === 'ingreso') ingresos += t.monto;
-                  else gastos += t.monto;
-                }
-              });
-              const balance = ingresos - gastos;
-              const inicial = usuario.email.charAt(0).toUpperCase();
+    let html = '';
+    let pendientes = usuarios.length;
 
-              html += '<div class="cliente-card">';
-              html += '<div class="cliente-header"><div class="cliente-avatar">' + inicial + '</div><div class="cliente-info"><div class="cliente-nombre">' + usuario.email + '</div><div class="cliente-email">' + (activo ? 'Activo' : 'Inactivo') + '</div></div><span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></div>';
-              html += '<div class="cliente-metricas"><span>Ingresos: $' + App.formatearMonto(ingresos) + '</span><span>Gastos: $' + App.formatearMonto(gastos) + '</span><span>Balance: $' + App.formatearMonto(balance) + '</span></div>';
-              html += '<div class="cliente-acciones">';
-              html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
-              html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
-              html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
-              html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
-              html += '</div></div>';
+    usuarios.forEach(function(usuario) {
+      App.obtenerUsuarioPorId(usuario.uid, function(datos) {
+        const rol = datos ? (datos.rol || 'normal') : 'normal';
+        const activo = datos ? (datos.activo !== false) : true;
 
-              cont.innerHTML = html;
-
-              cont.querySelectorAll('.btn-eliminar-cliente').forEach(function(btn) {
-                btn.addEventListener('click', function() { if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid); });
-              });
-              cont.querySelectorAll('.btn-ver-cliente').forEach(function(btn) {
-                btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
-              });
-              cont.querySelectorAll('.btn-editar-rol').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                  const nuevoRol = this.dataset.rol === 'admin' ? 'normal' : 'admin';
-                  if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) App.actualizarRolUsuario(this.dataset.uid, nuevoRol);
-                });
-              });
-              cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                  const nuevoEstado = this.dataset.activo !== 'true';
-                  App.actualizarEstadoUsuario(this.dataset.uid, nuevoEstado);
-                });
-              });
-            });
+        App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
+          const mesActual = getMes();
+          let ingresos = 0, gastos = 0;
+          transacciones.forEach(function(t) {
+            if (t.fecha && t.fecha.startsWith(mesActual)) {
+              if (t.tipo === 'ingreso') ingresos += t.monto;
+              else gastos += t.monto;
+            }
           });
+          const balance = ingresos - gastos;
+          const inicial = usuario.email.charAt(0).toUpperCase();
+
+          html += '<div class="cliente-card">';
+          html += '<div class="cliente-header">';
+          html += '<div class="cliente-avatar">' + inicial + '</div>';
+          html += '<div class="cliente-info">';
+          html += '<div class="cliente-nombre">' + usuario.email + '</div>';
+          html += '<div class="cliente-email">Rol: ' + rol + '</div>';
+          html += '</div>';
+          html += '<span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span>';
+          html += '</div>';
+
+          html += '<div class="cliente-metricas">';
+          html += '<span>Ingresos<strong>$' + App.formatearMonto(ingresos) + '</strong></span>';
+          html += '<span>Gastos<strong>$' + App.formatearMonto(gastos) + '</strong></span>';
+          html += '<span>Balance<strong>$' + App.formatearMonto(balance) + '</strong></span>';
+          html += '</div>';
+
+          html += '<div class="cliente-acciones">';
+          html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
+          html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
+          html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
+          html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
+          html += '</div>';
+          html += '</div>';
+
+          pendientes--;
+          if (pendientes === 0) {
+            cont.innerHTML = html;
+            asignarEventosClientes(cont);
+          }
         });
       });
-    }
+    });
+  });
+}
+
+function asignarEventosClientes(cont) {
+  cont.querySelectorAll('.btn-eliminar-cliente').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid);
+    });
+  });
+  cont.querySelectorAll('.btn-ver-cliente').forEach(function(btn) {
+    btn.addEventListener('click', function() { verDetalleUsuario(this.dataset.uid); });
+  });
+  cont.querySelectorAll('.btn-editar-rol').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const nuevoRol = this.dataset.rol === 'admin' ? 'normal' : 'admin';
+      if (confirm('¿Cambiar rol a ' + nuevoRol + '?')) App.actualizarRolUsuario(this.dataset.uid, nuevoRol);
+    });
+  });
+  cont.querySelectorAll('.btn-toggle-estado').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const nuevoEstado = this.dataset.activo !== 'true';
+      App.actualizarEstadoUsuario(this.dataset.uid, nuevoEstado);
+    });
+  });
+}
+
+function verDetalleUsuario(usuarioUid) {
+  const detalleCont = document.getElementById('detalleUsuarioAdmin');
+  if (!detalleCont) return;
+  App.obtenerUsuarioPorId(usuarioUid, function(datosUsuario) {
+    if (!datosUsuario) return;
+    App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+      const mesActual = getMes();
+      let ingresos = 0, gastos = 0;
+      const porCategoria = {};
+      transacciones.forEach(function(t) {
+        if (t.fecha && t.fecha.startsWith(mesActual)) {
+          if (t.tipo === 'ingreso') ingresos += t.monto;
+          else {
+            gastos += t.monto;
+            porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + t.monto;
+          }
+        }
+      });
+      const balance = ingresos - gastos;
+
+      let html = '<div class="detalle-cliente">';
+      html += '<div class="detalle-header">';
+      html += '<div class="detalle-avatar">' + datosUsuario.email.charAt(0).toUpperCase() + '</div>';
+      html += '<div class="detalle-info">';
+      html += '<div class="detalle-nombre">' + datosUsuario.email + '</div>';
+      html += '<div class="detalle-email">' + (datosUsuario.activo !== false ? 'Activo' : 'Inactivo') + '</div>';
+      html += '</div>';
+      html += '<button class="btn-eliminar-cliente" data-uid="' + usuarioUid + '"><i class="ph ph-x"></i></button>';
+      html += '</div>';
+
+      html += '<div class="detalle-stats">';
+      html += '<div class="detalle-stat"><i class="ph ph-trend-up"></i><div class="detalle-stat-numero">$' + App.formatearMonto(ingresos) + '</div><span>Ingresos</span></div>';
+      html += '<div class="detalle-stat"><i class="ph ph-trend-down"></i><div class="detalle-stat-numero">$' + App.formatearMonto(gastos) + '</div><span>Gastos</span></div>';
+      html += '<div class="detalle-stat"><i class="ph ph-chart-line"></i><div class="detalle-stat-numero">$' + App.formatearMonto(balance) + '</div><span>Balance</span></div>';
+      html += '</div>';
+
+      html += '<div class="detalle-seccion">';
+      html += '<h5><i class="ph ph-chart-pie"></i> Gastos por categoría</h5>';
+      if (Object.keys(porCategoria).length === 0) {
+        html += '<p class="texto-secundario">Sin gastos este mes</p>';
+      } else {
+        Object.keys(porCategoria).forEach(function(cat) {
+          html += '<div class="detalle-transaccion">';
+          html += '<div class="detalle-transaccion-info"><div class="detalle-transaccion-descripcion">' + cat + '</div></div>';
+          html += '<div class="detalle-transaccion-monto">$' + App.formatearMonto(porCategoria[cat]) + '</div>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+
+      html += '<div class="detalle-seccion">';
+      html += '<h5><i class="ph ph-clock"></i> Últimas transacciones</h5>';
+      const recientes = transacciones.slice(0, 5);
+      if (recientes.length === 0) {
+        html += '<p class="texto-secundario">Sin transacciones</p>';
+      } else {
+        recientes.forEach(function(t) {
+          html += '<div class="detalle-transaccion">';
+          html += '<div class="detalle-transaccion-info">';
+          html += '<div class="detalle-transaccion-descripcion">' + t.descripcion + '</div>';
+          html += '<div class="detalle-transaccion-categoria">' + t.categoria + '</div>';
+          html += '</div>';
+          html += '<div class="detalle-transaccion-monto">$' + App.formatearMonto(t.monto) + '</div>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+
+      html += '</div>';
+      detalleCont.innerHTML = html;
+    });
+  });
+}
 
     function verDetalleUsuario(usuarioUid) {
       const detalleCont = document.getElementById('detalleUsuarioAdmin');
