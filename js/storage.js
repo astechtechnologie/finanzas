@@ -1,4 +1,4 @@
-// storage.js – acceso a Firestore con modo negocio
+// storage.js – acceso a Firestore con todas las funciones
 (function() {
   const App = window.App;
   const db = App.db;
@@ -197,11 +197,51 @@
     });
   };
 
+  App.obtenerUsuarioPorId = function(usuarioUid, callback) {
+    db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
+      callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
+    });
+  };
+
+  App.actualizarRolUsuario = function(usuarioUid, nuevoRol) {
+    return db.collection('usuarios').doc(usuarioUid).update({ rol: nuevoRol });
+  };
+
+  App.actualizarEstadoUsuario = function(usuarioUid, activo) {
+    return db.collection('usuarios').doc(usuarioUid).update({ activo: activo });
+  };
+
   App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
     return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
       const arr = [];
       snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
       callback(arr);
+    });
+  };
+
+  // ===== ORGANIZACIONES =====
+  App.crearOrganizacion = function(nombre) {
+    return db.collection('organizaciones').add({ nombre: nombre, adminId: uid() });
+  };
+
+  App.obtenerOrganizaciones = function(callback) {
+    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
+      const orgs = [];
+      snap.forEach(function(doc) { orgs.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(orgs);
+    });
+  };
+
+  App.eliminarOrganizacion = function(orgId) {
+    return db.collection('organizaciones').doc(orgId).delete();
+  };
+
+  // ===== AUDITORÍA =====
+  App.obtenerAuditoria = function(callback) {
+    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').onSnapshot(function(snap) {
+      const registros = [];
+      snap.forEach(function(doc) { registros.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(registros);
     });
   };
 
@@ -262,25 +302,4 @@
     const userId = uid();
     return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
   };
-  // ===== ORGANIZACIONES =====
-App.crearOrganizacion = function(nombre) {
-  return db.collection('organizaciones').add({
-    nombre: nombre,
-    adminId: uid()
-  });
-};
-
-App.obtenerOrganizaciones = function(callback) {
-  return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
-    const orgs = [];
-    snap.forEach(function(doc) {
-      orgs.push(Object.assign({ id: doc.id }, doc.data()));
-    });
-    callback(orgs);
-  });
-};
-
-App.eliminarOrganizacion = function(orgId) {
-  return db.collection('organizaciones').doc(orgId).delete();
-};
 })();
