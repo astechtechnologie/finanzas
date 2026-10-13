@@ -335,4 +335,33 @@
     const userId = uid();
     return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
   };
+  // ===== BUSCAR USUARIO POR EMAIL =====
+App.buscarUsuarioPorEmail = function(email, callback) {
+  if (!email) {
+    callback({ encontrado: false, mensaje: 'Ingresa un correo electrónico' });
+    return;
+  }
+  db.collection('usuarios').where('email', '==', email.trim().toLowerCase()).get().then(function(query) {
+    if (!query.empty) {
+      const doc = query.docs[0];
+      callback({
+        encontrado: true,
+        usuario: Object.assign({ uid: doc.id }, doc.data())
+      });
+    } else {
+      callback({ encontrado: false, mensaje: 'No se encontró un usuario registrado con ese email' });
+    }
+  }).catch(function(error) {
+    console.error('Error al buscar usuario:', error);
+    callback({ encontrado: false, mensaje: 'Error: ' + error.message });
+  });
+};
+
+// ===== VERIFICAR SI YA ESTÁ VINCULADO =====
+App.verificarSiYaVinculado = function(usuarioUid, callback) {
+  const adminUid = uid();
+  db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).get().then(function(doc) {
+    callback(doc.exists);
+  });
+};
 })();
