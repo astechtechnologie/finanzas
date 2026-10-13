@@ -212,10 +212,14 @@
             <div class="admin-seccion-header">
               <h3><i class="ph ph-users-three"></i> Clientes</h3>
             </div>
-            <div class="cliente-busqueda">
-              <input type="email" id="emailUsuarioVincular" placeholder="Email del cliente" class="input-field">
-              <button id="btnVincularUsuario" class="btn btn-primario">Vincular</button>
-            </div>
+            <div class="vincular-box">
+  <label class="vincular-label"><i class="ph ph-magnifying-glass"></i> Vincular cliente</label>
+  <div class="cliente-busqueda">
+    <input type="email" id="emailUsuarioVincular" placeholder="Escribe el email del cliente" class="input-field">
+    <button id="btnBuscarUsuario" class="btn btn-primario"><i class="ph ph-magnifying-glass"></i> Buscar</button>
+  </div>
+  <div id="resultadoBusqueda" class="resultado-busqueda hidden"></div>
+</div>
             <div id="listaUsuariosAdmin"></div>
           </div>
 
