@@ -1499,3 +1499,107 @@ body {
   border-color: #fecaca;
   color: #991b1b;
 }
+/* ========== VINCULACIÓN DE CLIENTES ========== */
+.vincular-box {
+  background: var(--tarjeta);
+  border: 1px solid var(--nav-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.vincular-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--texto);
+  margin-bottom: 0.75rem;
+}
+.vincular-label i {
+  color: var(--primario);
+}
+.resultado-busqueda {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--fondo);
+  border: 1px solid var(--nav-border);
+}
+.resultado-busqueda.encontrado {
+  border-left: 4px solid #10b981;
+}
+.resultado-busqueda.no-encontrado {
+  border-left: 4px solid #ef4444;
+}
+.resultado-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.resultado-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primario), #d4b53a);
+  color: var(--texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.resultado-detalles {
+  flex: 1;
+  min-width: 0;
+}
+.resultado-email {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.resultado-estado {
+  font-size: 0.75rem;
+  color: var(--texto-secundario);
+}
+.resultado-mensaje {
+  font-size: 0.85rem;
+  color: var(--texto-secundario);
+  margin-bottom: 0.75rem;
+}
+.resultado-botones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.btn-vincular-confirmar {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+.btn-vincular-confirmar:hover {
+  opacity: 0.9;
+}
+.btn-cancelar-busqueda {
+  background: transparent;
+  border: 1px solid var(--nav-border);
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--texto-secundario);
+}
+.btn-cancelar-busqueda:hover {
+  background: var(--nav-border);
+}
