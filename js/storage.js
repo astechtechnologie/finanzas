@@ -73,6 +73,22 @@
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
   };
 
+  App.actualizarCategoria = function(id, datos) {
+    return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
+  };
+
+  App.obtenerOrdenCategorias = function(callback) {
+    const userId = uid();
+    db.collection('usuarios').doc(userId).get().then(function(doc) {
+      const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
+      callback(orden);
+    });
+  };
+
+  App.guardarOrdenCategorias = function(orden) {
+    return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
+  };
+
   // ===== PRESUPUESTOS =====
   App.obtenerLimitesCategorias = function(mes, callback) {
     db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes).get().then(function(doc) {
@@ -219,6 +235,67 @@
     });
   };
 
+  // ===== BUSCAR USUARIO POR EMAIL =====
+  App.buscarUsuarioPorEmail = function(email, callback) {
+    if (!email) {
+      callback({ encontrado: false, mensaje: 'Ingresa un correo electrónico' });
+      return;
+    }
+    db.collection('usuarios').where('email', '==', email.trim().toLowerCase()).get().then(function(query) {
+      if (!query.empty) {
+        const doc = query.docs[0];
+        callback({
+          encontrado: true,
+          usuario: Object.assign({ uid: doc.id }, doc.data())
+        });
+      } else {
+        callback({ encontrado: false, mensaje: 'No se encontró un usuario registrado con ese email' });
+      }
+    }).catch(function(error) {
+      console.error('Error al buscar usuario:', error);
+      callback({ encontrado: false, mensaje: 'Error: ' + error.message });
+    });
+  };
+
+  // ===== VERIFICAR SI YA ESTÁ VINCULADO =====
+  App.verificarSiYaVinculado = function(usuarioUid, callback) {
+    const adminUid = uid();
+    db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).get().then(function(doc) {
+      callback(doc.exists);
+    });
+  };
+
+  // ===== VINCULAR USUARIO =====
+  App.vincularUsuarioPorEmail = function(email, callback) {
+    if (!email) {
+      alert('Ingresa un correo electrónico');
+      return;
+    }
+    const emailLimpio = email.trim().toLowerCase();
+
+    db.collection('usuarios').where('email', '==', emailLimpio).get().then(function(query) {
+      if (!query.empty) {
+        const usuario = query.docs[0];
+        const adminUid = uid();
+        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
+          email: emailLimpio
+        }).then(function() {
+          if (callback) callback();
+        }).catch(function(error) {
+          alert('Error al crear vínculo: ' + error.message);
+        });
+      } else {
+        alert('No se encontró usuario con ese email');
+      }
+    }).catch(function(error) {
+      alert('Error buscando usuario: ' + error.message);
+    });
+  };
+
+  App.eliminarVinculacion = function(usuarioUid) {
+    return db.collection('usuarios').doc(uid()).collection('vinculados').doc(usuarioUid).delete();
+  };
+
   // ===== ORGANIZACIONES =====
   App.crearOrganizacion = function(nombre) {
     return db.collection('organizaciones').add({ nombre: nombre, adminId: uid() });
@@ -278,36 +355,6 @@
     });
   };
 
-  // ===== MODO NEGOCIO =====
-  App.agregarCliente = function(nombre, email) {
-    return db.collection('usuarios/' + uid() + '/clientes').add({ nombre: nombre, email: email });
-  };
-
-  App.obtenerClientes = function(callback) {
-    return db.collection('usuarios/' + uid() + '/clientes').onSnapshot(function(snap) {
-      const clientes = [];
-      snap.forEach(function(doc) { clientes.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(clientes);
-    });
-  };
-
-  App.registrarVenta = function(clienteId, monto, descripcion) {
-    return db.collection('usuarios/' + uid() + '/ventas').add({
-      clienteId: clienteId,
-      monto: parseFloat(monto),
-      descripcion: descripcion,
-      fecha: new Date().toISOString()
-    });
-  };
-
-  App.obtenerVentas = function(callback) {
-    return db.collection('usuarios/' + uid() + '/ventas').onSnapshot(function(snap) {
-      const ventas = [];
-      snap.forEach(function(doc) { ventas.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(ventas);
-    });
-  };
-
   // ===== CUENTAS =====
   App.obtenerCuentas = function(callback) {
     const userId = uid();
@@ -335,33 +382,4 @@
     const userId = uid();
     return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
   };
-  // ===== BUSCAR USUARIO POR EMAIL =====
-App.buscarUsuarioPorEmail = function(email, callback) {
-  if (!email) {
-    callback({ encontrado: false, mensaje: 'Ingresa un correo electrónico' });
-    return;
-  }
-  db.collection('usuarios').where('email', '==', email.trim().toLowerCase()).get().then(function(query) {
-    if (!query.empty) {
-      const doc = query.docs[0];
-      callback({
-        encontrado: true,
-        usuario: Object.assign({ uid: doc.id }, doc.data())
-      });
-    } else {
-      callback({ encontrado: false, mensaje: 'No se encontró un usuario registrado con ese email' });
-    }
-  }).catch(function(error) {
-    console.error('Error al buscar usuario:', error);
-    callback({ encontrado: false, mensaje: 'Error: ' + error.message });
-  });
-};
-
-// ===== VERIFICAR SI YA ESTÁ VINCULADO =====
-App.verificarSiYaVinculado = function(usuarioUid, callback) {
-  const adminUid = uid();
-  db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).get().then(function(doc) {
-    callback(doc.exists);
-  });
-};
 })();
