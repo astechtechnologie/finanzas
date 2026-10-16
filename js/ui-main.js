@@ -210,6 +210,11 @@
 
     // ==================== MODALES ====================
     addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
+    addListener('btnCerrarModalX', function() { modal?.classList.add('hidden'); });
+    addListener('btnGuardarModalQuick', function() {
+      document.getElementById('btnGuardarModal').click();
+    });
+
     addListener('btnGuardarModal', function() {
       const cat = document.getElementById('categoria').value;
       const subcat = document.getElementById('subcategoria').value || null;
@@ -303,6 +308,19 @@
       });
     }
 
+    function llenarSelectMetodosPago() {
+      const selectAgregar = document.getElementById('metodoPago');
+      const selectEditar = document.getElementById('metodoPagoEditar');
+      const filtroSelect = document.getElementById('filtroMetodoPago');
+      let opciones = '<option value="">Sin método</option>';
+      metodosPago.forEach(function(m) { opciones += '<option value="' + m.nombre + '">' + m.nombre + '</option>'; });
+      if (selectAgregar) selectAgregar.innerHTML = opciones;
+      if (selectEditar) selectEditar.innerHTML = opciones;
+      if (filtroSelect) {
+        filtroSelect.innerHTML = '<option value="">Todos los métodos</option>' + metodosPago.map(function(m) { return '<option value="' + m.nombre + '">' + m.nombre + '</option>'; }).join('');
+      }
+    }
+
     // ==================== DASHBOARD ====================
     function actualizarDashboard(transacciones) {
       const filtradas = transacciones.filter(function(t) {
@@ -321,9 +339,6 @@
         elBalance.textContent = '$' + App.formatearMonto(balance);
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
-
-      const kpiPromedio = document.getElementById('kpiPromedioDiario');
-      if (kpiPromedio) kpiPromedio.textContent = '$' + App.formatearMonto(0);
 
       App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
         const limitesGastos = limites.gastos || {};
@@ -366,13 +381,42 @@
     }
 
     // ==================== CATEGORÍAS ====================
-    function llenarSelectCategorias() {
-      const select = document.getElementById('categoria');
-      if (!select) return;
+    function renderizarChipsCategorias() {
+      const cont = document.getElementById('chipsCategorias');
+      if (!cont) return;
+
       const cats = (App.categoriasState || []).filter(function(c) { return c.tipo === tipoTransaccion; });
-      select.innerHTML = cats.map(function(c) {
-        return '<option value="' + c.nombre + '"><i class="ph ' + c.icono + '"></i> ' + c.nombre + '</option>';
-      }).join('');
+      const selectHidden = document.getElementById('categoria');
+
+      if (cats.length === 0) {
+        cont.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
+        return;
+      }
+
+      let html = '';
+      cats.forEach(function(c, idx) {
+        const activo = idx === 0 ? ' activo' : '';
+        html += '<div class="chip-categoria' + activo + '" data-nombre="' + c.nombre + '">' +
+          '<i class="ph ' + c.icono + '"></i>' +
+          '<span>' + c.nombre + '</span>' +
+          '</div>';
+      });
+      cont.innerHTML = html;
+
+      if (cats.length > 0) selectHidden.value = cats[0].nombre;
+
+      cont.querySelectorAll('.chip-categoria').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          cont.querySelectorAll('.chip-categoria').forEach(function(c) { c.classList.remove('activo'); });
+          this.classList.add('activo');
+          selectHidden.value = this.dataset.nombre;
+          llenarSelectSubcategorias();
+        });
+      });
+    }
+
+    function llenarSelectCategorias() {
+      renderizarChipsCategorias();
       llenarSelectSubcategorias();
     }
 
@@ -477,7 +521,6 @@
       }
     });
 
-    // ==================== BUSCAR Y VINCULAR CLIENTE ====================
     addListener('btnBuscarUsuario', function() {
       const email = document.getElementById('emailUsuarioVincular').value.trim();
       const resultado = document.getElementById('resultadoBusqueda');
@@ -734,7 +777,10 @@
         llenarSelectCategorias();
         renderizarListaCategorias();
 
-        App.obtenerMetodosPago(function(metodos) { metodosPago = metodos; });
+        App.obtenerMetodosPago(function(metodos) {
+          metodosPago = metodos;
+          llenarSelectMetodosPago();
+        });
 
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
         App.actualizarBotonAdmin();
