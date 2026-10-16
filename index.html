@@ -247,24 +247,52 @@
 
     <!-- Modal AGREGAR transacción -->
     <div id="modalTransaccion" class="modal hidden">
-      <div class="modal-content">
-        <h2>Nueva transacción</h2>
-        <div class="tab-group">
-          <button id="tabIngreso" class="tab active">Ingreso</button>
-          <button id="tabGasto" class="tab">Gasto</button>
-        </div>
-        <input type="date" id="fecha" class="input-field">
-        <select id="categoria" class="input-field"></select>
-        <select id="subcategoria" class="input-field"><option value="">Sin subcategoría</option></select>
-        <select id="metodoPago" class="input-field"><option value="">Método de pago (opcional)</option></select>
-        <input type="text" id="descripcion" placeholder="Descripción" class="input-field">
-        <input type="text" id="monto" placeholder="Monto" inputmode="decimal" class="input-field">
-        <div class="modal-buttons">
-          <button id="btnCancelarModal" class="btn btn-outline">Cancelar</button>
-          <button id="btnGuardarModal" class="btn btn-primario">Guardar</button>
-        </div>
+  <div class="modal-content modal-quick">
+    <div class="quick-header">
+      <button class="quick-cerrar" id="btnCerrarModalX"><i class="ph ph-x"></i></button>
+      <div class="quick-toggle">
+        <button id="tabIngreso" class="quick-toggle-btn active" data-tipo="ingreso">Ingreso</button>
+        <button id="tabGasto" class="quick-toggle-btn" data-tipo="gasto">Gasto</button>
+      </div>
+      <button class="quick-guardar" id="btnGuardarModalQuick"><i class="ph ph-check"></i></button>
+    </div>
+
+    <div class="quick-monto">
+      <span class="quick-simbolo">$</span>
+      <input type="text" id="monto" placeholder="0" inputmode="decimal" class="quick-monto-input">
+    </div>
+
+    <div class="quick-seccion">
+      <p class="quick-label">Categoría</p>
+      <div id="chipsCategorias" class="chips-categorias"></div>
+    </div>
+
+    <div class="quick-fila">
+      <div class="quick-campo">
+        <i class="ph ph-calendar"></i>
+        <input type="date" id="fecha" class="quick-input">
+      </div>
+      <div class="quick-campo">
+        <i class="ph ph-credit-card"></i>
+        <select id="metodoPago" class="quick-input">
+          <option value="">Sin método</option>
+        </select>
       </div>
     </div>
+
+    <div class="quick-descripcion">
+      <i class="ph ph-text-align-left"></i>
+      <input type="text" id="descripcion" placeholder="Nota (opcional)" class="quick-input">
+    </div>
+
+    <!-- Estos campos son necesarios para que el JS siga funcionando -->
+    <select id="categoria" class="hidden"></select>
+    <select id="subcategoria" class="hidden">
+      <option value="">Sin subcategoría</option>
+    </select>
+    <button id="btnCancelarModal" class="hidden"></button>
+  </div>
+</div>
 
     <!-- Modal EDITAR transacción -->
     <div id="modalEditarTransaccion" class="modal hidden">
