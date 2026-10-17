@@ -184,7 +184,6 @@
             </label>
           </div>
 
-          <!-- NUEVA SECCIÓN: MIS CUENTAS -->
           <div class="ajuste-item" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
             <span>Mis Cuentas</span>
           </div>
@@ -304,6 +303,18 @@
           <div id="chipsCategorias" class="chips-categorias"></div>
         </div>
 
+        <div class="quick-seccion" style="margin-top: 15px;">
+          <p class="quick-label">Subcategoría</p>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <select id="subcategoria" class="quick-input" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px;">
+              <option value="">Sin subcategoría</option>
+            </select>
+            <button type="button" id="btnAgregarSubcategoria" class="btn btn-outline-small" style="padding: 8px 12px; height: auto;" title="Nueva subcategoría">
+              <i class="ph ph-plus"></i>
+            </button>
+          </div>
+        </div>
+
         <div class="quick-fila">
           <div class="quick-campo">
             <i class="ph ph-calendar"></i>
@@ -322,11 +333,7 @@
           <input type="text" id="descripcion" placeholder="Nota (opcional)" class="quick-input">
         </div>
 
-        <!-- CAMPOS OCULTOS CORREGIDOS -->
         <select id="categoria" class="hidden"></select>
-        <select id="subcategoria" class="hidden">
-          <option value="">Sin subcategoría</option>
-        </select>
         <button id="btnCancelarModal" class="hidden"></button>
         <button id="btnGuardarModal" class="hidden"></button>
       </div>
