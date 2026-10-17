@@ -104,7 +104,16 @@
       callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
     });
   };
-
+App.obtenerLimitesCategoriasDeUsuario = function(usuarioUid, mes, callback) {
+  db.collection('usuarios').doc(usuarioUid).collection('presupuestos').doc(mes).get().then(function(doc) {
+    if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
+    const data = doc.data();
+    callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
+  }).catch(function(error) {
+    console.error('Error obteniendo límites del cliente:', error);
+    callback({ gastos: {}, ingresos: {} });
+  });
+};
   App.guardarLimiteCategoria = function(mes, tipo, categoria, limite, callback) {
     const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
     db.runTransaction(function(transaction) {
