@@ -167,7 +167,6 @@
         <div class="ajustes-panel">
           <h2>Ajustes</h2>
           
-          <!-- Tema (Único) -->
           <div class="ajuste-item">
             <span>Tema de la app</span>
             <select id="temaSelector" class="input-field" style="width: auto; padding: 0.4rem;">
@@ -177,13 +176,24 @@
             </select>
           </div>
 
-          <!-- Privacidad -->
           <div class="ajuste-item">
             <span>Ocultar montos (Privacidad)</span>
             <label class="switch">
               <input type="checkbox" id="togglePrivacidadAjustes">
               <span class="slider round"></span>
             </label>
+          </div>
+
+          <!-- NUEVA SECCIÓN: MIS CUENTAS -->
+          <div class="ajuste-item" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+            <span>Mis Cuentas</span>
+          </div>
+          <div style="margin-top: 10px; margin-bottom: 20px; background: #f9fafb; padding: 15px; border-radius: 12px;">
+            <div id="listaCuentasAjustes" style="margin-bottom: 10px;"></div>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" id="nuevaCuentaNombre" placeholder="Ej. Efectivo, Banco..." class="input-field" style="flex: 1; padding: 8px; font-size: 14px;">
+              <button id="btnAgregarCuentaAjustes" class="btn btn-primario" style="padding: 8px 15px; font-size: 14px;"><i class="ph ph-plus"></i></button>
+            </div>
           </div>
 
           <div class="ajuste-item"><span>Cambiar contraseña</span><button id="btnCambiarPasswordAjustes" class="btn btn-outline-small">Cambiar</button></div>
@@ -312,7 +322,6 @@
           <input type="text" id="descripcion" placeholder="Nota (opcional)" class="quick-input">
         </div>
 
-        <!-- Estos campos son necesarios para que el JS siga funcionando -->
         <select id="categoria" class="hidden"></select>
         <select id="subcategoria" class="hidden">
           <option value="">Sin subcategoría</option>
