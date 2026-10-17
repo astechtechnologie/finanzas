@@ -133,6 +133,18 @@ App.inicializarCategoriasPorDefecto = function() {
     });
   };
 
+  App.aportarMeta = function(id, montoAporte) {
+  const ref = db.collection('usuarios/' + uid() + '/metas').doc(id);
+  return db.runTransaction(function(transaction) {
+    return transaction.get(ref).then(function(doc) {
+      if (!doc.exists) throw "La meta no existe";
+      const data = doc.data();
+      const nuevoAhorrado = (data.ahorrado || 0) + montoAporte;
+      return transaction.update(ref, { ahorrado: nuevoAhorrado });
+    });
+  });
+};
+
   App.agregarMeta = function(meta) {
     return db.collection('usuarios/' + uid() + '/metas').add(meta);
   };
