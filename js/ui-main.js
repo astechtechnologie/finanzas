@@ -485,7 +485,6 @@
     }
 
     function abrirEdicionCategoria(datos) {
-      // 1. Llenamos el formulario con los datos de la categoría
       document.getElementById('idCategoriaEditar').value = datos.id;
       document.getElementById('nombreCategoria').value = datos.nombre;
       document.getElementById('colorCategoria').value = datos.color || '#e8c84c';
@@ -495,14 +494,9 @@
       document.getElementById('iconoCategoria').value = icono;
       document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ' + icono + '"></i>';
 
-      // 2. Cambiamos los textos para indicar que estamos editando
       document.getElementById('tituloFormCategoria').textContent = 'Editar categoría';
       document.getElementById('btnSubmitCategoria').textContent = 'Guardar cambios';
-      
-      // 3. Mostramos el botón de cancelar
       document.getElementById('btnCancelarEdicionCat').classList.remove('hidden');
-
-      // 4. Hacemos scroll hacia arriba para que el usuario vea el formulario
       document.getElementById('vistaCategorias').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -705,15 +699,22 @@
       });
     }
 
+    // ==================== VER DETALLE DEL CLIENTE ====================
     function verDetalleUsuario(usuarioUid) {
       const detalleCont = document.getElementById('detalleUsuarioAdmin');
       if (!detalleCont) return;
+      
+      detalleCont.innerHTML = '<p class="text-center texto-secundario" style="padding: 20px;">Cargando detalles del cliente...</p>';
+      detalleCont.style.display = 'block';
+
       App.obtenerUsuarioPorId(usuarioUid, function(datosUsuario) {
         if (!datosUsuario) return;
+        
         App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
           const mesActual = getMes();
           let ingresos = 0, gastos = 0;
           const porCategoria = {};
+          
           transacciones.forEach(function(t) {
             if (t.fecha && t.fecha.startsWith(mesActual)) {
               if (t.tipo === 'ingreso') ingresos += t.monto;
@@ -725,62 +726,68 @@
           });
           const balance = ingresos - gastos;
 
-          let html = '<div class="detalle-cliente">';
-          html += '<div class="detalle-header">';
-          html += '<div class="detalle-avatar">' + datosUsuario.email.charAt(0).toUpperCase() + '</div>';
-          html += '<div class="detalle-info">';
-          html += '<div class="detalle-nombre">' + datosUsuario.email + '</div>';
-          html += '<div class="detalle-email">' + (datosUsuario.activo !== false ? 'Activo' : 'Inactivo') + '</div>';
-          html += '</div>';
-          html += '<button class="btn-cerrar-detalle" title="Cerrar"><i class="ph ph-x"></i></button>';
-          html += '</div>';
-
-          html += '<div class="detalle-stats">';
-          html += '<div class="detalle-stat"><i class="ph ph-trend-up"></i><div class="detalle-stat-numero">$' + App.formatearMonto(ingresos) + '</div><span>Ingresos</span></div>';
-          html += '<div class="detalle-stat"><i class="ph ph-trend-down"></i><div class="detalle-stat-numero">$' + App.formatearMonto(gastos) + '</div><span>Gastos</span></div>';
-          html += '<div class="detalle-stat"><i class="ph ph-chart-line"></i><div class="detalle-stat-numero">$' + App.formatearMonto(balance) + '</div><span>Balance</span></div>';
+          let html = '<div class="detalle-cliente" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; border: 1px solid #eee;">';
+          
+          html += '<div class="detalle-header" style="background: #f8f9fa; padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee;">';
+          html += '<div style="display: flex; align-items: center; gap: 15px;">';
+          html += '<div style="width: 50px; height: 50px; border-radius: 50%; background: #e8c84c; color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">' + datosUsuario.email.charAt(0).toUpperCase() + '</div>';
+          html += '<div>';
+          html += '<div style="font-weight: 700; font-size: 16px; color: #111;">' + datosUsuario.email + '</div>';
+          html += '<div style="font-size: 13px; color: ' + (datosUsuario.activo !== false ? '#10b981' : '#ef4444') + '; font-weight: 600;">' + (datosUsuario.activo !== false ? '● Activo' : '● Inactivo') + '</div>';
+          html += '</div></div>';
+          html += '<button class="btn-cerrar-detalle" style="background: #eee; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i class="ph ph-x" style="font-size: 18px; color: #333;"></i></button>';
           html += '</div>';
 
-          html += '<div class="detalle-seccion">';
-          html += '<h5><i class="ph ph-chart-pie"></i> Gastos por categoría</h5>';
+          html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 20px;">';
+          html += '<div style="text-align: center; padding: 15px; background: #f0fdf4; border-radius: 12px;"><i class="ph ph-trend-up" style="font-size: 24px; color: #10b981; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(ingresos) + '</div><div style="font-size: 12px; color: #666;">Ingresos</div></div>';
+          html += '<div style="text-align: center; padding: 15px; background: #fef2f2; border-radius: 12px;"><i class="ph ph-trend-down" style="font-size: 24px; color: #ef4444; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(gastos) + '</div><div style="font-size: 12px; color: #666;">Gastos</div></div>';
+          html += '<div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 12px;"><i class="ph ph-wallet" style="font-size: 24px; color: #333; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(balance) + '</div><div style="font-size: 12px; color: #666;">Balance</div></div>';
+          html += '</div>';
+
+          html += '<div style="padding: 0 20px 20px 20px;">';
+          html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-chart-pie"></i> Gastos por categoría (Mes actual)</h5>';
           if (Object.keys(porCategoria).length === 0) {
-            html += '<p class="texto-secundario">Sin gastos este mes</p>';
+            html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin gastos registrados este mes.</p>';
           } else {
             Object.keys(porCategoria).forEach(function(cat) {
-              html += '<div class="detalle-transaccion">';
-              html += '<div class="detalle-transaccion-info"><div class="detalle-transaccion-descripcion">' + cat + '</div></div>';
-              html += '<div class="detalle-transaccion-monto">$' + App.formatearMonto(porCategoria[cat]) + '</div>';
+              const porcentaje = gastos > 0 ? (porCategoria[cat] / gastos) * 100 : 0;
+              html += '<div style="margin-bottom: 10px;">';
+              html += '<div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px;"><span style="text-transform: capitalize; font-weight: 500;">' + cat + '</span><span style="font-weight: bold;">$' + App.formatearMonto(porCategoria[cat]) + '</span></div>';
+              html += '<div style="width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden;"><div style="width: ' + porcentaje + '%; height: 100%; background: #e8c84c; border-radius: 3px;"></div></div>';
               html += '</div>';
             });
           }
           html += '</div>';
 
-          html += '<div class="detalle-seccion">';
-          html += '<h5><i class="ph ph-clock"></i> Últimas transacciones</h5>';
+          html += '<div style="padding: 0 20px 20px 20px; border-top: 1px solid #eee; margin-top: 10px; padding-top: 20px;">';
+          html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-clock"></i> Últimas transacciones</h5>';
           const recientes = transacciones.slice(0, 5);
           if (recientes.length === 0) {
-            html += '<p class="texto-secundario">Sin transacciones</p>';
+            html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin transacciones.</p>';
           } else {
             recientes.forEach(function(t) {
-              html += '<div class="detalle-transaccion">';
-              html += '<div class="detalle-transaccion-info">';
-              html += '<div class="detalle-transaccion-descripcion">' + t.descripcion + '</div>';
-              html += '<div class="detalle-transaccion-categoria">' + t.categoria + '</div>';
-              html += '</div>';
-              html += '<div class="detalle-transaccion-monto">$' + App.formatearMonto(t.monto) + '</div>';
+              const esIngreso = t.tipo === 'ingreso';
+              html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">';
+              html += '<div><div style="font-size: 14px; font-weight: 500; color: #111;">' + t.descripcion + '</div><div style="font-size: 12px; color: #888; text-transform: capitalize;">' + t.categoria + ' • ' + t.fecha + '</div></div>';
+              html += '<div style="font-weight: bold; font-size: 14px; color: ' + (esIngreso ? '#10b981' : '#ef4444') + ';">' + (esIngreso ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</div>';
               html += '</div>';
             });
           }
           html += '</div>';
-          html += '</div>';
 
+          html += '</div>';
+          
           detalleCont.innerHTML = html;
 
           const btnCerrar = detalleCont.querySelector('.btn-cerrar-detalle');
           if (btnCerrar) {
             btnCerrar.addEventListener('click', function() {
+              detalleCont.style.display = 'none';
               detalleCont.innerHTML = '';
             });
+            setTimeout(() => {
+              detalleCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
           }
         });
       });
@@ -855,7 +862,6 @@
         if (!nombre) return;
 
         if (idEditar) {
-          // MODO EDICIÓN
           App.actualizarCategoria(idEditar, { 
             nombre: nombre.toLowerCase(), 
             icono: icono, 
@@ -870,7 +876,6 @@
             });
           });
         } else {
-          // MODO CREACIÓN
           App.agregarCategoria(nombre, icono, color, tipo).then(function() {
             App.obtenerCategorias(function(cats) { 
               App.categoriasState = cats; 
