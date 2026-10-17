@@ -338,47 +338,43 @@
     addListener('btnGuardarModal', guardarTransaccion);
 
     // ==================== NUEVA SUBCATEGORÍA ====================
-addListener('btnAgregarSubcategoria', function() {
-  // LEER DIRECTAMENTE EL BOTÓN ACTIVO EN PANTALLA (El dorado)
-  const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
-  const catSeleccionada = chipActivo ? chipActivo.dataset.nombre : '';
+    addListener('btnAgregarSubcategoria', function() {
+      const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
+      const catSeleccionada = chipActivo ? chipActivo.dataset.nombre : '';
 
-  if (!catSeleccionada) {
-    alert('Primero selecciona una categoría principal tocando uno de los botones de arriba.');
-    return;
-  }
+      if (!catSeleccionada) {
+        alert('Primero selecciona una categoría principal tocando uno de los botones de arriba.');
+        return;
+      }
 
-  const nombreSub = prompt('Nombre de la nueva subcategoría para "' + catSeleccionada + '":');
-  if (!nombreSub || nombreSub.trim() === '') return;
+      const nombreSub = prompt('Nombre de la nueva subcategoría para "' + catSeleccionada + '":');
+      if (!nombreSub || nombreSub.trim() === '') return;
 
-  const subLimpia = nombreSub.trim().toLowerCase();
+      const subLimpia = nombreSub.trim().toLowerCase();
 
-  // Verificamos que la función de storage.js exista
-  if (typeof App.agregarSubcategoria !== 'function') {
-    alert('Error: Falta la función App.agregarSubcategoria en tu archivo storage.js');
-    return;
-  }
+      if (typeof App.agregarSubcategoria !== 'function') {
+        alert('Error: Falta la función App.agregarSubcategoria en tu archivo storage.js');
+        return;
+      }
 
-  App.agregarSubcategoria(catSeleccionada, subLimpia).then(function() {
-    // Actualizar el estado local
-    if (!App.subcategoriasPorCategoria[catSeleccionada]) {
-      App.subcategoriasPorCategoria[catSeleccionada] = [];
-    }
-    if (!App.subcategoriasPorCategoria[catSeleccionada].includes(subLimpia)) {
-      App.subcategoriasPorCategoria[catSeleccionada].push(subLimpia);
-    }
-    
-    // Refrescar el select y seleccionar la nueva
-    document.getElementById('categoria').value = catSeleccionada; // Sincronizar por si acaso
-    llenarSelectSubcategorias();
-    document.getElementById('subcategoria').value = subLimpia;
-    
-    alert('Subcategoría agregada con éxito.');
-  }).catch(function(error) {
-    console.error(error);
-    alert('Error al crear la subcategoría: ' + error.message);
-  });
-});
+      App.agregarSubcategoria(catSeleccionada, subLimpia).then(function() {
+        if (!App.subcategoriasPorCategoria[catSeleccionada]) {
+          App.subcategoriasPorCategoria[catSeleccionada] = [];
+        }
+        if (!App.subcategoriasPorCategoria[catSeleccionada].includes(subLimpia)) {
+          App.subcategoriasPorCategoria[catSeleccionada].push(subLimpia);
+        }
+        
+        document.getElementById('categoria').value = catSeleccionada;
+        llenarSelectSubcategorias();
+        document.getElementById('subcategoria').value = subLimpia;
+        
+        alert('Subcategoría agregada con éxito.');
+      }).catch(function(error) {
+        console.error(error);
+        alert('Error al crear la subcategoría: ' + error.message);
+      });
+    });
 
     // ==================== CHIPS DE CATEGORÍAS ====================
     function renderizarChipsCategorias() {
@@ -640,7 +636,6 @@ addListener('btnAgregarSubcategoria', function() {
       App.obtenerCategorias(function(cats) {
         App.categoriasState = cats;
         
-        // CARGAR SUBCATEGORÍAS EXISTENTES
         App.subcategoriasPorCategoria = {};
         cats.forEach(function(c) {
           if (c.subcategorias && Array.isArray(c.subcategorias)) {
