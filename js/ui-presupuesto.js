@@ -14,7 +14,7 @@
     return html;
   }
 
-  // ==================== PRESUPUESTO MENSUAL (NUEVO DISEÑO INTUITIVO) ====================
+  // ==================== PRESUPUESTO MENSUAL ====================
   function renderizarPresupuestoMensual() {
     const cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
@@ -23,7 +23,6 @@
     
     cont.innerHTML = '<p class="text-center texto-secundario">Cargando presupuesto...</p>';
 
-    // Obtenemos categorías de gasto y los límites guardados al mismo tiempo
     App.obtenerCategorias(function(categorias) {
       const catGastos = categorias.filter(c => c.tipo === 'gasto');
 
@@ -38,7 +37,6 @@
       App.obtenerLimitesCategorias(mes, function(limites) {
         const limitesGastos = limites.gastos || {};
         
-        // También necesitamos saber cuánto se ha gastado en cada categoría este mes
         App.obtenerTransacciones(function(transacciones) {
           const gastosPorCategoria = {};
           transacciones.forEach(t => {
@@ -50,15 +48,14 @@
           let html = `
             <div class="card" style="padding: 20px; background: #1c1c1e; color: white; border-radius: 16px; margin-bottom: 20px;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-  <div>
-    <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #aaa;">Presupuesto de este mes</h3>
-    <p style="margin: 0; font-size: 12px; color: #888;">Escribe un límite y presiona el check.</p>
-  </div>
-  <button id="btnCopiarPresupuesto" style="background: rgba(232, 200, 76, 0.2); color: #e8c84c; border: 1px solid #e8c84c; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
-    <i class="ph ph-copy"></i> Copiar anterior
-  </button>
-</div>
-              <p style="margin: 0; font-size: 12px; color: #888;">Escribe un límite y presiona el check para guardar.</p>
+                <div>
+                  <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #aaa;">Presupuesto de este mes</h3>
+                  <p style="margin: 0; font-size: 12px; color: #888;">Escribe un límite y presiona el check.</p>
+                </div>
+                <button id="btnCopiarPresupuesto" style="background: rgba(232, 200, 76, 0.2); color: #e8c84c; border: 1px solid #e8c84c; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+                  <i class="ph ph-copy"></i> Copiar anterior
+                </button>
+              </div>
             </div>
             <div class="card" style="padding: 15px;">
           `;
@@ -67,11 +64,10 @@
             const limite = limitesGastos[cat.nombre] ? limitesGastos[cat.nombre].limite : 0;
             const gastado = gastosPorCategoria[cat.nombre] || 0;
             
-            // Calcular porcentaje y color de la barra
             let porcentaje = limite > 0 ? (gastado / limite) * 100 : 0;
-            let colorBarra = '#e8c84c'; // Amarillo por defecto
-            if (porcentaje >= 100) colorBarra = '#ef4444'; // Rojo
-            else if (porcentaje >= 80) colorBarra = '#f97316'; // Naranja
+            let colorBarra = '#e8c84c';
+            if (porcentaje >= 100) colorBarra = '#ef4444';
+            else if (porcentaje >= 80) colorBarra = '#f97316';
 
             html += `
               <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
@@ -104,7 +100,6 @@
           html += `</div>`;
           cont.innerHTML = html;
 
-          // Lógica del botón guardar
           cont.querySelectorAll('.btn-guardar-limite').forEach(btn => {
             btn.addEventListener('click', function() {
               const categoria = this.dataset.categoria;
@@ -123,13 +118,47 @@
                   btnOriginal.innerHTML = '<i class="ph ph-check"></i>';
                   btnOriginal.style.background = '#e8c84c';
                   btnOriginal.style.color = 'black';
-                  // Recargamos la vista para actualizar la barra de progreso
                   renderizarPresupuestoMensual();
                 }, 1000);
               });
             });
           });
 
+          // Lógica para copiar presupuesto del mes anterior
+          const btnCopiar = document.getElementById('btnCopiarPresupuesto');
+          if (btnCopiar) {
+            btnCopiar.addEventListener('click', function() {
+              const [year, month] = mes.split('-');
+              const fechaAnterior = new Date(year, month - 2, 1);
+              const mesAnterior = fechaAnterior.getFullYear() + '-' + String(fechaAnterior.getMonth() + 1).padStart(2, '0');
+
+              if (!confirm('¿Copiar los límites del mes anterior (' + mesAnterior + ')? Esto sobrescribirá los límites actuales.')) return;
+
+              this.innerHTML = 'Copiando...';
+
+              App.obtenerLimitesCategorias(mesAnterior, function(limitesAnteriores) {
+                const gastosAnteriores = limitesAnteriores.gastos || {};
+                let catKeys = Object.keys(gastosAnteriores);
+                
+                if (catKeys.length === 0) {
+                  alert('No hay presupuesto guardado en el mes anterior.');
+                  btnCopiar.innerHTML = '<i class="ph ph-copy"></i> Copiar anterior';
+                  return;
+                }
+
+                let pendientes = catKeys.length;
+                catKeys.forEach(function(cat) {
+                  App.guardarLimiteCategoria(mes, 'gasto', cat, gastosAnteriores[cat].limite, function() {
+                    pendientes--;
+                    if (pendientes === 0) {
+                      alert('Presupuesto copiado exitosamente.');
+                      renderizarPresupuestoMensual();
+                    }
+                  });
+                });
+              });
+            });
+          }
         });
       });
     });
@@ -153,12 +182,40 @@
       } else {
         lista.innerHTML = metas.map(m => {
           const porcentaje = m.costoTotal > 0 ? (m.ahorrado / m.costoTotal) * 100 : 0;
-          return `<div class="meta-card" style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;">
-            <strong>${m.nombre}</strong>
-            <div class="progress-bar" style="height: 8px; background: #eee; border-radius: 4px; margin: 8px 0; overflow: hidden;"><div class="progress-fill" style="width:${Math.min(porcentaje,100)}%; height: 100%; background:#e8c84c;"></div></div>
-            <small>${App.formatearMonto(m.ahorrado)} de ${App.formatearMonto(m.costoTotal)}</small>
+          const completada = porcentaje >= 100;
+          return `<div class="meta-card" style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <strong style="font-size: 16px;">${m.nombre} ${completada ? '🎉' : ''}</strong>
+              ${!completada ? `<button class="btn-aportar-meta" data-id="${m.id}" data-nombre="${m.nombre}" style="background: #e8c84c; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">Aportar</button>` : ''}
+            </div>
+            <div class="progress-bar" style="height: 8px; background: #eee; border-radius: 4px; margin: 8px 0; overflow: hidden;">
+              <div class="progress-fill" style="width:${Math.min(porcentaje,100)}%; height: 100%; background:${completada ? '#10b981' : '#e8c84c'};"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+              <span>Ahorrado: $${App.formatearMonto(m.ahorrado)}</span>
+              <span>Meta: $${App.formatearMonto(m.costoTotal)}</span>
+            </div>
           </div>`;
         }).join('');
+
+        // Evento para aportar a una meta
+        lista.querySelectorAll('.btn-aportar-meta').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const nombre = this.dataset.nombre;
+            const monto = parseFloat(prompt(`¿Cuánto deseas aportar a "${nombre}"?`));
+            
+            if (monto && monto > 0) {
+              this.textContent = '...';
+              App.aportarMeta(id, monto).then(() => {
+                renderizarMetas();
+              }).catch(err => {
+                alert('Error al aportar: ' + err);
+                this.textContent = 'Aportar';
+              });
+            }
+          });
+        });
       }
 
       document.getElementById('btnNuevaMeta').addEventListener('click', () => {
