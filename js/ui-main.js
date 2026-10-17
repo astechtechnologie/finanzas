@@ -19,6 +19,7 @@
       ajustes: document.getElementById('vistaAjustes'),
       admin: document.getElementById('vistaAdmin')
     };
+
     var navItems = document.querySelectorAll('.nav-item');
     var titulo = document.getElementById('tituloSeccion');
     var modal = document.getElementById('modalTransaccion');
@@ -42,6 +43,7 @@
       App.obtenerCuentas(function(cuentas) {
         const select = document.getElementById('selectorCuenta');
         if (!select) return;
+
         select.innerHTML = cuentas.map(function(c) {
           return '<option value="' + c.id + '">' + c.nombre + '</option>';
         }).join('');
@@ -86,12 +88,16 @@
         if (vistas[key]) vistas[key].classList.remove('activa');
       });
       if (vistas[clave]) vistas[clave].classList.add('activa');
+
       navItems.forEach(function(item) { item.classList.remove('active'); });
       const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
       if (itemActivo) itemActivo.classList.add('active');
+
       const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
       if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
+
       if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') App.cargarPantallaPresupuesto();
+      
       if (clave === 'categorias') {
         App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
           App.subcategoriasPorCategoria = {};
@@ -184,6 +190,7 @@
       llenarSelectCategorias();
       modal?.classList.remove('hidden');
     });
+
     addListener('btnAccesoIngreso', function() {
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso')?.classList.add('active');
@@ -191,6 +198,7 @@
       llenarSelectCategorias();
       modal?.classList.remove('hidden');
     });
+
     addListener('btnAccesoPresupuesto', function() { cambiarVista('vistaPresupuesto'); });
     addListener('btnAccesoMetas', function() {
       cambiarVista('vistaPresupuesto');
@@ -224,7 +232,9 @@
       const fecha = document.getElementById('fecha').value;
       const metodoPago = document.getElementById('metodoPago').value || null;
       const cuentaId = App.cuentaActual;
+
       if (!cat || !monto) return;
+
       const descFinal = desc || 'Sin descripción';
       App.agregarTransaccion(tipoTransaccion, cat, subcat, descFinal, monto, fecha, metodoPago, cuentaId);
       modal?.classList.add('hidden');
@@ -258,7 +268,9 @@
       const monto = parseFloat(montoLimpio) || 0;
       const fecha = document.getElementById('fechaEditar').value;
       const metodoPago = document.getElementById('metodoPagoEditar').value || null;
+
       if (!id || !cat || isNaN(monto)) return;
+
       const descFinal = desc || 'Sin descripción';
       App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: descFinal, monto: monto, fecha: fecha, metodoPago: metodoPago });
       modalEditar?.classList.add('hidden');
@@ -287,6 +299,7 @@
       document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
       renderizarListaMetodosPago();
     });
+
     addListener('btnAgregarMetodoPago', function() {
       const nombre = document.getElementById('nombreMetodoPago').value.trim();
       if (!nombre) return;
@@ -312,8 +325,10 @@
       const selectAgregar = document.getElementById('metodoPago');
       const selectEditar = document.getElementById('metodoPagoEditar');
       const filtroSelect = document.getElementById('filtroMetodoPago');
+
       let opciones = '<option value="">Sin método</option>';
       metodosPago.forEach(function(m) { opciones += '<option value="' + m.nombre + '">' + m.nombre + '</option>'; });
+
       if (selectAgregar) selectAgregar.innerHTML = opciones;
       if (selectEditar) selectEditar.innerHTML = opciones;
       if (filtroSelect) {
@@ -326,6 +341,7 @@
       const filtradas = transacciones.filter(function(t) {
         return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
       });
+
       let ingresos = 0, gastos = 0;
       filtradas.forEach(function(t) { t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto; });
 
@@ -469,22 +485,49 @@
     }
 
     function abrirEdicionCategoria(datos) {
-      const nombre = prompt('Nombre:', datos.nombre);
-      if (!nombre) return;
-      const tipo = prompt('Tipo (gasto/ingreso):', datos.tipo);
-      if (!tipo) return;
-      const color = prompt('Color (hex):', datos.color);
-      if (!color) return;
-      const icono = prompt('Icono (ej: ph-house):', datos.icono);
-      if (!icono) return;
-      App.actualizarCategoria(datos.id, { nombre: nombre.trim().toLowerCase(), tipo: tipo, color: color, icono: icono }).then(function() {
-        App.obtenerCategorias(function(cats) { App.categoriasState = cats; renderizarListaCategorias(); });
-      });
+      // 1. Llenamos el formulario con los datos de la categoría
+      document.getElementById('idCategoriaEditar').value = datos.id;
+      document.getElementById('nombreCategoria').value = datos.nombre;
+      document.getElementById('colorCategoria').value = datos.color || '#e8c84c';
+      document.getElementById('tipoCategoria').value = datos.tipo;
+      
+      const icono = datos.icono || 'ph-house';
+      document.getElementById('iconoCategoria').value = icono;
+      document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ' + icono + '"></i>';
+
+      // 2. Cambiamos los textos para indicar que estamos editando
+      document.getElementById('tituloFormCategoria').textContent = 'Editar categoría';
+      document.getElementById('btnSubmitCategoria').textContent = 'Guardar cambios';
+      
+      // 3. Mostramos el botón de cancelar
+      document.getElementById('btnCancelarEdicionCat').classList.remove('hidden');
+
+      // 4. Hacemos scroll hacia arriba para que el usuario vea el formulario
+      document.getElementById('vistaCategorias').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelarEdicionCategoria() {
+      document.getElementById('idCategoriaEditar').value = '';
+      document.getElementById('tituloFormCategoria').textContent = 'Mis categorías';
+      document.getElementById('btnSubmitCategoria').textContent = 'Agregar categoría';
+      document.getElementById('btnCancelarEdicionCat').classList.add('hidden');
+      
+      const form = document.getElementById('formCategoria');
+      form.reset();
+      document.getElementById('colorCategoria').value = '#e8c84c';
+      document.getElementById('iconoCategoria').value = 'ph-house';
+      document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ph-house"></i>';
+    }
+
+    const btnCancelarEdicion = document.getElementById('btnCancelarEdicionCat');
+    if (btnCancelarEdicion) {
+      btnCancelarEdicion.addEventListener('click', cancelarEdicionCategoria);
     }
 
     addListener('buscarCategoria', function() {
       renderizarListaCategorias(this.value, document.getElementById('ordenCategorias').value);
     });
+
     addListener('ordenCategorias', function() {
       App.guardarOrdenCategorias(this.value);
       renderizarListaCategorias(document.getElementById('buscarCategoria').value, this.value);
@@ -770,25 +813,24 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-  // AÑADE ESTA LÍNEA:
-  if (typeof App.inicializarCategoriasPorDefecto === 'function') App.inicializarCategoriasPorDefecto();
-  
-  cargarCuentas();
+      if (typeof App.inicializarCategoriasPorDefecto === 'function') App.inicializarCategoriasPorDefecto();
+      
+      cargarCuentas();
 
-  App.obtenerCategorias(function(cats) {
-    App.categoriasState = cats;
-    llenarSelectCategorias();
-    renderizarListaCategorias();
-    
-    App.obtenerMetodosPago(function(metodos) {
-      metodosPago = metodos;
-      llenarSelectMetodosPago();
-    });
-    
-    App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
-    App.actualizarBotonAdmin();
-  });
-};
+      App.obtenerCategorias(function(cats) {
+        App.categoriasState = cats;
+        llenarSelectCategorias();
+        renderizarListaCategorias();
+
+        App.obtenerMetodosPago(function(metodos) {
+          metodosPago = metodos;
+          llenarSelectMetodosPago();
+        });
+
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+        App.actualizarBotonAdmin();
+      });
+    };
 
     App.actualizarBotonAdmin = function() {
       App.obtenerRolUsuario(function(rol) {
@@ -801,30 +843,49 @@
     };
 
     const formCat = document.getElementById('formCategoria');
-if (formCat) {
-  formCat.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nombre = document.getElementById('nombreCategoria').value.trim();
-    const icono = document.getElementById('iconoCategoria').value;
-    const color = document.getElementById('colorCategoria').value;
-    const tipo = document.getElementById('tipoCategoria').value;
-    if (!nombre) return;
+    if (formCat) {
+      formCat.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombreCategoria').value.trim();
+        const icono = document.getElementById('iconoCategoria').value;
+        const color = document.getElementById('colorCategoria').value;
+        const tipo = document.getElementById('tipoCategoria').value;
+        const idEditar = document.getElementById('idCategoriaEditar').value;
 
-    // Agregamos la categoría a Firebase
-    App.agregarCategoria(nombre, icono, color, tipo).then(function() {
-      // ¡Opcional! Si quieres que los botones del modal se actualicen 
-      // inmediatamente sin esperar a Firebase, puedes forzar esto:
-      App.obtenerCategorias(function(cats) { 
-          App.categoriasState = cats; 
-          renderizarChipsCategorias(); // Refresca los botones del modal
+        if (!nombre) return;
+
+        if (idEditar) {
+          // MODO EDICIÓN
+          App.actualizarCategoria(idEditar, { 
+            nombre: nombre.toLowerCase(), 
+            icono: icono, 
+            color: color, 
+            tipo: tipo 
+          }).then(function() {
+            cancelarEdicionCategoria();
+            App.obtenerCategorias(function(cats) { 
+              App.categoriasState = cats; 
+              renderizarListaCategorias(); 
+              renderizarChipsCategorias(); 
+            });
+          });
+        } else {
+          // MODO CREACIÓN
+          App.agregarCategoria(nombre, icono, color, tipo).then(function() {
+            App.obtenerCategorias(function(cats) { 
+              App.categoriasState = cats; 
+              renderizarChipsCategorias(); 
+              renderizarListaCategorias();
+            });
+          });
+
+          formCat.reset();
+          document.getElementById('colorCategoria').value = '#e8c84c';
+          document.getElementById('iconoCategoria').value = 'ph-house';
+          document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ph-house"></i>';
+        }
       });
-    });
+    }
 
-    formCat.reset();
-    document.getElementById('colorCategoria').value = '#e8c84c';
-    document.getElementById('iconoCategoria').value = 'ph-house';
-    document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ph-house"></i>';
-  });
-}
   });
 })();
