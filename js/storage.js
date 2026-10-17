@@ -36,40 +36,36 @@
     return db.collection('usuarios/' + uid() + '/transacciones').doc(id).delete();
   };
 
- // ===== CATEGORÍAS =====
-App.obtenerCategorias = function(callback) {
-  return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(function(snap) {
-    const cats = [];
-    snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
-    
-    // Siempre llamamos al callback, así la UI siempre se entera del estado
-    callback(cats); 
-  });
-};
+  // ===== CATEGORÍAS =====
+  App.obtenerCategorias = function(callback) {
+    return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(function(snap) {
+      const cats = [];
+      snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(cats); 
+    });
+  };
 
-// Nueva función para inicializar categorías solo si es un usuario nuevo
-App.inicializarCategoriasPorDefecto = function() {
-  const categoriasRef = db.collection('usuarios/' + uid() + '/categorias');
-  
-  categoriasRef.limit(1).get().then(function(snap) {
-    if (snap.empty) { // Solo si NO hay ninguna categoría
-      const pre = [
-        { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
-        { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
-        { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
-        { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
-        { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
-        { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
-        { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
-      ];
-      const batch = db.batch();
-      pre.forEach(function(c) { batch.set(categoriasRef.doc(), c); });
-      batch.commit().then(function() {
-        console.log("Categorías por defecto creadas.");
-      });
-    }
-  });
-};
+  App.inicializarCategoriasPorDefecto = function() {
+    const categoriasRef = db.collection('usuarios/' + uid() + '/categorias');
+    categoriasRef.limit(1).get().then(function(snap) {
+      if (snap.empty) {
+        const pre = [
+          { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
+          { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
+          { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
+          { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
+          { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
+          { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
+          { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
+        ];
+        const batch = db.batch();
+        pre.forEach(function(c) { batch.set(categoriasRef.doc(), c); });
+        batch.commit().then(function() {
+          console.log("Categorías por defecto creadas.");
+        });
+      }
+    });
+  };
 
   App.agregarCategoria = function(nombre, icono, color, tipo) {
     return db.collection('usuarios/' + uid() + '/categorias').add({
@@ -133,20 +129,21 @@ App.inicializarCategoriasPorDefecto = function() {
     });
   };
 
-  App.aportarMeta = function(id, montoAporte) {
-  const ref = db.collection('usuarios/' + uid() + '/metas').doc(id);
-  return db.runTransaction(function(transaction) {
-    return transaction.get(ref).then(function(doc) {
-      if (!doc.exists) throw "La meta no existe";
-      const data = doc.data();
-      const nuevoAhorrado = (data.ahorrado || 0) + montoAporte;
-      return transaction.update(ref, { ahorrado: nuevoAhorrado });
-    });
-  });
-};
-
   App.agregarMeta = function(meta) {
     return db.collection('usuarios/' + uid() + '/metas').add(meta);
+  };
+
+  // NUEVA FUNCIÓN PARA APORTAR A METAS
+  App.aportarMeta = function(id, montoAporte) {
+    const ref = db.collection('usuarios/' + uid() + '/metas').doc(id);
+    return db.runTransaction(function(transaction) {
+      return transaction.get(ref).then(function(doc) {
+        if (!doc.exists) throw "La meta no existe";
+        const data = doc.data();
+        const nuevoAhorrado = (data.ahorrado || 0) + montoAporte;
+        return transaction.update(ref, { ahorrado: nuevoAhorrado });
+      });
+    });
   };
 
   App.actualizarMeta = function(id, datos) {
@@ -295,7 +292,6 @@ App.inicializarCategoriasPorDefecto = function() {
       return;
     }
     const emailLimpio = email.trim().toLowerCase();
-
     db.collection('usuarios').where('email', '==', emailLimpio).get().then(function(query) {
       if (!query.empty) {
         const usuario = query.docs[0];
