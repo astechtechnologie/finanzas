@@ -302,11 +302,17 @@
     // ==================== MODALES ====================
     addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
     addListener('btnCerrarModalX', function() { modal?.classList.add('hidden'); });
+    
     addListener('btnGuardarModalQuick', function() {
-      document.getElementById('btnGuardarModal').click();
+      const btnReal = document.getElementById('btnGuardarModal');
+      if (btnReal) {
+        btnReal.click();
+      } else {
+        guardarTransaccionDirecta();
+      }
     });
 
-    addListener('btnGuardarModal', function() {
+    function guardarTransaccionDirecta() {
       const cat = document.getElementById('categoria').value;
       const subcat = document.getElementById('subcategoria').value || null;
       const desc = document.getElementById('descripcion').value.trim();
@@ -316,14 +322,20 @@
       const metodoPago = document.getElementById('metodoPago').value || null;
       const cuentaId = App.cuentaActual;
 
-      if (!cat || !monto) return;
+      if (!cat || !monto) {
+        alert('Por favor, selecciona una categoría y escribe un monto.');
+        return;
+      }
 
       const descFinal = desc || 'Sin descripción';
       App.agregarTransaccion(tipoTransaccion, cat, subcat, descFinal, monto, fecha, metodoPago, cuentaId);
-      modal?.classList.add('hidden');
+      
+      if (modal) modal.classList.add('hidden');
       document.getElementById('descripcion').value = '';
       document.getElementById('monto').value = '';
-    });
+    }
+
+    addListener('btnGuardarModal', guardarTransaccionDirecta);
 
     addListener('tabIngreso', function() {
       tipoTransaccion = 'ingreso';
