@@ -89,19 +89,42 @@
     function cargarCuentas() {
       App.obtenerCuentas(function(cuentas) {
         const select = document.getElementById('selectorCuenta');
-        if (!select) return;
+        if (select) {
+          select.innerHTML = cuentas.map(function(c) {
+            return '<option value="' + c.id + '">' + c.nombre + '</option>';
+          }).join('');
 
-        select.innerHTML = cuentas.map(function(c) {
-          return '<option value="' + c.id + '">' + c.nombre + '</option>';
-        }).join('');
-
-        if (!App.cuentaActual || App.cuentaActual === 'personal') {
-          const personal = cuentas.find(function(c) { return c.nombre === 'Personal'; });
-          if (personal) App.cuentaActual = personal.id;
-          else if (cuentas.length > 0) App.cuentaActual = cuentas[0].id;
+          if (!App.cuentaActual || App.cuentaActual === 'personal') {
+            const personal = cuentas.find(function(c) { return c.nombre === 'Personal'; });
+            if (personal) App.cuentaActual = personal.id;
+            else if (cuentas.length > 0) App.cuentaActual = cuentas[0].id;
+          }
+          select.value = App.cuentaActual;
         }
 
-        select.value = App.cuentaActual;
+        // Renderizar la lista en Ajustes
+        const listaAjustes = document.getElementById('listaCuentasAjustes');
+        if (listaAjustes) {
+          let html = '';
+          cuentas.forEach(function(c) {
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">';
+            html += '<div style="display: flex; align-items: center; gap: 8px;"><i class="ph ph-bank" style="color: ' + (c.color || '#e8c84c') + ';"></i> <span style="font-size: 14px;">' + c.nombre + '</span></div>';
+            if (c.nombre !== 'Personal') {
+              html += '<button class="btn-delete-cuenta-ajustes" data-id="' + c.id + '" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="ph ph-trash"></i></button>';
+            }
+            html += '</div>';
+          });
+          listaAjustes.innerHTML = html;
+
+          listaAjustes.querySelectorAll('.btn-delete-cuenta-ajustes').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              if (confirm('¿Eliminar esta cuenta? Los movimientos asociados quedarán huérfanos.')) {
+                App.eliminarCuenta(this.dataset.id).then(function() { cargarCuentas(); });
+              }
+            });
+          });
+        }
+
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
     }
@@ -126,6 +149,17 @@
           cargarCuentas();
         });
       }
+    });
+
+    // CREAR CUENTA DESDE AJUSTES
+    addListener('btnAgregarCuentaAjustes', function() {
+      const input = document.getElementById('nuevaCuentaNombre');
+      const nombre = input.value.trim();
+      if (!nombre) return;
+      App.agregarCuenta(nombre, 'personal', '#e8c84c').then(function() {
+        input.value = '';
+        cargarCuentas();
+      });
     });
 
     // ==================== NAVEGACIÓN ====================
@@ -307,6 +341,7 @@
     const fechaInput = document.getElementById('fecha');
     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
 
+    // ==================== EDITAR TRANSACCIÓN ====================
     addListener('btnCancelarEditar', function() { modalEditar?.classList.add('hidden'); });
     addListener('btnGuardarEditar', function() {
       const id = document.getElementById('idTransaccionEditar').value;
@@ -436,13 +471,40 @@
         let html = '';
         filtradas.forEach(function(t) {
           const montoStr = '$' + App.formatearMonto(t.monto);
-          html += '<div class="movimiento-item">' +
+          html += '<div class="movimiento-item" style="display: flex; justify-content: space-between; align-items: center;">' +
             '<span>' + t.descripcion + '</span>' +
-            '<span class="monto-sensible">' + (ocultarMontos ? '$ ******' : montoStr) + '</span>' +
-            '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
+            '<div style="display: flex; align-items: center; gap: 10px;">' +
+              '<span class="monto-sensible">' + (ocultarMontos ? '$ ******' : montoStr) + '</span>' +
+              '<button class="btn-edit-mov" data-id="' + t.id + '" data-tipo="' + t.tipo + '" data-cat="' + t.categoria + '" data-subcat="' + (t.subcategoria || '') + '" data-desc="' + t.descripcion + '" data-monto="' + t.monto + '" data-fecha="' + t.fecha + '" data-metodo="' + (t.metodoPago || '') + '" style="background: none; border: none; cursor: pointer; color: #666;"><i class="ph ph-pencil"></i></button>' +
+              '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
+            '</div>' +
             '</div>';
         });
         lista.innerHTML = html;
+
+        // Evento Editar
+        lista.querySelectorAll('.btn-edit-mov').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            const d = this.dataset;
+            document.getElementById('idTransaccionEditar').value = d.id;
+            document.getElementById('fechaEditar').value = d.fecha;
+            document.getElementById('descripcionEditar').value = d.desc;
+            document.getElementById('montoEditar').value = d.monto;
+            
+            // Llenar categorías en el select de edición
+            const selectCatEdit = document.getElementById('categoriaEditar');
+            const catsFiltradas = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
+            selectCatEdit.innerHTML = catsFiltradas.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
+
+            // Llenar métodos de pago
+            const selectMetodoEdit = document.getElementById('metodoPagoEditar');
+            selectMetodoEdit.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
+
+            modalEditar?.classList.remove('hidden');
+          });
+        });
+
+        // Evento Borrar
         lista.querySelectorAll('.btn-delete').forEach(function(btn) {
           btn.addEventListener('click', function() {
             if (confirm('¿Eliminar este movimiento?')) App.eliminarTransaccion(this.dataset.id);
