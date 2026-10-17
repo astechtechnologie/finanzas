@@ -104,16 +104,19 @@
       callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
     });
   };
-App.obtenerLimitesCategoriasDeUsuario = function(usuarioUid, mes, callback) {
-  db.collection('usuarios').doc(usuarioUid).collection('presupuestos').doc(mes).get().then(function(doc) {
-    if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
-    const data = doc.data();
-    callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
-  }).catch(function(error) {
-    console.error('Error obteniendo límites del cliente:', error);
-    callback({ gastos: {}, ingresos: {} });
-  });
-};
+
+  // NUEVA FUNCIÓN: Para ver presupuestos de otros usuarios (Admin)
+  App.obtenerLimitesCategoriasDeUsuario = function(usuarioUid, mes, callback) {
+    db.collection('usuarios').doc(usuarioUid).collection('presupuestos').doc(mes).get().then(function(doc) {
+      if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
+      const data = doc.data();
+      callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
+    }).catch(function(error) {
+      console.error('Error obteniendo límites del cliente:', error);
+      callback({ gastos: {}, ingresos: {} });
+    });
+  };
+
   App.guardarLimiteCategoria = function(mes, tipo, categoria, limite, callback) {
     const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
     db.runTransaction(function(transaction) {
@@ -138,11 +141,19 @@ App.obtenerLimitesCategoriasDeUsuario = function(usuarioUid, mes, callback) {
     });
   };
 
+  // NUEVA FUNCIÓN: Para ver metas de otros usuarios (Admin)
+  App.obtenerMetasDeUsuario = function(usuarioUid, callback) {
+    return db.collection('usuarios/' + usuarioUid + '/metas').onSnapshot(function(snap) {
+      const metas = [];
+      snap.forEach(function(doc) { metas.push(Object.assign({ id: doc.id }, doc.data())); });
+      callback(metas);
+    });
+  };
+
   App.agregarMeta = function(meta) {
     return db.collection('usuarios/' + uid() + '/metas').add(meta);
   };
 
-  // NUEVA FUNCIÓN PARA APORTAR A METAS
   App.aportarMeta = function(id, montoAporte) {
     const ref = db.collection('usuarios/' + uid() + '/metas').doc(id);
     return db.runTransaction(function(transaction) {
