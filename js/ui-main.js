@@ -102,7 +102,6 @@
           select.value = App.cuentaActual;
         }
 
-        // Renderizar la lista en Ajustes
         const listaAjustes = document.getElementById('listaCuentasAjustes');
         if (listaAjustes) {
           let html = '';
@@ -151,7 +150,6 @@
       }
     });
 
-    // CREAR CUENTA DESDE AJUSTES
     addListener('btnAgregarCuentaAjustes', function() {
       const input = document.getElementById('nuevaCuentaNombre');
       const nombre = input.value.trim();
@@ -297,7 +295,10 @@
       });
     }
 
-    if (fab) fab.addEventListener('click', function() { modal?.classList.remove('hidden'); });
+    if (fab) fab.addEventListener('click', function() { 
+      modal?.classList.remove('hidden'); 
+      llenarSelectCategorias(); 
+    });
 
     // ==================== MODALES ====================
     addListener('btnCancelarModal', function() { modal?.classList.add('hidden'); });
@@ -503,12 +504,10 @@
             document.getElementById('descripcionEditar').value = d.desc;
             document.getElementById('montoEditar').value = d.monto;
             
-            // Llenar categorías en el select de edición
             const selectCatEdit = document.getElementById('categoriaEditar');
             const catsFiltradas = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
             selectCatEdit.innerHTML = catsFiltradas.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
 
-            // Llenar métodos de pago
             const selectMetodoEdit = document.getElementById('metodoPagoEditar');
             selectMetodoEdit.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
 
@@ -542,7 +541,9 @@
 
       let html = '';
       cats.forEach(function(c, idx) {
-        const activo = idx === 0 ? ' activo' : '';
+        // Seleccionamos el primero por defecto SI Y SOLO SI no hay uno seleccionado ya
+        const isSelected = selectHidden.value === c.nombre;
+        const activo = (idx === 0 && !selectHidden.value) || isSelected ? ' activo' : '';
         html += '<div class="chip-categoria' + activo + '" data-nombre="' + c.nombre + '">' +
           '<i class="ph ' + c.icono + '"></i>' +
           '<span>' + c.nombre + '</span>' +
@@ -550,7 +551,10 @@
       });
       cont.innerHTML = html;
 
-      if (cats.length > 0) selectHidden.value = cats[0].nombre;
+      // Si no había ninguna seleccionada, la primera pasa a ser la seleccionada
+      if (cats.length > 0 && !selectHidden.value) {
+        selectHidden.value = cats[0].nombre;
+      }
 
       cont.querySelectorAll('.chip-categoria').forEach(function(chip) {
         chip.addEventListener('click', function() {
@@ -1008,7 +1012,13 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      if (typeof App.inicializarCategoriasPorDefecto === 'function') App.inicializarCategoriasPorDefecto();
+      // SOLUCIÓN AL ERROR 400: Retrasar la inicialización de categorías por defecto
+      // para asegurar que el token de autenticación esté listo.
+      setTimeout(function() {
+        if (typeof App.inicializarCategoriasPorDefecto === 'function') {
+          App.inicializarCategoriasPorDefecto();
+        }
+      }, 1000); // Espera 1 segundo
       
       cargarCuentas();
 
