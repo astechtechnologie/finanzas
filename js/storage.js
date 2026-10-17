@@ -75,7 +75,20 @@
       tipo: tipo || 'gasto'
     });
   };
-
+App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
+  // Buscamos el ID de la categoría por su nombre
+  return db.collection('usuarios/' + uid() + '/categorias').where('nombre', '==', categoriaNombre).get().then(function(query) {
+    if (query.empty) throw new Error('Categoría no encontrada');
+    
+    const catId = query.docs[0].id;
+    const catRef = db.collection('usuarios/' + uid() + '/categorias').doc(catId);
+    
+    // Usamos un FieldValue arrayUnion para agregar la subcategoría sin borrar las anteriores
+    return catRef.update({
+      subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase())
+    });
+  });
+};
   App.eliminarCategoria = function(id) {
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
   };
