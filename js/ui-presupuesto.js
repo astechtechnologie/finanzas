@@ -49,7 +49,15 @@
 
           let html = `
             <div class="card" style="padding: 20px; background: #1c1c1e; color: white; border-radius: 16px; margin-bottom: 20px;">
-              <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #aaa;">Presupuesto de este mes</h3>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+  <div>
+    <h3 style="margin: 0 0 5px 0; font-size: 14px; color: #aaa;">Presupuesto de este mes</h3>
+    <p style="margin: 0; font-size: 12px; color: #888;">Escribe un límite y presiona el check.</p>
+  </div>
+  <button id="btnCopiarPresupuesto" style="background: rgba(232, 200, 76, 0.2); color: #e8c84c; border: 1px solid #e8c84c; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">
+    <i class="ph ph-copy"></i> Copiar anterior
+  </button>
+</div>
               <p style="margin: 0; font-size: 12px; color: #888;">Escribe un límite y presiona el check para guardar.</p>
             </div>
             <div class="card" style="padding: 15px;">
