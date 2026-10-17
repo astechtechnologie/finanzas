@@ -38,6 +38,55 @@
     const saludoEl = document.getElementById('saludoUsuario');
     if (saludoEl) saludoEl.textContent = saludo;
 
+    // ==================== PRIVACIDAD (OCULTAR MONTOS) ====================
+    let ocultarMontos = localStorage.getItem('ocultarMontos') === 'true';
+    const btnTogglePrivacidad = document.getElementById('btnTogglePrivacidad');
+    const togglePrivacidadAjustes = document.getElementById('togglePrivacidadAjustes');
+
+    function aplicarPrivacidad() {
+      const elementos = document.querySelectorAll('.monto-sensible');
+      const icono = btnTogglePrivacidad ? btnTogglePrivacidad.querySelector('i') : null;
+
+      if (ocultarMontos) {
+        elementos.forEach(el => {
+          if (!el.dataset.valorOriginal) el.dataset.valorOriginal = el.textContent;
+          el.textContent = '$ ******';
+        });
+        if (icono) icono.className = 'ph ph-eye-slash';
+      } else {
+        elementos.forEach(el => {
+          if (el.dataset.valorOriginal) {
+            el.textContent = el.dataset.valorOriginal;
+            delete el.dataset.valorOriginal;
+          }
+        });
+        if (icono) icono.className = 'ph ph-eye';
+      }
+
+      if (togglePrivacidadAjustes) togglePrivacidadAjustes.checked = ocultarMontos;
+      localStorage.setItem('ocultarMontos', ocultarMontos);
+    }
+
+    if (btnTogglePrivacidad) {
+      btnTogglePrivacidad.addEventListener('click', function() {
+        ocultarMontos = !ocultarMontos;
+        aplicarPrivacidad();
+        // Refrescar la vista para actualizar los valores con los datos originales
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+      });
+    }
+
+    if (togglePrivacidadAjustes) {
+      togglePrivacidadAjustes.addEventListener('change', function() {
+        ocultarMontos = this.checked;
+        aplicarPrivacidad();
+        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+      });
+    }
+
+    // Aplicar estado inicial de privacidad
+    setTimeout(aplicarPrivacidad, 100);
+
     // ==================== CUENTAS ====================
     function cargarCuentas() {
       App.obtenerCuentas(function(cuentas) {
@@ -114,6 +163,9 @@
         cargarAuditoria();
         cargarEstadisticas();
       }
+      
+      // Volver a aplicar privacidad al cambiar de vista
+      setTimeout(aplicarPrivacidad, 50);
     }
 
     App.cambiarVista = function(nombre) { cambiarVista(nombre); };
@@ -348,12 +400,20 @@
       const elIngresos = document.getElementById('totalIngresos');
       const elGastos = document.getElementById('totalGastos');
       const elBalance = document.getElementById('balance');
+      
       if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresos);
       if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastos);
       const balance = ingresos - gastos;
       if (elBalance) {
         elBalance.textContent = '$' + App.formatearMonto(balance);
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+      }
+
+      // Volver a aplicar privacidad a los nuevos valores cargados
+      if (ocultarMontos) {
+        [elIngresos, elGastos, elBalance].forEach(el => {
+          if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
+        });
       }
 
       App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
@@ -379,9 +439,10 @@
       } else {
         let html = '';
         filtradas.forEach(function(t) {
+          const montoStr = '$' + App.formatearMonto(t.monto);
           html += '<div class="movimiento-item">' +
             '<span>' + t.descripcion + '</span>' +
-            '<span>$' + App.formatearMonto(t.monto) + '</span>' +
+            '<span class="monto-sensible">' + (ocultarMontos ? '$ ******' : montoStr) + '</span>' +
             '<button class="btn-delete" data-id="' + t.id + '">✕</button>' +
             '</div>';
         });
