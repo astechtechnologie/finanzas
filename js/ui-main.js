@@ -798,20 +798,30 @@
     };
 
     const formCat = document.getElementById('formCategoria');
-    if (formCat) {
-      formCat.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nombre = document.getElementById('nombreCategoria').value.trim();
-        const icono = document.getElementById('iconoCategoria').value;
-        const color = document.getElementById('colorCategoria').value;
-        const tipo = document.getElementById('tipoCategoria').value;
-        if (!nombre) return;
-        App.agregarCategoria(nombre, icono, color, tipo);
-        formCat.reset();
-        document.getElementById('colorCategoria').value = '#e8c84c';
-        document.getElementById('iconoCategoria').value = 'ph-house';
-        document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ph-house"></i>';
+if (formCat) {
+  formCat.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('nombreCategoria').value.trim();
+    const icono = document.getElementById('iconoCategoria').value;
+    const color = document.getElementById('colorCategoria').value;
+    const tipo = document.getElementById('tipoCategoria').value;
+    if (!nombre) return;
+
+    // Agregamos la categoría a Firebase
+    App.agregarCategoria(nombre, icono, color, tipo).then(function() {
+      // ¡Opcional! Si quieres que los botones del modal se actualicen 
+      // inmediatamente sin esperar a Firebase, puedes forzar esto:
+      App.obtenerCategorias(function(cats) { 
+          App.categoriasState = cats; 
+          renderizarChipsCategorias(); // Refresca los botones del modal
       });
-    }
+    });
+
+    formCat.reset();
+    document.getElementById('colorCategoria').value = '#e8c84c';
+    document.getElementById('iconoCategoria').value = 'ph-house';
+    document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ph-house"></i>';
+  });
+}
   });
 })();
