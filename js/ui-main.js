@@ -268,6 +268,8 @@
       tipoTransaccion = 'gasto';
       document.getElementById('tabGasto')?.classList.add('active');
       document.getElementById('tabIngreso')?.classList.remove('active');
+      // Limpiamos la selección previa para que se fuerce a seleccionar una de gasto
+      document.getElementById('categoria').value = '';
       llenarSelectCategorias();
       modal?.classList.remove('hidden');
     });
@@ -276,6 +278,8 @@
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso')?.classList.add('active');
       document.getElementById('tabGasto')?.classList.remove('active');
+      // Limpiamos la selección previa
+      document.getElementById('categoria').value = '';
       llenarSelectCategorias();
       modal?.classList.remove('hidden');
     });
@@ -296,6 +300,7 @@
     }
 
     if (fab) fab.addEventListener('click', function() { 
+      document.getElementById('categoria').value = ''; // Forzamos a que pida selección
       modal?.classList.remove('hidden'); 
       llenarSelectCategorias(); 
     });
@@ -323,8 +328,9 @@
       const metodoPago = document.getElementById('metodoPago').value || null;
       const cuentaId = App.cuentaActual;
 
-      if (!cat || !monto) {
-        alert('Por favor, selecciona una categoría y escribe un monto.');
+      // Validación segura
+      if (!cat || cat === '' || !monto || monto === 0) {
+        alert('Por favor, selecciona una categoría y escribe un monto mayor a 0.');
         return;
       }
 
@@ -342,12 +348,14 @@
       tipoTransaccion = 'ingreso';
       document.getElementById('tabIngreso')?.classList.add('active');
       document.getElementById('tabGasto')?.classList.remove('active');
+      document.getElementById('categoria').value = ''; // Forzar nueva selección
       llenarSelectCategorias();
     });
     addListener('tabGasto', function() {
       tipoTransaccion = 'gasto';
       document.getElementById('tabGasto')?.classList.add('active');
       document.getElementById('tabIngreso')?.classList.remove('active');
+      document.getElementById('categoria').value = ''; // Forzar nueva selección
       llenarSelectCategorias();
     });
 
@@ -539,22 +547,20 @@
         return;
       }
 
+      // Si el selectHidden está vacío, seleccionamos el primero por defecto
+      if (!selectHidden.value || !cats.find(c => c.nombre === selectHidden.value)) {
+        selectHidden.value = cats[0].nombre;
+      }
+
       let html = '';
-      cats.forEach(function(c, idx) {
-        // Seleccionamos el primero por defecto SI Y SOLO SI no hay uno seleccionado ya
-        const isSelected = selectHidden.value === c.nombre;
-        const activo = (idx === 0 && !selectHidden.value) || isSelected ? ' activo' : '';
+      cats.forEach(function(c) {
+        const activo = selectHidden.value === c.nombre ? ' activo' : '';
         html += '<div class="chip-categoria' + activo + '" data-nombre="' + c.nombre + '">' +
           '<i class="ph ' + c.icono + '"></i>' +
           '<span>' + c.nombre + '</span>' +
           '</div>';
       });
       cont.innerHTML = html;
-
-      // Si no había ninguna seleccionada, la primera pasa a ser la seleccionada
-      if (cats.length > 0 && !selectHidden.value) {
-        selectHidden.value = cats[0].nombre;
-      }
 
       cont.querySelectorAll('.chip-categoria').forEach(function(chip) {
         chip.addEventListener('click', function() {
@@ -1012,13 +1018,11 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      // SOLUCIÓN AL ERROR 400: Retrasar la inicialización de categorías por defecto
-      // para asegurar que el token de autenticación esté listo.
       setTimeout(function() {
         if (typeof App.inicializarCategoriasPorDefecto === 'function') {
           App.inicializarCategoriasPorDefecto();
         }
-      }, 1000); // Espera 1 segundo
+      }, 1000); 
       
       cargarCuentas();
 
