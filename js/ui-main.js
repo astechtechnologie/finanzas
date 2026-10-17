@@ -805,8 +805,11 @@
           });
           const balance = ingresos - gastos;
 
-          // Traemos las metas del cliente
-          App.obtenerMetasDeUsuario(usuarioUid, function(metas) {
+          // Traemos las metas del cliente directamente desde Firestore
+          const db = App.db;
+          db.collection('usuarios/' + usuarioUid + '/metas').get().then(function(snap) {
+            const metas = [];
+            snap.forEach(function(doc) { metas.push(Object.assign({ id: doc.id }, doc.data())); });
 
             let html = '<div class="detalle-cliente" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; border: 1px solid #eee;">';
             
@@ -896,6 +899,9 @@
                 detalleCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }, 100);
             }
+          }).catch(function(error) {
+            console.error("Error al cargar metas del cliente:", error);
+            detalleCont.innerHTML = '<p class="text-center" style="color: red;">Error al cargar los detalles. Revisa la consola.</p>';
           });
         });
       });
