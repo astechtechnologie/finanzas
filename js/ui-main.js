@@ -770,22 +770,25 @@
 
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
-      cargarCuentas();
+  // AÑADE ESTA LÍNEA:
+  if (typeof App.inicializarCategoriasPorDefecto === 'function') App.inicializarCategoriasPorDefecto();
+  
+  cargarCuentas();
 
-      App.obtenerCategorias(function(cats) {
-        App.categoriasState = cats;
-        llenarSelectCategorias();
-        renderizarListaCategorias();
-
-        App.obtenerMetodosPago(function(metodos) {
-          metodosPago = metodos;
-          llenarSelectMetodosPago();
-        });
-
-        App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
-        App.actualizarBotonAdmin();
-      });
-    };
+  App.obtenerCategorias(function(cats) {
+    App.categoriasState = cats;
+    llenarSelectCategorias();
+    renderizarListaCategorias();
+    
+    App.obtenerMetodosPago(function(metodos) {
+      metodosPago = metodos;
+      llenarSelectMetodosPago();
+    });
+    
+    App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+    App.actualizarBotonAdmin();
+  });
+};
 
     App.actualizarBotonAdmin = function() {
       App.obtenerRolUsuario(function(rol) {
