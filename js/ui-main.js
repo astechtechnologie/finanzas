@@ -71,7 +71,6 @@
       btnTogglePrivacidad.addEventListener('click', function() {
         ocultarMontos = !ocultarMontos;
         aplicarPrivacidad();
-        // Refrescar la vista para actualizar los valores con los datos originales
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
       });
     }
@@ -84,7 +83,6 @@
       });
     }
 
-    // Aplicar estado inicial de privacidad
     setTimeout(aplicarPrivacidad, 100);
 
     // ==================== CUENTAS ====================
@@ -164,7 +162,6 @@
         cargarEstadisticas();
       }
       
-      // Volver a aplicar privacidad al cambiar de vista
       setTimeout(aplicarPrivacidad, 50);
     }
 
@@ -409,7 +406,6 @@
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
-      // Volver a aplicar privacidad a los nuevos valores cargados
       if (ocultarMontos) {
         [elIngresos, elGastos, elBalance].forEach(el => {
           if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
@@ -691,11 +687,13 @@
       });
     });
 
+    // ==================== CARGAR USUARIOS ADMIN (CON ALERTA DE PRESUPUESTO) ====================
     function cargarUsuariosAdmin() {
       const cont = document.getElementById('listaUsuariosAdmin');
       if (!cont) return;
       App.obtenerUsuariosVinculados(function(usuarios) {
         if (usuarios.length === 0) { cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay clientes vinculados</p>'; return; }
+        
         let html = '';
         let pendientes = usuarios.length;
 
@@ -707,30 +705,50 @@
             App.obtenerTransaccionesDeUsuario(usuario.uid, function(transacciones) {
               const mesActual = getMes();
               let ingresos = 0, gastos = 0;
+              let alertaPresupuesto = false;
+              
               transacciones.forEach(function(t) {
                 if (t.fecha && t.fecha.startsWith(mesActual)) {
                   if (t.tipo === 'ingreso') ingresos += t.monto;
                   else gastos += t.monto;
                 }
               });
-              const balance = ingresos - gastos;
-              const inicial = usuario.email.charAt(0).toUpperCase();
 
-              html += '<div class="cliente-card">';
-              html += '<div class="cliente-header"><div class="cliente-avatar">' + inicial + '</div><div class="cliente-info"><div class="cliente-nombre">' + usuario.email + '</div><div class="cliente-email">Rol: ' + rol + '</div></div><span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></div>';
-              html += '<div class="cliente-metricas"><span>Ingresos<strong>$' + App.formatearMonto(ingresos) + '</strong></span><span>Gastos<strong>$' + App.formatearMonto(gastos) + '</strong></span><span>Balance<strong>$' + App.formatearMonto(balance) + '</strong></span></div>';
-              html += '<div class="cliente-acciones">';
-              html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
-              html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
-              html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
-              html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
-              html += '</div></div>';
+              // Verificamos el presupuesto del cliente para la alerta
+              App.obtenerLimitesCategoriasDeUsuario(usuario.uid, mesActual, function(limites) {
+                const limitesGastos = limites.gastos || {};
+                let totalPresupuesto = 0;
+                Object.keys(limitesGastos).forEach(cat => totalPresupuesto += (limitesGastos[cat].limite || 0));
+                
+                if (totalPresupuesto > 0 && gastos > totalPresupuesto) {
+                  alertaPresupuesto = true;
+                }
 
-              pendientes--;
-              if (pendientes === 0) {
-                cont.innerHTML = html;
-                asignarEventosClientes(cont);
-              }
+                const balance = ingresos - gastos;
+                const inicial = usuario.email.charAt(0).toUpperCase();
+
+                // BADGE DE ALERTA
+                const badgeAlerta = alertaPresupuesto ? 
+                  `<span style="background: #fef2f2; color: #ef4444; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 5px;"><i class="ph ph-warning-circle"></i> Presupuesto excedido</span>` 
+                  : '';
+
+                html += '<div class="cliente-card">';
+                html += '<div class="cliente-header"><div class="cliente-avatar">' + inicial + '</div><div class="cliente-info"><div class="cliente-nombre">' + usuario.email + '</div><div class="cliente-email">Rol: ' + rol + '</div></div><span class="cliente-estado ' + (activo ? 'activo' : 'inactivo') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></div>';
+                html += '<div style="margin-top: 5px;">' + badgeAlerta + '</div>';
+                html += '<div class="cliente-metricas"><span>Ingresos<strong>$' + App.formatearMonto(ingresos) + '</strong></span><span>Gastos<strong>$' + App.formatearMonto(gastos) + '</strong></span><span>Balance<strong>$' + App.formatearMonto(balance) + '</strong></span></div>';
+                html += '<div class="cliente-acciones">';
+                html += '<button class="btn-ver-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-eye"></i> Ver</button>';
+                html += '<button class="btn-editar-rol" data-uid="' + usuario.uid + '" data-rol="' + rol + '"><i class="ph ph-user"></i> Rol</button>';
+                html += '<button class="btn-toggle-estado" data-uid="' + usuario.uid + '" data-activo="' + activo + '"><i class="ph ph-power"></i> ' + (activo ? 'Desactivar' : 'Activar') + '</button>';
+                html += '<button class="btn-eliminar-cliente" data-uid="' + usuario.uid + '"><i class="ph ph-trash"></i> Eliminar</button>';
+                html += '</div></div>';
+
+                pendientes--;
+                if (pendientes === 0) {
+                  cont.innerHTML = html;
+                  asignarEventosClientes(cont);
+                }
+              });
             });
           });
         });
@@ -760,7 +778,7 @@
       });
     }
 
-    // ==================== VER DETALLE DEL CLIENTE ====================
+    // ==================== VER DETALLE DEL CLIENTE (CON METAS) ====================
     function verDetalleUsuario(usuarioUid) {
       const detalleCont = document.getElementById('detalleUsuarioAdmin');
       if (!detalleCont) return;
@@ -787,69 +805,98 @@
           });
           const balance = ingresos - gastos;
 
-          let html = '<div class="detalle-cliente" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; border: 1px solid #eee;">';
-          
-          html += '<div class="detalle-header" style="background: #f8f9fa; padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee;">';
-          html += '<div style="display: flex; align-items: center; gap: 15px;">';
-          html += '<div style="width: 50px; height: 50px; border-radius: 50%; background: #e8c84c; color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">' + datosUsuario.email.charAt(0).toUpperCase() + '</div>';
-          html += '<div>';
-          html += '<div style="font-weight: 700; font-size: 16px; color: #111;">' + datosUsuario.email + '</div>';
-          html += '<div style="font-size: 13px; color: ' + (datosUsuario.activo !== false ? '#10b981' : '#ef4444') + '; font-weight: 600;">' + (datosUsuario.activo !== false ? '● Activo' : '● Inactivo') + '</div>';
-          html += '</div></div>';
-          html += '<button class="btn-cerrar-detalle" style="background: #eee; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i class="ph ph-x" style="font-size: 18px; color: #333;"></i></button>';
-          html += '</div>';
+          // Traemos las metas del cliente
+          App.obtenerMetasDeUsuario(usuarioUid, function(metas) {
 
-          html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 20px;">';
-          html += '<div style="text-align: center; padding: 15px; background: #f0fdf4; border-radius: 12px;"><i class="ph ph-trend-up" style="font-size: 24px; color: #10b981; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(ingresos) + '</div><div style="font-size: 12px; color: #666;">Ingresos</div></div>';
-          html += '<div style="text-align: center; padding: 15px; background: #fef2f2; border-radius: 12px;"><i class="ph ph-trend-down" style="font-size: 24px; color: #ef4444; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(gastos) + '</div><div style="font-size: 12px; color: #666;">Gastos</div></div>';
-          html += '<div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 12px;"><i class="ph ph-wallet" style="font-size: 24px; color: #333; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(balance) + '</div><div style="font-size: 12px; color: #666;">Balance</div></div>';
-          html += '</div>';
+            let html = '<div class="detalle-cliente" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; border: 1px solid #eee;">';
+            
+            html += '<div class="detalle-header" style="background: #f8f9fa; padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee;">';
+            html += '<div style="display: flex; align-items: center; gap: 15px;">';
+            html += '<div style="width: 50px; height: 50px; border-radius: 50%; background: #e8c84c; color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">' + datosUsuario.email.charAt(0).toUpperCase() + '</div>';
+            html += '<div>';
+            html += '<div style="font-weight: 700; font-size: 16px; color: #111;">' + datosUsuario.email + '</div>';
+            html += '<div style="font-size: 13px; color: ' + (datosUsuario.activo !== false ? '#10b981' : '#ef4444') + '; font-weight: 600;">' + (datosUsuario.activo !== false ? '● Activo' : '● Inactivo') + '</div>';
+            html += '</div></div>';
+            html += '<button class="btn-cerrar-detalle" style="background: #eee; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i class="ph ph-x" style="font-size: 18px; color: #333;"></i></button>';
+            html += '</div>';
 
-          html += '<div style="padding: 0 20px 20px 20px;">';
-          html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-chart-pie"></i> Gastos por categoría (Mes actual)</h5>';
-          if (Object.keys(porCategoria).length === 0) {
-            html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin gastos registrados este mes.</p>';
-          } else {
-            Object.keys(porCategoria).forEach(function(cat) {
-              const porcentaje = gastos > 0 ? (porCategoria[cat] / gastos) * 100 : 0;
-              html += '<div style="margin-bottom: 10px;">';
-              html += '<div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px;"><span style="text-transform: capitalize; font-weight: 500;">' + cat + '</span><span style="font-weight: bold;">$' + App.formatearMonto(porCategoria[cat]) + '</span></div>';
-              html += '<div style="width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden;"><div style="width: ' + porcentaje + '%; height: 100%; background: #e8c84c; border-radius: 3px;"></div></div>';
-              html += '</div>';
-            });
-          }
-          html += '</div>';
+            html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 20px;">';
+            html += '<div style="text-align: center; padding: 15px; background: #f0fdf4; border-radius: 12px;"><i class="ph ph-trend-up" style="font-size: 24px; color: #10b981; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(ingresos) + '</div><div style="font-size: 12px; color: #666;">Ingresos</div></div>';
+            html += '<div style="text-align: center; padding: 15px; background: #fef2f2; border-radius: 12px;"><i class="ph ph-trend-down" style="font-size: 24px; color: #ef4444; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(gastos) + '</div><div style="font-size: 12px; color: #666;">Gastos</div></div>';
+            html += '<div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 12px;"><i class="ph ph-wallet" style="font-size: 24px; color: #333; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: #111;">$' + App.formatearMonto(balance) + '</div><div style="font-size: 12px; color: #666;">Balance</div></div>';
+            html += '</div>';
 
-          html += '<div style="padding: 0 20px 20px 20px; border-top: 1px solid #eee; margin-top: 10px; padding-top: 20px;">';
-          html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-clock"></i> Últimas transacciones</h5>';
-          const recientes = transacciones.slice(0, 5);
-          if (recientes.length === 0) {
-            html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin transacciones.</p>';
-          } else {
-            recientes.forEach(function(t) {
-              const esIngreso = t.tipo === 'ingreso';
-              html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">';
-              html += '<div><div style="font-size: 14px; font-weight: 500; color: #111;">' + t.descripcion + '</div><div style="font-size: 12px; color: #888; text-transform: capitalize;">' + t.categoria + ' • ' + t.fecha + '</div></div>';
-              html += '<div style="font-weight: bold; font-size: 14px; color: ' + (esIngreso ? '#10b981' : '#ef4444') + ';">' + (esIngreso ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</div>';
-              html += '</div>';
-            });
-          }
-          html += '</div>';
+            // SECCIÓN DE METAS DEL CLIENTE
+            html += '<div style="padding: 0 20px 20px 20px;">';
+            html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-target"></i> Metas de ahorro del cliente</h5>';
+            if (metas.length === 0) {
+              html += '<p style="font-size: 13px; color: #888; margin: 0;">El cliente no tiene metas registradas.</p>';
+            } else {
+              metas.forEach(function(m) {
+                const porcentaje = m.costoTotal > 0 ? (m.ahorrado / m.costoTotal) * 100 : 0;
+                const completada = porcentaje >= 100;
+                html += '<div style="margin-bottom: 15px; background: #f9fafb; padding: 12px; border-radius: 8px;">';
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">';
+                html += '<strong style="font-size: 13px;">' + m.nombre + ' ' + (completada ? '🎉' : '') + '</strong>';
+                html += '<span style="font-size: 13px; font-weight: bold;">$' + App.formatearMonto(m.ahorrado) + ' / $' + App.formatearMonto(m.costoTotal) + '</span>';
+                html += '</div>';
+                html += '<div style="width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin-bottom: 5px;">';
+                html += '<div style="width: ' + Math.min(porcentaje, 100) + '%; height: 100%; background: ' + (completada ? '#10b981' : '#e8c84c') + '; border-radius: 3px;"></div>';
+                html += '</div>';
+                html += '<div style="font-size: 11px; color: #666; text-align: right;">' + Math.round(porcentaje) + '% completado</div>';
+                html += '</div>';
+              });
+            }
+            html += '</div>';
 
-          html += '</div>';
-          
-          detalleCont.innerHTML = html;
+            // SECCIÓN DE GASTOS POR CATEGORÍA
+            html += '<div style="padding: 0 20px 20px 20px; border-top: 1px solid #eee; padding-top: 20px;">';
+            html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-chart-pie"></i> Gastos por categoría (Mes actual)</h5>';
+            if (Object.keys(porCategoria).length === 0) {
+              html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin gastos registrados este mes.</p>';
+            } else {
+              Object.keys(porCategoria).forEach(function(cat) {
+                const porcentaje = gastos > 0 ? (porCategoria[cat] / gastos) * 100 : 0;
+                html += '<div style="margin-bottom: 10px;">';
+                html += '<div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px;"><span style="text-transform: capitalize; font-weight: 500;">' + cat + '</span><span style="font-weight: bold;">$' + App.formatearMonto(porCategoria[cat]) + '</span></div>';
+                html += '<div style="width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden;"><div style="width: ' + porcentaje + '%; height: 100%; background: #e8c84c; border-radius: 3px;"></div></div>';
+                html += '</div>';
+              });
+            }
+            html += '</div>';
 
-          const btnCerrar = detalleCont.querySelector('.btn-cerrar-detalle');
-          if (btnCerrar) {
-            btnCerrar.addEventListener('click', function() {
-              detalleCont.style.display = 'none';
-              detalleCont.innerHTML = '';
-            });
-            setTimeout(() => {
-              detalleCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
-          }
+            // SECCIÓN DE ÚLTIMAS TRANSACCIONES
+            html += '<div style="padding: 0 20px 20px 20px; border-top: 1px solid #eee; padding-top: 20px;">';
+            html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: #333; display: flex; align-items: center; gap: 5px;"><i class="ph ph-clock"></i> Últimas transacciones</h5>';
+            const recientes = transacciones.slice(0, 5);
+            if (recientes.length === 0) {
+              html += '<p style="font-size: 13px; color: #888; margin: 0;">Sin transacciones.</p>';
+            } else {
+              recientes.forEach(function(t) {
+                const esIngreso = t.tipo === 'ingreso';
+                html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">';
+                html += '<div><div style="font-size: 14px; font-weight: 500; color: #111;">' + t.descripcion + '</div><div style="font-size: 12px; color: #888; text-transform: capitalize;">' + t.categoria + ' • ' + t.fecha + '</div></div>';
+                html += '<div style="font-weight: bold; font-size: 14px; color: ' + (esIngreso ? '#10b981' : '#ef4444') + ';">' + (esIngreso ? '+' : '-') + '$' + App.formatearMonto(t.monto) + '</div>';
+                html += '</div>';
+              });
+            }
+            html += '</div>';
+
+            html += '</div>';
+            
+            detalleCont.innerHTML = html;
+
+            const btnCerrar = detalleCont.querySelector('.btn-cerrar-detalle');
+            if (btnCerrar) {
+              btnCerrar.addEventListener('click', function() {
+                detalleCont.style.display = 'none';
+                detalleCont.innerHTML = '';
+              });
+              setTimeout(() => {
+                detalleCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          });
         });
       });
     }
