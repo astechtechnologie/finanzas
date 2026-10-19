@@ -241,52 +241,67 @@
     });
 
     // ==================== ICONOS ====================
-    const iconosDisponibles = [
-      'ph-house', 'ph-car', 'ph-bus', 'ph-airplane', 'ph-shopping-cart',
-      'ph-graduation-cap', 'ph-heartbeat', 'ph-game-controller', 'ph-music-notes',
-      'ph-books', 'ph-lightbulb', 'ph-drop', 'ph-device-mobile', 'ph-laptop',
-      'ph-dog', 'ph-gift', 'ph-shirt', 'ph-receipt', 'ph-credit-card',
-      'ph-bank', 'ph-money', 'ph-chart-line-up', 'ph-target', 'ph-star',
-      'ph-coffee', 'ph-utensils', 'ph-film-slate', 'ph-barbell', 'ph-pill',
-      'ph-phone', 'ph-envelope', 'ph-calendar', 'ph-clock', 'ph-map-pin',
-      'ph-camera', 'ph-image', 'ph-video', 'ph-music-note', 'ph-microphone',
-      'ph-headphones', 'ph-tv', 'ph-printer', 'ph-keyboard', 'ph-mouse',
-      'ph-hard-drive', 'ph-cpu', 'ph-database', 'ph-cloud', 'ph-server',
-      'ph-lock', 'ph-shield', 'ph-bell', 'ph-flag', 'ph-briefcase',
-      'ph-wrench', 'ph-paint-brush', 'ph-scissors', 'ph-ruler', 'ph-bookmark',
-      'ph-bug', 'ph-fire', 'ph-snowflake', 'ph-leaf', 'ph-tree',
-      'ph-sun', 'ph-moon', 'ph-cloud-rain', 'ph-umbrella', 'ph-snow',
-      'ph-cake', 'ph-cookie', 'ph-beer', 'ph-wine', 'ph-hamburger',
-      'ph-fork-knife', 'ph-baby', 'ph-handshake', 'ph-users', 'ph-user',
-      'ph-factory', 'ph-storefront', 'ph-truck', 'ph-train', 'ph-ship',
-      'ph-bicycle', 'ph-motorbike', 'ph-rocket', 'ph-flame', 'ph-drop-half',
-      'ph-currency-dollar', 'ph-currency-eur', 'ph-percent', 'ph-calculator',
-      'ph-newspaper', 'ph-package', 'ph-cube', 'ph-trophy', 'ph-medal',
-      'ph-notebook', 'ph-pencil', 'ph-eraser', 'ph-magnifying-glass', 'ph-filter',
-      'ph-download', 'ph-upload', 'ph-share', 'ph-heart', 'ph-trash'
-    ];
+    const iconosConNombre = [
+  { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-airplane', name: 'Viajes' },
+  { icon: 'ph-bowl-food', name: 'Alimentación' }, { icon: 'ph-paw-print', name: 'Mascota' },
+  { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-cooking-pot', name: 'Comida' },
+  { icon: 'ph-paint-brush', name: 'Arreglos' }, { icon: 'ph-washing-machine', name: 'Hogar' },
+  { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-game-controller', name: 'Juegos' },
+  { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-first-aid', name: 'Salud' },
+  { icon: 'ph-book-open', name: 'Educación' }, { icon: 'ph-t-shirt', name: 'Ropa' },
+  { icon: 'ph-sneaker', name: 'Deporte' }, { icon: 'ph-house', name: 'Casa' },
+  { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-gift', name: 'Regalos' },
+  { icon: 'ph-bus', name: 'Transporte' }, { icon: 'ph-money', name: 'Salario' },
+  { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-lightbulb', name: 'Servicios' }
+];
 
-    function generarListaIconos(filtro = '') {
-      const cont = document.getElementById('listaIconosCategoria');
-      if (!cont) return;
-      const filtrados = iconosDisponibles.filter(icon => icon.includes(filtro));
-      cont.innerHTML = filtrados.map(icon => {
-        return '<button type="button" data-icono="' + icon + '"><i class="ph ' + icon + '"></i></button>';
-      }).join('');
-      cont.querySelectorAll('button').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          const icono = this.dataset.icono;
-          document.getElementById('iconoCategoria').value = icono;
-          document.getElementById('btnMostrarIconos').innerHTML = '<i class="ph ' + icono + '"></i>';
-          document.getElementById('selectorIconosModal').classList.add('hidden');
-        });
-      });
-    }
+function generarListaIconos(filtro = '') {
+  const cont = document.getElementById('listaIconosCategoria');
+  if (!cont) return;
+  
+  const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(filtro.toLowerCase()) || i.icon.includes(filtro));
+  
+  cont.innerHTML = filtrados.map(i => {
+    return `<div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
+      <div class="circulo"><i class="ph ${i.icon}"></i></div>
+      <span>${i.name}</span>
+    </div>`;
+  }).join('');
 
-    function mostrarSelectorIconos() {
-      document.getElementById('selectorIconosModal').classList.remove('hidden');
-      generarListaIconos();
-    }
+  cont.querySelectorAll('.icono-item').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const icono = this.dataset.icono;
+      document.getElementById('iconoCategoria').value = icono;
+      const btnMostrar = document.getElementById('btnMostrarIconos');
+      btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
+      btnMostrar.style.background = '#e8c84c'; // Cambia a dorado al elegir
+      document.getElementById('selectorIconosModal').classList.add('hidden');
+    });
+  });
+}
+
+function mostrarSelectorIconos() {
+  document.getElementById('selectorIconosModal').classList.remove('hidden');
+  generarListaIconos();
+}
+
+// Lógica para los circulitos de color
+const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a'];
+const contenedorColores = document.getElementById('contenedorColores');
+if (contenedorColores) {
+  contenedorColores.innerHTML = coloresDisponibles.map((color, index) => 
+    `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+  ).join('') + `<div class="color-circle" style="background-color: #ccc; display: flex; align-items: center; justify-content: center; color: white;"><i class="ph ph-plus"></i></div>`;
+
+  contenedorColores.querySelectorAll('.color-circle').forEach(circle => {
+    circle.addEventListener('click', function() {
+      if (!this.dataset.color) return; // Si es el botón de +
+      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('colorCategoria').value = this.dataset.color;
+    });
+  });
+}
 
     addListener('btnMostrarIconos', mostrarSelectorIconos);
     addListener('btnCerrarSelectorIconos', function() {
