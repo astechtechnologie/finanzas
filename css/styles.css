@@ -1866,3 +1866,87 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+/* Estilos para los selectores de color circulares */
+.color-circles-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: transform 0.2s;
+}
+.color-circle:hover {
+  transform: scale(1.1);
+}
+.color-circle.active {
+  border-color: #333;
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+/* Estilos para la pantalla completa de Iconos */
+#selectorIconosModal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #f4f5f7;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+}
+.selector-iconos-header {
+  background: #6b9080; /* Color verde del encabezado de tu foto */
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+}
+.selector-iconos-header h2 {
+  margin: 0;
+  font-size: 18px;
+  flex: 1;
+}
+.lista-iconos {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  align-content: start;
+}
+.icono-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: center;
+}
+.icono-item .circulo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #b0c4c0; /* Color gris azulado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  transition: 0.2s;
+}
+.icono-item:hover .circulo, .icono-item.activo .circulo {
+  background: #e8c84c; /* Dorado */
+}
+.icono-item span {
+  font-size: 11px;
+  color: #333;
+  line-height: 1.2;
+  max-width: 70px;
+  word-break: break-word;
+}
