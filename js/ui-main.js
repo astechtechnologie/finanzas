@@ -161,40 +161,78 @@
 
     // ==================== NAVEGACIÓN ====================
     function cambiarVista(nombreVista) {
-      const clave = nombreVista.replace('vista', '').toLowerCase();
-      Object.keys(vistas).forEach(function(key) {
-        if (vistas[key]) vistas[key].classList.remove('activa');
+
+  const clave = nombreVista.replace('vista', '').toLowerCase();
+
+  Object.keys(vistas).forEach(function(key) {
+
+    if (vistas[key]) vistas[key].classList.remove('activa');
+
+  });
+
+  if (vistas[clave]) vistas[clave].classList.add('activa');
+
+
+
+  navItems.forEach(function(item) { item.classList.remove('active'); });
+
+  const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
+
+  if (itemActivo) itemActivo.classList.add('active');
+
+
+
+  const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
+
+  if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
+
+
+
+  if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') App.cargarPantallaPresupuesto();
+
+  
+
+  if (clave === 'categorias') {
+
+    App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
+
+      App.subcategoriasPorCategoria = {};
+
+      const gastos = limites.gastos || {};
+
+      Object.keys(gastos).forEach(function(cat) {
+
+        App.subcategoriasPorCategoria[cat] = Object.keys(gastos[cat].subcategorias || {});
+
       });
-      if (vistas[clave]) vistas[clave].classList.add('activa');
 
-      navItems.forEach(function(item) { item.classList.remove('active'); });
-      const itemActivo = document.querySelector('[data-vista="' + nombreVista + '"]');
-      if (itemActivo) itemActivo.classList.add('active');
+      renderizarListaCategorias();
 
-      const titulos = { inicio: 'Inicio', presupuesto: 'Presupuesto', categorias: 'Categorías', ajustes: 'Ajustes', admin: 'Admin' };
-      if (titulo) titulo.textContent = titulos[clave] || 'Inicio';
+    });
 
-      if (clave === 'presupuesto' && typeof App.cargarPantallaPresupuesto === 'function') App.cargarPantallaPresupuesto();
-      
-      if (clave === 'categorias') {
-        App.obtenerLimitesCategorias(mesSeleccionado, function(limites) {
-          App.subcategoriasPorCategoria = {};
-          const gastos = limites.gastos || {};
-          Object.keys(gastos).forEach(function(cat) {
-            App.subcategoriasPorCategoria[cat] = Object.keys(gastos[cat].subcategorias || {});
-          });
-          renderizarListaCategorias();
-        });
-      }
-      if (clave === 'admin') {
-        cargarOrganizaciones();
-        cargarUsuariosAdmin();
-        cargarAuditoria();
-        cargarEstadisticas();
-      }
-      
-      setTimeout(aplicarPrivacidad, 50);
-    }
+  }
+
+  
+
+  if (clave === 'admin') {
+
+    // AQUÍ ESTÁ EL CAMBIO: Usamos App. delante de las funciones
+
+    if (typeof App.cargarOrganizaciones === 'function') App.cargarOrganizaciones();
+
+    if (typeof App.cargarUsuariosAdmin === 'function') App.cargarUsuariosAdmin();
+
+    if (typeof App.cargarAuditoria === 'function') App.cargarAuditoria();
+
+    if (typeof App.cargarEstadisticas === 'function') App.cargarEstadisticas();
+
+  }
+
+  
+
+  setTimeout(aplicarPrivacidad, 50);
+
+}
 
     App.cambiarVista = function(nombre) { cambiarVista(nombre); };
 
