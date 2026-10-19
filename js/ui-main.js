@@ -632,6 +632,7 @@
       }
 
       if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(filtradas, mesSeleccionado);
+      if (typeof App.dibujarGraficaTorta === 'function') App.dibujarGraficaTorta(filtradas, App.categoriasState);
     }
 
     // ==================== LISTA DE CATEGORÍAS ====================
