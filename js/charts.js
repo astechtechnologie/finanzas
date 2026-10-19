@@ -81,4 +81,65 @@
       options: { responsive: true, cutout: '80%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
     });
   };
+  App.dibujarGraficaTorta = function(filtradas, categorias) {
+  const gastosData = filtradas.filter(function(t) { return t.tipo === 'gasto'; });
+  
+  if (gastosData.length === 0) {
+    if (App.graficaTortaChart) App.graficaTortaChart.destroy();
+    return;
+  }
+
+  const agrupado = {};
+  gastosData.forEach(function(t) { 
+    agrupado[t.categoria] = (agrupado[t.categoria] || 0) + t.monto; 
+  });
+
+  const nombres = Object.keys(agrupado);
+  const montos = Object.values(agrupado);
+  
+  // Asignar colores según la categoría
+  const colores = nombres.map(function(nombre) {
+    const cat = categorias.find(function(c) { return c.nombre === nombre; });
+    return cat ? cat.color : '#e8c84c'; // Dorado por defecto
+  });
+
+  if (App.graficaTortaChart) App.graficaTortaChart.destroy();
+  const ctx = document.getElementById('graficaGastosTorta')?.getContext('2d');
+  if (!ctx) return;
+
+  App.graficaTortaChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: nombres.map(n => n.charAt(0).toUpperCase() + n.slice(1)),
+      datasets: [{
+        data: montos,
+        backgroundColor: colores,
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { 
+          position: 'right',
+          labels: { boxWidth: 12, font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              let value = context.parsed || 0;
+              let total = context.dataset.data.reduce((a, b) => a + b, 0);
+              let porcentaje = Math.round((value / total) * 100);
+              return label + ': $' + App.formatearMonto(value) + ' (' + porcentaje + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+};
 })();
