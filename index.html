@@ -389,16 +389,15 @@
         </div>
       </div>
     </div>
-
-    <!-- Selector de iconos -->
-    <div id="selectorIconosModal" class="hidden selector-iconos-modal">
-      <div class="selector-iconos-header">
-        <input type="text" id="buscarIcono" placeholder="Buscar icono..." class="input-field">
-        <button type="button" id="btnCerrarSelectorIconos" class="btn btn-outline-small">Cerrar</button>
-      </div>
-      <div id="listaIconosCategoria" class="lista-iconos"></div>
-    </div>
+    <!-- Selector de iconos (Pantalla completa) -->
+<div id="selectorIconosModal" class="hidden">
+  <div class="selector-iconos-header">
+    <button type="button" id="btnCerrarSelectorIconos" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;"><i class="ph ph-arrow-left"></i></button>
+    <h2>Añadir categoría</h2>
+    <i class="ph ph-magnifying-glass" style="font-size: 20px;"></i>
   </div>
+  <div id="listaIconosCategoria" class="lista-iconos"></div>
+</div>
 
   <!-- Scripts -->
   <script src="js/firebase-config.js"></script>
