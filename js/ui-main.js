@@ -204,101 +204,100 @@
 
     // ==================== ICONOS ====================
     const iconosConNombre = [
-  // Comida y Bebida
-  { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
-  { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
-  { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
-  { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
-  { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
-  { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
-  
-  // Transporte
-  { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
-  { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
-  { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
-  { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
-  { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
-  
-  // Hogar y Compras
-  { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
-  { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
-  { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
-  { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
-  { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
-  
-  // Salud y Belleza
-  { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
-  { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
-  { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
-  { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
-  
-  // Tecnología y Ocio
-  { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
-  { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
-  { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
-  { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
-  { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
-  
-  // Finanzas y Trabajo
-  { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
-  { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
-  { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
-  { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
-  { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
-  
-  // Familia y Mascotas
-  { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
-  { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
-  { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
-  
-  // Otros
-  { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
-  { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
-  { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
-  { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
-  { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
-];
+      // Comida y Bebida
+      { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
+      { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
+      { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
+      { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
+      { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
+      { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
+      
+      // Transporte
+      { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
+      { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
+      { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
+      { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
+      { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
+      
+      // Hogar y Compras
+      { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
+      { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
+      { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
+      { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
+      { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
+      
+      // Salud y Belleza
+      { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
+      { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
+      { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
+      { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
+      
+      // Tecnología y Ocio
+      { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
+      { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
+      { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
+      { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
+      { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
+      
+      // Finanzas y Trabajo
+      { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
+      { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
+      { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
+      { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
+      { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
+      
+      // Familia y Mascotas
+      { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
+      { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
+      { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
+      
+      // Otros
+      { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
+      { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
+      { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
+      { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
+      { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
+    ];
 
     function generarListaIconos(filtro = '') {
-  const cont = document.getElementById('listaIconosCategoria');
-  if (!cont) return;
-  
-  const textoBusqueda = filtro.toLowerCase();
-  const filtrados = iconosConNombre.filter(i => 
-    i.name.toLowerCase().includes(textoBusqueda) || 
-    i.icon.toLowerCase().includes(textoBusqueda)
-  );
-  
-  if (filtrados.length === 0) {
-    cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
-    return;
-  }
-  
-  cont.innerHTML = filtrados.map(i => {
-    return `<div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
-      <div class="circulo"><i class="ph ${i.icon}"></i></div>
-      <span>${i.name}</span>
-    </div>`;
-  }).join('');
+      const cont = document.getElementById('listaIconosCategoria');
+      if (!cont) return;
+      
+      const textoBusqueda = filtro.toLowerCase();
+      const filtrados = iconosConNombre.filter(i => 
+        i.name.toLowerCase().includes(textoBusqueda) || 
+        i.icon.toLowerCase().includes(textoBusqueda)
+      );
+      
+      if (filtrados.length === 0) {
+        cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
+        return;
+      }
+      
+      cont.innerHTML = filtrados.map(i => {
+        return `<div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
+          <div class="circulo"><i class="ph ${i.icon}"></i></div>
+          <span>${i.name}</span>
+        </div>`;
+      }).join('');
 
-  cont.querySelectorAll('.icono-item').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const icono = this.dataset.icono;
-      document.getElementById('iconoCategoria').value = icono;
-      const btnMostrar = document.getElementById('btnMostrarIconos');
-      btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
-      btnMostrar.style.background = '#e8c84c';
-      document.getElementById('selectorIconosModal').classList.add('hidden');
-    });
-  });
-}
+      cont.querySelectorAll('.icono-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const icono = this.dataset.icono;
+          document.getElementById('iconoCategoria').value = icono;
+          const btnMostrar = document.getElementById('btnMostrarIconos');
+          btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
+          btnMostrar.style.background = '#e8c84c';
+          document.getElementById('selectorIconosModal').classList.add('hidden');
+        });
+      });
+    }
 
     function mostrarSelectorIconos() {
       document.getElementById('selectorIconosModal').classList.remove('hidden');
       generarListaIconos();
     }
 
-    // Lógica para los circulitos de color
     const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a'];
     const contenedorColores = document.getElementById('contenedorColores');
     if (contenedorColores) {
@@ -308,7 +307,7 @@
 
       contenedorColores.querySelectorAll('.color-circle').forEach(circle => {
         circle.addEventListener('click', function() {
-          if (!this.dataset.color) return; // Si es el botón de +
+          if (!this.dataset.color) return;
           contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
           this.classList.add('active');
           document.getElementById('colorCategoria').value = this.dataset.color;
@@ -571,10 +570,39 @@
       }
     }
 
-    // ==================== DASHBOARD ====================
+    // ==================== DASHBOARD Y FILTROS ====================
+    function cargarFiltros() {
+      const selectCat = document.getElementById('filtroCategoriaMov');
+      const selectMet = document.getElementById('filtroMetodoPago');
+      
+      if (selectCat && App.categoriasState) {
+        selectCat.innerHTML = '<option value="">Todas las categorías</option>' + 
+          App.categoriasState.map(c => `<option value="${c.nombre}">${c.nombre.charAt(0).toUpperCase() + c.nombre.slice(1)}</option>`).join('');
+      }
+      
+      if (selectMet) {
+        selectMet.innerHTML = '<option value="">Todos los métodos</option>' + 
+          metodosPago.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
+      }
+    }
+
+    addListener('filtroCategoriaMov', function() {
+      App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+    });
+    addListener('filtroMetodoPago', function() {
+      App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
+    });
+
     function actualizarDashboard(transacciones) {
+      const filtroCat = document.getElementById('filtroCategoriaMov')?.value || '';
+      const filtroMet = document.getElementById('filtroMetodoPago')?.value || '';
+
       const filtradas = transacciones.filter(function(t) {
-        return t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
+        const coincideMes = t.fecha && t.fecha.startsWith(mesSeleccionado) && (t.espacioId || 'personal') === App.cuentaActual;
+        if (!coincideMes) return false;
+        if (filtroCat && t.categoria !== filtroCat) return false;
+        if (filtroMet && (t.metodoPago || '') !== filtroMet) return false;
+        return true;
       });
 
       let ingresos = 0, gastos = 0;
@@ -617,7 +645,7 @@
       const lista = document.getElementById('listaTransacciones');
       if (!lista) return;
       if (filtradas.length === 0) {
-        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
+        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos con estos filtros</p>';
       } else {
         let html = '';
         filtradas.forEach(function(t) {
@@ -708,7 +736,6 @@
       document.getElementById('nombreCategoria').value = datos.nombre;
       document.getElementById('tipoCategoria').value = datos.tipo;
       
-      // Actualizar radio buttons
       const radioGasto = document.querySelector('input[name="tipoCategoriaRadio"][value="gasto"]');
       const radioIngreso = document.querySelector('input[name="tipoCategoriaRadio"][value="ingreso"]');
       if (datos.tipo === 'gasto') { radioGasto.checked = true; radioIngreso.checked = false; }
@@ -720,7 +747,6 @@
       btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
       btnMostrar.style.background = '#e8c84c';
 
-      // Actualizar color seleccionado en los circulitos
       const color = datos.color || '#e8c84c';
       document.getElementById('colorCategoria').value = color;
       document.querySelectorAll('#contenedorColores .color-circle').forEach(c => {
@@ -743,7 +769,6 @@
       const form = document.getElementById('formCategoria');
       form.reset();
       
-      // Restaurar valores por defecto
       const radioGasto = document.querySelector('input[name="tipoCategoriaRadio"][value="gasto"]');
       if (radioGasto) radioGasto.checked = true;
       
@@ -788,6 +813,7 @@
               App.categoriasState = cats; 
               renderizarListaCategorias(); 
               renderizarChipsCategorias(); 
+              cargarFiltros();
             });
           });
         } else {
@@ -796,6 +822,7 @@
               App.categoriasState = cats; 
               renderizarChipsCategorias(); 
               renderizarListaCategorias();
+              cargarFiltros();
             });
           });
 
@@ -1144,6 +1171,70 @@
       });
     };
 
+    // ==================== NOTIFICACIONES ====================
+    const toggleNotificaciones = document.getElementById('toggleNotificaciones');
+    let timerNotificacion = null;
+
+    function programarNotificacion() {
+      if (Notification.permission === 'granted') {
+        const ahora = new Date();
+        const horaRecordatorio = new Date();
+        horaRecordatorio.setHours(20, 0, 0, 0);
+        
+        if (horaRecordatorio <= ahora) {
+          horaRecordatorio.setDate(horaRecordatorio.getDate() + 1);
+        }
+        
+        const msHastaRecordatorio = horaRecordatorio - ahora;
+        
+        if (timerNotificacion) clearTimeout(timerNotificacion);
+        
+        timerNotificacion = setTimeout(() => {
+          if (Notification.permission === 'granted') {
+            new Notification('Finora - Recordatorio', {
+              body: 'No olvides registrar tus gastos de hoy 💰',
+              icon: 'logo-192.png'
+            });
+          }
+          programarNotificacion();
+        }, msHastaRecordatorio);
+        
+        localStorage.setItem('notificacionesActivas', 'true');
+      }
+    }
+
+    if (toggleNotificaciones) {
+      const notificacionesActivas = localStorage.getItem('notificacionesActivas') === 'true';
+      toggleNotificaciones.checked = notificacionesActivas;
+
+      if (notificacionesActivas) {
+        programarNotificacion();
+      }
+
+      toggleNotificaciones.addEventListener('change', function() {
+        if (this.checked) {
+          if (!("Notification" in window)) {
+            alert('Tu navegador no soporta notificaciones.');
+            this.checked = false;
+            return;
+          }
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              programarNotificacion();
+              alert('¡Notificaciones activadas! Te recordaremos a las 8 PM.');
+            } else {
+              alert('Debes permitir las notificaciones en tu navegador para activar esta función.');
+              this.checked = false;
+            }
+          });
+        } else {
+          if (timerNotificacion) clearTimeout(timerNotificacion);
+          localStorage.removeItem('notificacionesActivas');
+          localStorage.setItem('notificacionesActivas', 'false');
+        }
+      });
+    }
+
     // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       setTimeout(function() {
@@ -1169,6 +1260,7 @@
         App.obtenerMetodosPago(function(metodos) {
           metodosPago = metodos;
           llenarSelectMetodosPago();
+          cargarFiltros();
         });
 
         App.obtenerTransacciones(function(t) { actualizarDashboard(t); }, App.cuentaActual);
