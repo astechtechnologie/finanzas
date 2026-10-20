@@ -204,18 +204,60 @@
 
     // ==================== ICONOS ====================
     const iconosConNombre = [
-      { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-airplane', name: 'Viajes' },
-      { icon: 'ph-bowl-food', name: 'Alimentación' }, { icon: 'ph-paw-print', name: 'Mascota' },
-      { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-cooking-pot', name: 'Comida' },
-      { icon: 'ph-paint-brush', name: 'Arreglos' }, { icon: 'ph-washing-machine', name: 'Hogar' },
-      { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-game-controller', name: 'Juegos' },
-      { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-first-aid', name: 'Salud' },
-      { icon: 'ph-book-open', name: 'Educación' }, { icon: 'ph-t-shirt', name: 'Ropa' },
-      { icon: 'ph-sneaker', name: 'Deporte' }, { icon: 'ph-house', name: 'Casa' },
-      { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-gift', name: 'Regalos' },
-      { icon: 'ph-bus', name: 'Transporte' }, { icon: 'ph-money', name: 'Salario' },
-      { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-lightbulb', name: 'Servicios' }
-    ];
+  // Comida y Bebida
+  { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
+  { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
+  { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
+  { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
+  { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
+  { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
+  
+  // Transporte
+  { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
+  { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
+  { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
+  { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
+  { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
+  
+  // Hogar y Compras
+  { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
+  { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
+  { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
+  { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
+  { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
+  
+  // Salud y Belleza
+  { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
+  { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
+  { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
+  { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
+  
+  // Tecnología y Ocio
+  { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
+  { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
+  { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
+  { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
+  { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
+  
+  // Finanzas y Trabajo
+  { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
+  { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
+  { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
+  { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
+  { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
+  
+  // Familia y Mascotas
+  { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
+  { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
+  { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
+  
+  // Otros
+  { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
+  { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
+  { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
+  { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
+  { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
+];
 
     function generarListaIconos(filtro = '') {
       const cont = document.getElementById('listaIconosCategoria');
