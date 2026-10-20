@@ -316,4 +316,99 @@
     }
     renderizarPresupuestoMensual();
   };
+  // ==================== HISTORIAL DE PRESUPUESTOS ====================
+App.cargarHistorialPresupuesto = function() {
+  const modalHistorial = document.getElementById('modalHistorialPresupuesto');
+  const lista = document.getElementById('listaHistorialPresupuesto');
+  if (!modalHistorial || !lista) return;
+
+  modalHistorial.classList.remove('hidden');
+  lista.innerHTML = '<p class="text-center texto-secundario">Cargando historial...</p>';
+
+  const hoy = new Date();
+  const mesesARevisar = [];
+  // Revisar los últimos 6 meses
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    mesesARevisar.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+
+  let resultados = [];
+  let pendientes = mesesARevisar.length;
+
+  mesesARevisar.forEach(mes => {
+    App.obtenerLimitesCategorias(mes, function(limites) {
+      const limitesGastos = limites.gastos || {};
+      let totalPresupuesto = 0;
+      Object.keys(limitesGastos).forEach(cat => totalPresupuesto += (limitesGastos[cat].limite || 0));
+
+      // Obtener transacciones de ese mes
+      App.obtenerTransacciones(function(transacciones) {
+        let gastosDelMes = 0;
+        transacciones.forEach(t => {
+          if (t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mes)) {
+            gastosDelMes += t.monto;
+          }
+        });
+
+        resultados.push({
+          mes: mes,
+          limite: totalPresupuesto,
+          gastado: gastosDelMes
+        });
+
+        pendientes--;
+        if (pendientes === 0) {
+          // Renderizar los resultados (ordenados del más reciente al más antiguo)
+          resultados.sort((a, b) => b.mes.localeCompare(a.mes));
+          
+          let html = '';
+          resultados.forEach(r => {
+            const nombreMes = new Date(r.mes + '-02').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+            const porcentaje = r.limite > 0 ? (r.gastado / r.limite) * 100 : 0;
+            
+            let colorBarra = '#e8c84c';
+            if (porcentaje >= 100) colorBarra = '#ef4444';
+            else if (porcentaje >= 80) colorBarra = '#f97316';
+            else if (r.limite === 0) colorBarra = '#ccc';
+
+            html += `
+              <div style="background: var(--bg-body); padding: 15px; border-radius: 12px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <strong style="text-transform: capitalize;">${nombreMes}</strong>
+                  <span style="font-weight: bold; color: ${r.gastado > r.limite && r.limite > 0 ? '#ef4444' : 'var(--text-color)'};">
+                    $${App.formatearMonto(r.gastado)} / $${App.formatearMonto(r.limite)}
+                  </span>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                  <div style="width: ${Math.min(porcentaje, 100)}%; height: 100%; background: ${colorBarra}; border-radius: 4px;"></div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); text-align: right; margin-top: 4px;">
+                  ${r.limite > 0 ? Math.round(porcentaje) + '% del límite usado' : 'Sin presupuesto asignado'}
+                </div>
+              </div>
+            `;
+          });
+          
+          lista.innerHTML = html;
+        }
+      }, App.cuentaActual);
+    });
+  });
+};
+
+// Listener para el botón de abrir/cerrar
+document.addEventListener('DOMContentLoaded', function() {
+  const btnAbrir = document.getElementById('btnVerHistorialPresupuesto');
+  const btnCerrar = document.getElementById('btnCerrarHistorialPresupuesto');
+  
+  if (btnAbrir) {
+    btnAbrir.addEventListener('click', App.cargarHistorialPresupuesto);
+  }
+  if (btnCerrar) {
+    btnCerrar.addEventListener('click', function() {
+      document.getElementById('modalHistorialPresupuesto').classList.add('hidden');
+    });
+  }
+});
 })();
