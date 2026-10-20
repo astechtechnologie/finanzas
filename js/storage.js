@@ -145,6 +145,35 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
     }).then(callback);
   };
 
+  App.guardarLimiteSubcategoria = function(mes, categoriaPadre, subcategoriaNombre, limite, callback) {
+  const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
+  db.runTransaction(function(transaction) {
+    return transaction.get(ref).then(function(doc) {
+      const data = doc.exists ? doc.data() : {};
+      const categorias = data.gastos || {};
+      
+      // Si la categoría padre no existe, la creamos
+      if (!categorias[categoriaPadre]) {
+        categorias[categoriaPadre] = { limite: 0, subcategorias: {} };
+      }
+      
+      // Si la subcategoría no existe, la creamos con límite 0
+      if (!categorias[categoriaPadre].subcategorias) {
+        categorias[categoriaPadre].subcategorias = {};
+      }
+      if (!categorias[categoriaPadre].subcategorias[subcategoriaNombre]) {
+        categorias[categoriaPadre].subcategorias[subcategoriaNombre] = { limite: 0 };
+      }
+      
+      // Asignamos el nuevo límite
+      categorias[categoriaPadre].subcategorias[subcategoriaNombre].limite = limite;
+      
+      data.gastos = categorias;
+      return transaction.set(ref, data, { merge: true });
+    });
+  }).then(callback);
+};
+
   // ===== METAS =====
   App.obtenerMetas = function(callback) {
     return db.collection('usuarios/' + uid() + '/metas').onSnapshot(function(snap) {
