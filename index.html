@@ -133,9 +133,22 @@
         </div>
 
         <div class="movimientos-container">
-          <h2>Movimientos</h2>
-          <div id="listaTransacciones"></div>
-        </div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h2 style="margin: 0;">Movimientos</h2>
+  </div>
+  
+  <!-- FILTROS DE MOVIMIENTOS -->
+  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    <select id="filtroCategoriaMov" class="input-field" style="padding: 6px; font-size: 13px; flex: 1; background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color);">
+      <option value="">Todas las categorías</option>
+    </select>
+    <select id="filtroMetodoPago" class="input-field" style="padding: 6px; font-size: 13px; flex: 1; background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color);">
+      <option value="">Todos los métodos</option>
+    </select>
+  </div>
+
+  <div id="listaTransacciones"></div>
+</div>
 
         <button id="fabAgregar" class="fab"><i class="ph ph-plus"></i></button>
       </div>
