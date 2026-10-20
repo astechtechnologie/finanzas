@@ -652,34 +652,44 @@ if (contenedorColores) {
 
     // ==================== LISTA DE CATEGORÍAS ====================
     function renderizarListaCategorias() {
-      const cont = document.getElementById('listaCategorias');
-      if (!cont) return;
-      if (!App.categoriasState || App.categoriasState.length === 0) {
-        cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
-        return;
-      }
-      let html = '';
-      App.categoriasState.forEach(function(c) {
-        html += '<div class="cat-card">' +
-          '<div class="cat-info">' +
-            '<span class="cat-emoji"><i class="ph ' + c.icono + '"></i></span>' +
-            '<div class="cat-detalles"><span class="cat-nombre">' + c.nombre + '</span><span class="cat-tipo ' + c.tipo + '">' + c.tipo + '</span></div>' +
-          '</div>' +
-          '<div class="categoria-acciones">' +
-            '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '">✏️</button>' +
-            '<button class="btn-delete-cat" data-id="' + c.id + '">✕</button>' +
-          '</div>' +
-        '</div>';
-      });
-      cont.innerHTML = html;
+  const cont = document.getElementById('listaCategorias');
+  if (!cont) return;
+  if (!App.categoriasState || App.categoriasState.length === 0) {
+    cont.innerHTML = '<p class="texto-secundario text-center py-4">No hay categorías</p>';
+    return;
+  }
+  
+  let html = '';
+  App.categoriasState.forEach(function(c) {
+    // Color de fondo (por defecto dorado si no tiene)
+    const bgColor = c.color || '#e8c84c';
+    
+    html += '<div class="cat-card" style="background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;">' +
+      '<div style="display: flex; align-items: center; gap: 15px;">' +
+        '<div style="width: 45px; height: 45px; border-radius: 50%; background: ' + bgColor + '; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">' +
+          '<i class="ph ' + c.icono + '"></i>' +
+        '</div>' +
+        '<div style="display: flex; flex-direction: column;">' +
+          '<span style="font-weight: 600; font-size: 15px; color: #333; text-transform: capitalize;">' + c.nombre + '</span>' +
+          '<span style="font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-top: 3px; width: fit-content; background: ' + (c.tipo === 'ingreso' ? '#fef3c7; color: #92400e;' : '#e5e7eb; color: #374151;') + '">' + c.tipo.toUpperCase() + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display: flex; gap: 10px; color: #888;">' +
+        '<button class="btn-editar-cat" data-id="' + c.id + '" data-nombre="' + c.nombre + '" data-icono="' + c.icono + '" data-color="' + c.color + '" data-tipo="' + c.tipo + '" style="background: none; border: none; cursor: pointer; color: #f97316; font-size: 18px;"><i class="ph ph-pencil-simple"></i></button>' +
+        '<button class="btn-delete-cat" data-id="' + c.id + '" style="background: none; border: none; cursor: pointer; color: #888; font-size: 18px;"><i class="ph ph-x"></i></button>' +
+      '</div>' +
+    '</div>';
+  });
+  
+  cont.innerHTML = html;
 
-      cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
-        btn.addEventListener('click', function() { abrirEdicionCategoria(this.dataset); });
-      });
-      cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
-        btn.addEventListener('click', function() { if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id); });
-      });
-    }
+  cont.querySelectorAll('.btn-editar-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() { abrirEdicionCategoria(this.dataset); });
+  });
+  cont.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() { if (confirm('¿Eliminar esta categoría?')) App.eliminarCategoria(this.dataset.id); });
+  });
+}
 
     function abrirEdicionCategoria(datos) {
       document.getElementById('idCategoriaEditar').value = datos.id;
