@@ -759,3 +759,44 @@ input:checked + .slider:before { transform: translateX(22px); }
 [data-theme="dark"] .movimiento-item {
   border: 1px solid #333 !important;
 }
+/* ==================== ESTILOS DE PESTAÑAS DE PRESUPUESTO ==================== */
+.presupuesto-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: none; /* Oculta scrollbar en Firefox */
+}
+
+.presupuesto-tabs::-webkit-scrollbar {
+  display: none; /* Oculta scrollbar en Chrome/Safari */
+}
+
+.presupuesto-tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.presupuesto-tab.active {
+  background: var(--primary-color);
+  color: var(--primary-text);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(232, 200, 76, 0.3);
+}
+
+.presupuesto-tab i {
+  font-size: 16px;
+}
