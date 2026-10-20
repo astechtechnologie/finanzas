@@ -140,12 +140,27 @@
         <button id="fabAgregar" class="fab"><i class="ph ph-plus"></i></button>
       </div>
 
-      <!-- Vista Presupuesto -->
-      <div id="vistaPresupuesto" class="vista">
-        <div id="contenidoPresupuesto" class="presupuesto-container"></div>
-      </div>
+<!-- Vista Presupuesto -->
+<div id="vistaPresupuesto" class="vista">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <h2 style="margin: 0; font-size: 20px;">Presupuesto</h2>
+    <button id="btnVerHistorialPresupuesto" class="btn btn-outline-small" style="font-size: 12px; padding: 6px 12px;">
+      <i class="ph ph-clock-counter-clockwise"></i> Historial
+    </button>
+  </div>
+  <div id="contenidoPresupuesto" class="presupuesto-container"></div>
+</div>
 
-      <!-- Vista Categorías -->
+<!-- Modal Historial Presupuestos -->
+<div id="modalHistorialPresupuesto" class="modal hidden" style="background: rgba(0,0,0,0.5);">
+  <div class="modal-content" style="background: var(--bg-card); color: var(--text-color); max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h2 style="margin: 0; font-size: 18px;">Historial de Presupuestos</h2>
+      <button id="btnCerrarHistorialPresupuesto" class="btn-icon" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-color);"><i class="ph ph-x"></i></button>
+    </div>
+    <div id="listaHistorialPresupuesto"></div>
+  </div>
+</div>    
       <!-- Vista Categorías -->
 <div id="vistaCategorias" class="vista">
   <div class="categorias-container">
