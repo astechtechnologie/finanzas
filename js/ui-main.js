@@ -260,29 +260,38 @@
 ];
 
     function generarListaIconos(filtro = '') {
-      const cont = document.getElementById('listaIconosCategoria');
-      if (!cont) return;
-      
-      const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(filtro.toLowerCase()) || i.icon.includes(filtro));
-      
-      cont.innerHTML = filtrados.map(i => {
-        return `<div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
-          <div class="circulo"><i class="ph ${i.icon}"></i></div>
-          <span>${i.name}</span>
-        </div>`;
-      }).join('');
+  const cont = document.getElementById('listaIconosCategoria');
+  if (!cont) return;
+  
+  const textoBusqueda = filtro.toLowerCase();
+  const filtrados = iconosConNombre.filter(i => 
+    i.name.toLowerCase().includes(textoBusqueda) || 
+    i.icon.toLowerCase().includes(textoBusqueda)
+  );
+  
+  if (filtrados.length === 0) {
+    cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
+    return;
+  }
+  
+  cont.innerHTML = filtrados.map(i => {
+    return `<div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
+      <div class="circulo"><i class="ph ${i.icon}"></i></div>
+      <span>${i.name}</span>
+    </div>`;
+  }).join('');
 
-      cont.querySelectorAll('.icono-item').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          const icono = this.dataset.icono;
-          document.getElementById('iconoCategoria').value = icono;
-          const btnMostrar = document.getElementById('btnMostrarIconos');
-          btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
-          btnMostrar.style.background = '#e8c84c'; // Cambia a dorado al elegir
-          document.getElementById('selectorIconosModal').classList.add('hidden');
-        });
-      });
-    }
+  cont.querySelectorAll('.icono-item').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const icono = this.dataset.icono;
+      document.getElementById('iconoCategoria').value = icono;
+      const btnMostrar = document.getElementById('btnMostrarIconos');
+      btnMostrar.innerHTML = '<i class="ph ' + icono + '"></i>';
+      btnMostrar.style.background = '#e8c84c';
+      document.getElementById('selectorIconosModal').classList.add('hidden');
+    });
+  });
+}
 
     function mostrarSelectorIconos() {
       document.getElementById('selectorIconosModal').classList.remove('hidden');
