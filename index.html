@@ -11,10 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  
+  <!-- App Check (reCAPTCHA Enterprise) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-check-compat.js"></script>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6Ld2CvktAAAAAI-Mxml6-l0OVmVmwdXuepktt-0"></script>
+
   <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -90,12 +96,12 @@
 
       <!-- Vista Inicio -->
       <div id="vistaInicio" class="vista activa">
-        <div class="inicio-saludo" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="inicio-saludo">
           <div>
             <h2 id="saludoUsuario" class="saludo-texto">Buenos días</h2>
             <p class="texto-secundario">Este es tu resumen del mes</p>
           </div>
-          <button id="btnTogglePrivacidad" class="btn-icon" style="font-size: 20px;" title="Ocultar/Mostrar montos"><i class="ph ph-eye"></i></button>
+          <button id="btnTogglePrivacidad" class="btn-icon" title="Ocultar/Mostrar montos"><i class="ph ph-eye"></i></button>
         </div>
         <div class="resumen-grid">
           <div class="resumen-card ingreso-card"><i class="ph ph-trend-up"></i><span>Ingresos</span><strong id="totalIngresos" class="monto-sensible">$0</strong></div>
@@ -136,12 +142,11 @@
             <h2 style="margin: 0;">Movimientos</h2>
           </div>
           
-          <!-- FILTROS DE MOVIMIENTOS -->
-          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <select id="filtroCategoriaMov" class="input-field" style="padding: 6px; font-size: 13px; flex: 1; background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color);">
+          <div class="filtros-movimientos">
+            <select id="filtroCategoriaMov" class="input-field">
               <option value="">Todas las categorías</option>
             </select>
-            <select id="filtroMetodoPago" class="input-field" style="padding: 6px; font-size: 13px; flex: 1; background: var(--bg-card); color: var(--text-color); border: 1px solid var(--border-color);">
+            <select id="filtroMetodoPago" class="input-field">
               <option value="">Todos los métodos</option>
             </select>
           </div>
