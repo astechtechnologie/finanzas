@@ -14,23 +14,4 @@
   window.App = window.App || {};
   window.App.auth = firebase.auth();
   window.App.db = firebase.firestore();
-
-  // ==================== APP CHECK (SEGURIDAD) ====================
-  try {
-    // Usamos el proveedor de reCAPTCHA Enterprise explícitamente
-    const appCheck = firebase.appCheck();
-    
-    // La clave que copiaste de Google Cloud
-    const siteKey = '6Ld2CvktAAAAAI-Mxml6-l0OVmVmwdXuepktt-0';
-    
-    // Inicializamos con el proveedor correcto
-    appCheck.activate(
-      new firebase.appCheck.ReCaptchaEnterpriseProvider(siteKey),
-      true // Auto-refresh del token
-    );
-    
-    console.log("✅ App Check activado correctamente con reCAPTCHA Enterprise.");
-  } catch (error) {
-    console.error("❌ Error al activar App Check:", error);
-  }
 })();
