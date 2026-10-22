@@ -288,39 +288,51 @@
     const contenedorColores = document.getElementById('contenedorColores');
 
     function renderizarColores() {
-      if (!contenedorColores) return;
-      
-      let html = coloresDisponibles.map((color, index) => 
-        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
-      ).join('');
-      
-      html += `<div class="color-circle" id="btnAgregarColor" style="background-color: #ccc; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;"><i class="ph ph-plus"></i></div>`;
-      
-      contenedorColores.innerHTML = html;
+  if (!contenedorColores) return;
+  
+  // Generamos los colores fijos
+  let html = coloresDisponibles.map((color, index) => 
+    `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+  ).join('');
+  
+  // En lugar de un botón que pide texto, ponemos un selector de color nativo
+  // pero con el diseño circular de la app
+  html += `
+    <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
+      <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
+      <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+    </label>
+  `;
+  
+  contenedorColores.innerHTML = html;
 
-      contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
-        circle.addEventListener('click', function() {
-          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-          this.classList.add('active');
-          document.getElementById('colorCategoria').value = this.dataset.color;
-        });
-      });
+  // Evento para seleccionar un color de la paleta fija
+  contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
+    circle.addEventListener('click', function() {
+      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('colorCategoria').value = this.dataset.color;
+    });
+  });
 
-      const btnAddColor = document.getElementById('btnAgregarColor');
-      if (btnAddColor) {
-        btnAddColor.addEventListener('click', function() {
-          const nuevoColor = prompt('Escribe el código HEX del color (ej. #FF0000):', '#FF0000');
-          if (nuevoColor && /^#[0-9A-F]{6}$/i.test(nuevoColor)) {
-            if (!coloresDisponibles.includes(nuevoColor)) {
-              coloresDisponibles.push(nuevoColor);
-              renderizarColores();
-            }
-          } else {
-            alert('Formato de color inválido. Usa el formato HEX (ej. #FF0000).');
-          }
-        });
-      }
-    }
+  // Evento para el selector de color personalizado
+  const customPicker = document.getElementById('customColorPicker');
+  if (customPicker) {
+    customPicker.addEventListener('input', function() {
+      const nuevoColor = this.value;
+      
+      // Quitamos la selección de los otros círculos
+      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+      
+      // Actualizamos el valor oculto
+      document.getElementById('colorCategoria').value = nuevoColor;
+      
+      // Pintamos el círculo del selector con el color elegido
+      this.parentElement.style.background = nuevoColor;
+      this.parentElement.classList.add('active');
+    });
+  }
+}
 
     if (contenedorColores) {
       renderizarColores();
