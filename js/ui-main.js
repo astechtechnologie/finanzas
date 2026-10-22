@@ -204,54 +204,39 @@
 
     // ==================== ICONOS ====================
     const iconosConNombre = [
-      // Comida y Bebida
       { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
       { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
       { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
       { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
       { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
       { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
-      
-      // Transporte
       { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
       { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
       { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
       { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
       { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
-      
-      // Hogar y Compras
       { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
       { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
       { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
       { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
       { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
-      
-      // Salud y Belleza
       { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
       { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
       { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
       { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
-      
-      // Tecnología y Ocio
       { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
       { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
       { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
       { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
       { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
-      
-      // Finanzas y Trabajo
       { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
       { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
       { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
       { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
       { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
-      
-      // Familia y Mascotas
       { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
       { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
       { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
-      
-      // Otros
       { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
       { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
       { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
@@ -298,21 +283,47 @@
       generarListaIconos();
     }
 
-    const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a'];
+    // Lógica para los circulitos de color
+    let coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
     const contenedorColores = document.getElementById('contenedorColores');
-    if (contenedorColores) {
-      contenedorColores.innerHTML = coloresDisponibles.map((color, index) => 
-        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
-      ).join('') + `<div class="color-circle" style="background-color: #ccc; display: flex; align-items: center; justify-content: center; color: white;"><i class="ph ph-plus"></i></div>`;
 
-      contenedorColores.querySelectorAll('.color-circle').forEach(circle => {
+    function renderizarColores() {
+      if (!contenedorColores) return;
+      
+      let html = coloresDisponibles.map((color, index) => 
+        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+      ).join('');
+      
+      html += `<div class="color-circle" id="btnAgregarColor" style="background-color: #ccc; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;"><i class="ph ph-plus"></i></div>`;
+      
+      contenedorColores.innerHTML = html;
+
+      contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
         circle.addEventListener('click', function() {
-          if (!this.dataset.color) return;
           contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
           this.classList.add('active');
           document.getElementById('colorCategoria').value = this.dataset.color;
         });
       });
+
+      const btnAddColor = document.getElementById('btnAgregarColor');
+      if (btnAddColor) {
+        btnAddColor.addEventListener('click', function() {
+          const nuevoColor = prompt('Escribe el código HEX del color (ej. #FF0000):', '#FF0000');
+          if (nuevoColor && /^#[0-9A-F]{6}$/i.test(nuevoColor)) {
+            if (!coloresDisponibles.includes(nuevoColor)) {
+              coloresDisponibles.push(nuevoColor);
+              renderizarColores();
+            }
+          } else {
+            alert('Formato de color inválido. Usa el formato HEX (ej. #FF0000).');
+          }
+        });
+      }
+    }
+
+    if (contenedorColores) {
+      renderizarColores();
     }
 
     addListener('btnMostrarIconos', mostrarSelectorIconos);
@@ -430,9 +441,15 @@
           App.subcategoriasPorCategoria[catSeleccionada].push(subLimpia);
         }
         
-        document.getElementById('categoria').value = catSeleccionada;
-        llenarSelectSubcategorias();
-        document.getElementById('subcategoria').value = subLimpia;
+        // Refrescar el select y seleccionar la nueva
+        const select = document.getElementById('subcategoria');
+        if (select) {
+          let html = '<option value="">Sin subcategoría</option>';
+          App.subcategoriasPorCategoria[catSeleccionada].forEach(sub => {
+            html += `<option value="${sub}" ${sub === subLimpia ? 'selected' : ''}>${sub}</option>`;
+          });
+          select.innerHTML = html;
+        }
         
         alert('Subcategoría agregada con éxito.');
       }).catch(function(error) {
