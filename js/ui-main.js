@@ -283,56 +283,46 @@
       generarListaIconos();
     }
 
-    // Lógica para los circulitos de color
+    // Lógica para los circulitos de color con selector nativo
     let coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
     const contenedorColores = document.getElementById('contenedorColores');
 
     function renderizarColores() {
-  if (!contenedorColores) return;
-  
-  // Generamos los colores fijos
-  let html = coloresDisponibles.map((color, index) => 
-    `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
-  ).join('');
-  
-  // En lugar de un botón que pide texto, ponemos un selector de color nativo
-  // pero con el diseño circular de la app
-  html += `
-    <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
-      <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
-      <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
-    </label>
-  `;
-  
-  contenedorColores.innerHTML = html;
+      if (!contenedorColores) return;
+      
+      let html = coloresDisponibles.map((color, index) => 
+        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+      ).join('');
+      
+      // Selector de color nativo (rueda de colores) con diseño circular
+      html += `
+        <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
+          <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
+          <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+        </label>
+      `;
+      
+      contenedorColores.innerHTML = html;
 
-  // Evento para seleccionar un color de la paleta fija
-  contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
-    circle.addEventListener('click', function() {
-      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
-      document.getElementById('colorCategoria').value = this.dataset.color;
-    });
-  });
+      contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
+        circle.addEventListener('click', function() {
+          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+          this.classList.add('active');
+          document.getElementById('colorCategoria').value = this.dataset.color;
+        });
+      });
 
-  // Evento para el selector de color personalizado
-  const customPicker = document.getElementById('customColorPicker');
-  if (customPicker) {
-    customPicker.addEventListener('input', function() {
-      const nuevoColor = this.value;
-      
-      // Quitamos la selección de los otros círculos
-      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-      
-      // Actualizamos el valor oculto
-      document.getElementById('colorCategoria').value = nuevoColor;
-      
-      // Pintamos el círculo del selector con el color elegido
-      this.parentElement.style.background = nuevoColor;
-      this.parentElement.classList.add('active');
-    });
-  }
-}
+      const customPicker = document.getElementById('customColorPicker');
+      if (customPicker) {
+        customPicker.addEventListener('input', function() {
+          const nuevoColor = this.value;
+          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+          document.getElementById('colorCategoria').value = nuevoColor;
+          this.parentElement.style.background = nuevoColor;
+          this.parentElement.classList.add('active');
+        });
+      }
+    }
 
     if (contenedorColores) {
       renderizarColores();
@@ -649,8 +639,79 @@
         elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
       }
 
+      // ==================== CÁLCULO DE KPIs ====================
+      
+      // 1. Promedio diario
+      const hoy = new Date();
+      const mesActualStr = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0');
+      const diasTranscurridos = (mesSeleccionado === mesActualStr) ? hoy.getDate() : new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+      const promedioDiario = gastos / (diasTranscurridos || 1);
+      const elPromedio = document.getElementById('kpiPromedioDiario');
+      if (elPromedio) elPromedio.textContent = '$' + App.formatearMonto(promedioDiario);
+
+      // 2. Categoría Top
+      const gastosPorCategoria = {};
+      filtradas.forEach(t => {
+        if (t.tipo === 'gasto') {
+          gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + t.monto;
+        }
+      });
+      let categoriaTop = '-';
+      let maxGasto = 0;
+      Object.keys(gastosPorCategoria).forEach(cat => {
+        if (gastosPorCategoria[cat] > maxGasto) {
+          maxGasto = gastosPorCategoria[cat];
+          categoriaTop = cat;
+        }
+      });
+      const elCategoriaTop = document.getElementById('kpiCategoriaTop');
+      if (elCategoriaTop) elCategoriaTop.textContent = categoriaTop;
+
+      // 3. Ahorro (%)
+      const ahorro = ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0;
+      const elAhorro = document.getElementById('kpiAhorro');
+      if (elAhorro) elAhorro.textContent = Math.round(ahorro) + '%';
+
+      // 4. vs Mes Anterior
+      const elVariacion = document.getElementById('kpiVariacion');
+      if (elVariacion) {
+        const [year, month] = mesSeleccionado.split('-');
+        const fechaAnterior = new Date(year, month - 2, 1);
+        const mesAnterior = fechaAnterior.getFullYear() + '-' + String(fechaAnterior.getMonth() + 1).padStart(2, '0');
+        
+        App.obtenerTransacciones(function(todas) {
+          let gastosMesAnterior = 0;
+          todas.forEach(t => {
+            if (t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mesAnterior) && (t.espacioId || 'personal') === App.cuentaActual) {
+              gastosMesAnterior += t.monto;
+            }
+          });
+          
+          if (gastosMesAnterior > 0) {
+            const variacion = ((gastos - gastosMesAnterior) / gastosMesAnterior) * 100;
+            elVariacion.textContent = (variacion > 0 ? '+' : '') + Math.round(variacion) + '%';
+            elVariacion.className = 'kpi-valor ' + (variacion > 0 ? 'text-red-500' : 'text-emerald-500');
+          } else {
+            elVariacion.textContent = '-';
+            elVariacion.className = 'kpi-valor';
+          }
+        }, App.cuentaActual);
+      }
+
+      // 5. Metas
+      App.obtenerMetas(function(metas) {
+        const elMetas = document.getElementById('kpiMetas');
+        if (elMetas) elMetas.textContent = metas.length;
+        
+        let totalAhorradoMetas = 0;
+        metas.forEach(m => totalAhorradoMetas += (m.ahorrado || 0));
+        
+        const elAhorroMetas = document.getElementById('kpiAhorroMetas');
+        if (elAhorroMetas) elAhorroMetas.textContent = '$' + App.formatearMonto(totalAhorradoMetas);
+      });
+
       if (ocultarMontos) {
-        [elIngresos, elGastos, elBalance].forEach(el => {
+        [elIngresos, elGastos, elBalance, elPromedio, elAhorroMetas].forEach(el => {
           if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
         });
       }
