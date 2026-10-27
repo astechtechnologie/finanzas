@@ -16,7 +16,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  
 
   <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -214,6 +213,12 @@
             <button type="button" id="btnCancelarEdicionCat" class="btn btn-outline w-full mt-2 hidden">Cancelar edición</button>
           </form>
           
+          <!-- Filtros para categorías -->
+          <div style="display: flex; gap: 10px; margin-top: 20px; margin-bottom: 10px;">
+            <button class="btn-filtro-cat active" data-tipo="gasto" style="flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--primary-color); color: var(--primary-text); font-weight: bold; cursor: pointer;">Gastos</button>
+            <button class="btn-filtro-cat" data-tipo="ingreso" style="flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); font-weight: bold; cursor: pointer;">Ingresos</button>
+          </div>
+
           <div id="listaCategorias" class="lista-categorias mt-4"></div>
         </div>
       </div>
