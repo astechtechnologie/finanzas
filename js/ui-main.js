@@ -288,41 +288,118 @@
     const contenedorColores = document.getElementById('contenedorColores');
 
     function renderizarColores() {
-      if (!contenedorColores) return;
-      
-      let html = coloresDisponibles.map((color, index) => 
-        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
-      ).join('');
-      
-      // Selector de color nativo (rueda de colores) con diseño circular
-      html += `
-        <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
-          <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
-          <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
-        </label>
-      `;
-      
-      contenedorColores.innerHTML = html;
 
-      contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
-        circle.addEventListener('click', function() {
-          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-          this.classList.add('active');
-          document.getElementById('colorCategoria').value = this.dataset.color;
-        });
-      });
+  if (!contenedorColores) return;
 
-      const customPicker = document.getElementById('customColorPicker');
-      if (customPicker) {
-        customPicker.addEventListener('input', function() {
-          const nuevoColor = this.value;
-          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-          document.getElementById('colorCategoria').value = nuevoColor;
-          this.parentElement.style.background = nuevoColor;
-          this.parentElement.classList.add('active');
-        });
-      }
+  
+
+  let html = coloresDisponibles.map((color, index) => 
+
+    `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+
+  ).join('');
+
+  
+
+  // Selector de color nativo (rueda de colores) con diseño circular
+
+  html += `
+
+    <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
+
+      <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
+
+      <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+
+    </label>
+
+  `;
+
+  
+
+  contenedorColores.innerHTML = html;
+
+
+
+  // Función interna para actualizar la burbuja del ícono
+
+  function actualizarBurbuja(color) {
+
+    const btnMostrar = document.getElementById('btnMostrarIconos');
+
+    if (btnMostrar) {
+
+      btnMostrar.style.background = color;
+
     }
+
+  }
+
+
+
+  // Evento para los colores de la paleta fija
+
+  contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
+
+    circle.addEventListener('click', function() {
+
+      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+
+      this.classList.add('active');
+
+      const color = this.dataset.color;
+
+      document.getElementById('colorCategoria').value = color;
+
+      
+
+      // Actualizamos la burbuja
+
+      actualizarBurbuja(color);
+
+    });
+
+  });
+
+
+
+  // Evento para el selector de color personalizado (rueda)
+
+  const customPicker = document.getElementById('customColorPicker');
+
+  if (customPicker) {
+
+    customPicker.addEventListener('input', function() {
+
+      const nuevoColor = this.value;
+
+      
+
+      // Quitamos la selección de los otros colores
+
+      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+
+      
+
+      // Actualizamos el valor oculto y el fondo del selector
+
+      document.getElementById('colorCategoria').value = nuevoColor;
+
+      this.parentElement.style.background = nuevoColor;
+
+      this.parentElement.classList.add('active');
+
+      
+
+      // Actualizamos la burbuja del ícono
+
+      actualizarBurbuja(nuevoColor);
+
+    });
+
+  }
+
+}
 
     if (contenedorColores) {
       renderizarColores();
