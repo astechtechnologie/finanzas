@@ -5,15 +5,19 @@
   function uid() { return App.auth.currentUser.uid; }
 
   // ===== TRANSACCIONES =====
-  App.obtenerTransacciones = function(callback, espacioId) {
-    const ref = db.collection('usuarios/' + uid() + '/transacciones');
-    const query = espacioId ? ref.where('espacioId', '==', espacioId) : ref;
-    return query.orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const arr = [];
-      snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(arr);
-    });
-  };
+  App.obtenerTransacciones = function(callback, espacioId, mes) {
+  let query = db.collection('usuarios/' + uid() + '/transacciones');
+  
+  if (espacioId) query = query.where('espacioId', '==', espacioId);
+  
+  if (mes) { // mes = "2023-10"
+    const inicio = mes + '-01';
+    const fin = mes + '-31'; // Firestore acepta hasta -31 como string
+    query = query.where('fecha', '>=', inicio).where('fecha', '<=', fin);
+  }
+  
+  return query.orderBy('fecha', 'desc').onSnapshot(function(snap) { ... });
+};
 
   App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioId) {
     return db.collection('usuarios/' + uid() + '/transacciones').add({
