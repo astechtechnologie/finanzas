@@ -868,3 +868,30 @@ input:checked + .slider:before { transform: translateX(20px); }
 [data-theme="dark"] .movimiento-item {
   border: 1px solid #333 !important;
 }
+/* Feedback táctil al presionar botones */
+
+.btn:active,
+
+.btn-acceso:active,
+
+.nav-item:active,
+
+.chip-categoria:active,
+
+.fab:active {
+
+  transform: scale(0.95);
+
+  transition: transform 0.1s ease;
+
+}
+
+
+
+/* Transición suave para todos los botones */
+
+.btn {
+
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.2s ease;
+
+}
