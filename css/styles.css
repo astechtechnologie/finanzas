@@ -895,3 +895,15 @@ input:checked + .slider:before { transform: translateX(20px); }
   transition: transform 0.15s ease, filter 0.15s ease, background 0.2s ease;
 
 }
+/* Esqueleto de carga */
+.skeleton {
+  background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-card) 50%, var(--border-color) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
