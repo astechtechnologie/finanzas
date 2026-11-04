@@ -1313,3 +1313,24 @@ body {
 [data-theme="dark"] .grafico-dona-centro {
   color: #ccc;
 }
+/* Header Oscuro Premium */
+.inicio-header-verde {
+  background-color: #2c2c2c; /* Gris muy oscuro */
+  border-radius: 0 0 24px 24px;
+  padding: 15px 20px 0 20px;
+  color: white;
+  margin: -15px -15px 20px -15px;
+  padding-bottom: 1px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Cambiamos el color de la línea activa a dorado */
+.tab-verde.active {
+  color: #e8c84c; /* Dorado */
+  border-bottom-color: #e8c84c;
+}
+
+/* Cambiamos el color del texto inactivo para que contraste */
+.tab-verde {
+  color: rgba(255,255,255,0.6);
+}
