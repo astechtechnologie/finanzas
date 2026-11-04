@@ -636,7 +636,7 @@
         return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
       });
 
-      // 3. Dibujar Gráfica Dona
+      // 3. Dibujar Gráfica Dona (Le pasamos todas las transacciones del mes para que los clics funcionen mejor)
       if (typeof App.dibujarGraficaDona === 'function') {
         App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
       }
@@ -656,6 +656,49 @@
         });
       }
     }
+
+    // ==================== DETALLE POR CATEGORÍA (CLIC EN GRÁFICA) ====================
+    App.mostrarDetalleCategoria = function(nombreCategoria, transacciones, tipo) {
+      // 1. Filtrar solo las transacciones de esa categoría y tipo
+      const transaccionesFiltradas = transacciones.filter(t => t.categoria === nombreCategoria && t.tipo === tipo);
+      
+      // 2. Calcular el total
+      let total = 0;
+      transaccionesFiltradas.forEach(t => total += t.monto);
+
+      // 3. Actualizar el modal
+      document.getElementById('tituloDetalleCat').textContent = 'Categoría: ' + nombreCategoria.charAt(0).toUpperCase() + nombreCategoria.slice(1);
+      document.getElementById('totalDetalleCat').textContent = '$' + App.formatearMonto(total);
+
+      // 4. Generar la lista
+      const lista = document.getElementById('listaDetalleCat');
+      if (transaccionesFiltradas.length === 0) {
+        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
+      } else {
+        // Ordenar por fecha descendente
+        transaccionesFiltradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        lista.innerHTML = transaccionesFiltradas.map(t => `
+          <div class="mov-detalle-item">
+            <div class="info">
+              <span class="desc">${t.descripcion}</span>
+              <span class="fecha">${t.fecha} ${t.subcategoria ? '• ' + t.subcategoria : ''}</span>
+            </div>
+            <span class="monto" style="color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
+              ${t.tipo === 'ingreso' ? '+' : '-'}$${App.formatearMonto(t.monto)}
+            </span>
+          </div>
+        `).join('');
+      }
+
+      // 5. Mostrar el modal
+      document.getElementById('modalDetalleCategoria').classList.remove('hidden');
+    };
+
+    // Evento para cerrar el modal
+    addListener('btnCerrarDetalleCat', function() {
+      document.getElementById('modalDetalleCategoria').classList.add('hidden');
+    });
 
     // ==================== LISTA DE CATEGORÍAS ====================
     function renderizarListaCategorias() {
