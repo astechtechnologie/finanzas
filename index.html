@@ -113,84 +113,86 @@
           </div>
         </div>
       </div>
-      <!-- ==================== VISTA INICIO (Rediseñada) ==================== -->
-<div id="vistaInicio" class="vista activa">
-  
-  <!-- Header Verde Superior -->
-  <div class="inicio-header-verde">
-    <div class="inicio-top-bar">
-      <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
-      <div class="inicio-balance-central">
-        <span class="balance-label"><i class="ph ph-wallet"></i> Total <i class="ph ph-caret-down"></i></span>
-        <h1 id="balanceTotalHeader" class="balance-total-verde monto-sensible">$0</h1>
+
+      <!-- ==================== VISTA INICIO (NUEVO DISEÑO) ==================== -->
+      <div id="vistaInicio" class="vista activa">
+        
+        <!-- Header con color de fondo -->
+        <div class="inicio-header-verde">
+          <div class="inicio-top-bar">
+            <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
+            <div class="inicio-balance-central">
+              <span class="balance-label"><i class="ph ph-wallet"></i> Total <i class="ph ph-caret-down"></i></span>
+              <h1 id="balanceTotalHeader" class="balance-total-verde monto-sensible">$0</h1>
+            </div>
+            <button class="btn-icon-white" aria-label="Reportes"><i class="ph ph-receipt"></i></button>
+          </div>
+          
+          <div class="inicio-tabs-verde">
+            <button class="tab-verde active" data-tipo-verde="gasto">GASTOS</button>
+            <button class="tab-verde" data-tipo-verde="ingreso">INGRESOS</button>
+          </div>
+        </div>
+
+        <!-- Tarjeta Blanca con Filtros y Gráfico -->
+        <div class="inicio-card-blanca">
+          <div class="filtros-tiempo">
+            <button class="filtro-tiempo" data-filtro="dia">Día</button>
+            <button class="filtro-tiempo" data-filtro="semana">Semana</button>
+            <button class="filtro-tiempo active" data-filtro="mes">Mes</button>
+            <button class="filtro-tiempo" data-filtro="ano">Año</button>
+            <button class="filtro-tiempo" data-filtro="periodo">Período</button>
+          </div>
+
+          <div class="selector-rango-fechas">
+            <button class="btn-flecha-fecha" id="btnMesAnteriorGrafico"><i class="ph ph-caret-left"></i></button>
+            <span id="textoRangoFechas" class="texto-rango">1 nov – 30 nov</span>
+            <button class="btn-flecha-fecha" id="btnMesSiguienteGrafico"><i class="ph ph-caret-right"></i></button>
+          </div>
+
+          <div class="grafico-dona-container">
+            <canvas id="graficaDonaInicio"></canvas>
+            <div class="grafico-dona-centro hidden" id="textoCentroDona">
+              <span>No hubo<br>gastos esta<br>semana</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de Tarjetas (KPIs) -->
+        <div class="resumen-grid mt-4">
+          <div class="resumen-card ingreso-card">
+            <i class="ph ph-trend-up"></i>
+            <span>Ingresos</span>
+            <strong id="totalIngresos" class="monto-sensible">$0</strong>
+          </div>
+          <div class="resumen-card gasto-card">
+            <i class="ph ph-trend-down"></i>
+            <span>Gastos</span>
+            <strong id="totalGastos" class="monto-sensible">$0</strong>
+          </div>
+        </div>
+
+        <!-- Botón Flotante -->
+        <button id="fabAgregar" class="fab fab-amarillo" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
+
+        <!-- Contenedores ocultos para mantener la lógica antigua de tus movimientos y KPIs -->
+        <div class="hidden">
+          <div id="btnTogglePrivacidad"></div>
+          <div id="barraPresupuestoRapida"></div>
+          <div id="fillPresupuestoRapido"></div>
+          <div id="kpiPromedioDiario"></div>
+          <div id="kpiCategoriaTop"></div>
+          <div id="kpiAhorro"></div>
+          <div id="kpiVariacion"></div>
+          <div id="kpiMetas"></div>
+          <div id="kpiAhorroMetas"></div>
+          <canvas id="graficaTendencia"></canvas>
+          <canvas id="graficaGastosTorta"></canvas>
+          <div id="filtroCategoriaMov"></div>
+          <div id="filtroMetodoPago"></div>
+          <div id="listaTransacciones"></div>
+        </div>
       </div>
-      <button class="btn-icon-white" aria-label="Reportes"><i class="ph ph-receipt"></i></button>
-    </div>
-    
-    <div class="inicio-tabs-verde">
-      <button class="tab-verde active" data-tipo-verde="gasto">GASTOS</button>
-      <button class="tab-verde" data-tipo-verde="ingreso">INGRESOS</button>
-    </div>
-  </div>
-
-  <!-- Tarjeta Blanca con Filtros y Gráfico -->
-  <div class="inicio-card-blanca">
-    <div class="filtros-tiempo">
-      <button class="filtro-tiempo" data-filtro="dia">Día</button>
-      <button class="filtro-tiempo active" data-filtro="semana">Semana</button>
-      <button class="filtro-tiempo" data-filtro="mes">Mes</button>
-      <button class="filtro-tiempo" data-filtro="ano">Año</button>
-      <button class="filtro-tiempo" data-filtro="periodo">Período</button>
-    </div>
-
-    <div class="selector-rango-fechas">
-      <button class="btn-flecha-fecha" id="btnMesAnteriorGrafico"><i class="ph ph-caret-left"></i></button>
-      <span id="textoRangoFechas" class="texto-rango">2 nov – 8 nov</span>
-      <button class="btn-flecha-fecha" id="btnMesSiguienteGrafico"><i class="ph ph-caret-right"></i></button>
-    </div>
-
-    <div class="grafico-dona-container">
-      <canvas id="graficaDonaInicio"></canvas>
-      <div class="grafico-dona-centro hidden" id="textoCentroDona">
-        <span>No hubo<br>gastos esta<br>semana</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Resumen de Tarjetas (KPIs) debajo del gráfico -->
-  <div class="resumen-grid mt-4">
-    <div class="resumen-card ingreso-card">
-      <i class="ph ph-trend-up"></i>
-      <span>Ingresos</span>
-      <strong id="totalIngresos" class="monto-sensible">$0</strong>
-    </div>
-    <div class="resumen-card gasto-card">
-      <i class="ph ph-trend-down"></i>
-      <span>Gastos</span>
-      <strong id="totalGastos" class="monto-sensible">$0</strong>
-    </div>
-  </div>
-
-  <!-- Botón Flotante -->
-  <button id="fabAgregar" class="fab fab-amarillo" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
-
-  <!-- Contenedor oculto para mantener la lógica antigua de tus movimientos -->
-  <div class="hidden">
-    <div id="barraPresupuestoRapida"></div>
-    <div id="fillPresupuestoRapido"></div>
-    <div id="kpiPromedioDiario"></div>
-    <div id="kpiCategoriaTop"></div>
-    <div id="kpiAhorro"></div>
-    <div id="kpiVariacion"></div>
-    <div id="kpiMetas"></div>
-    <div id="kpiAhorroMetas"></div>
-    <canvas id="graficaTendencia"></canvas>
-    <canvas id="graficaGastosTorta"></canvas>
-    <div id="filtroCategoriaMov"></div>
-    <div id="filtroMetodoPago"></div>
-    <div id="listaTransacciones"></div>
-  </div>
-</div>
 
       <!-- ==================== VISTA PRESUPUESTO ==================== -->
       <div id="vistaPresupuesto" class="vista">
@@ -480,6 +482,23 @@
           <button id="btnCancelarEditar" class="btn btn-outline">Cancelar</button>
           <button id="btnGuardarEditar" class="btn btn-primario">Guardar cambios</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL DETALLE CATEGORÍA (NUEVO) ==================== -->
+    <div id="modalDetalleCategoria" class="modal hidden">
+      <div class="modal-content">
+        <div class="seccion-header" style="margin-bottom: 20px;">
+          <h2 id="tituloDetalleCat" class="seccion-titulo">Categoría: Comida</h2>
+          <button id="btnCerrarDetalleCat" class="btn-icon cerrar-modal-btn" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+        </div>
+        
+        <div class="resumen-detalle-cat">
+          <span>Total en este período:</span>
+          <strong id="totalDetalleCat">$0</strong>
+        </div>
+        
+        <div id="listaDetalleCat" class="lista-movimientos-detalle"></div>
       </div>
     </div>
 
