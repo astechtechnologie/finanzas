@@ -533,114 +533,168 @@ let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
     addListener('filtroMetodoPago', () => recargarTransacciones());
 
     function actualizarDashboard(transacciones) {
-      const filtroCat = document.getElementById('filtroCategoriaMov')?.value || '';
-      const filtroMet = document.getElementById('filtroMetodoPago')?.value || '';
 
-      const filtradas = transacciones.filter(t => {
-        if (filtroCat && t.categoria !== filtroCat) return false;
-        if (filtroMet && (t.metodoPago || '') !== filtroMet) return false;
-        return true;
-      });
+  // 1. Actualizar Balance Total en el Header Verde (Suma de todos los ingresos - gastos del mes)
 
-      let ingresos = 0, gastos = 0;
-      filtradas.forEach(t => t.tipo === 'ingreso' ? ingresos += t.monto : gastos += t.monto);
+  let balanceTotal = 0;
 
-      const elIngresos = document.getElementById('totalIngresos');
-      const elGastos = document.getElementById('totalGastos');
-      const elBalance = document.getElementById('balance');
+  transacciones.forEach(t => {
 
-      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresos);
-      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastos);
-      const balance = ingresos - gastos;
-      if (elBalance) {
-        elBalance.textContent = '$' + App.formatearMonto(balance);
-        elBalance.className = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
-      }
+    if (t.tipo === 'ingreso') balanceTotal += t.monto;
 
-      // KPIs
-      const hoy = new Date();
-      const mesActualStr = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0');
-      const dias = (mesSeleccionado === mesActualStr) ? hoy.getDate() : new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
-      const elProm = document.getElementById('kpiPromedioDiario');
-      if (elProm) elProm.textContent = '$' + App.formatearMonto(gastos / (dias || 1));
+    else balanceTotal -= t.monto;
 
-      const porCat = {};
-      filtradas.forEach(t => { if (t.tipo === 'gasto') porCat[t.categoria] = (porCat[t.categoria] || 0) + t.monto; });
-      let topCat = '-', max = 0;
-      Object.keys(porCat).forEach(cat => { if (porCat[cat] > max) { max = porCat[cat]; topCat = cat; } });
-      const elTop = document.getElementById('kpiCategoriaTop');
-      if (elTop) elTop.textContent = topCat;
+  });
 
-      const elAhorro = document.getElementById('kpiAhorro');
-      if (elAhorro) elAhorro.textContent = Math.round(ingresos > 0 ? ((ingresos - gastos) / ingresos) * 100 : 0) + '%';
+  const elBalanceHeader = document.getElementById('balanceTotalHeader');
 
-      App.obtenerMetas(function(metas) {
-        const elMetas = document.getElementById('kpiMetas');
-        if (elMetas) elMetas.textContent = metas.length;
-        const total = metas.reduce((acc, m) => acc + (m.ahorrado || 0), 0);
-        const elAhorroMetas = document.getElementById('kpiAhorroMetas');
-        if (elAhorroMetas) elAhorroMetas.textContent = '$' + App.formatearMonto(total);
-      });
+  if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceTotal);
 
-      if (ocultarMontos) {
-        [elIngresos, elGastos, elBalance, elProm].forEach(el => {
-          if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
-        });
-      }
 
-      // Lista de movimientos (Optimizada con DocumentFragment)
-      const lista = document.getElementById('listaTransacciones');
-      if (!lista) return;
-      if (filtradas.length === 0) {
-        lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos con estos filtros</p>';
-      } else {
-        const fragment = document.createDocumentFragment();
-        filtradas.forEach(t => {
-          const div = document.createElement('div');
-          div.className = 'movimiento-item';
-          div.style.cssText = 'display: flex; justify-content: space-between; align-items: center;';
-          div.innerHTML = `
-            <div><span>${t.descripcion}</span>${t.subcategoria ? `<br><small style="color:#888;">${t.categoria} / ${t.subcategoria}</small>` : ''}</div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="monto-sensible">${ocultarMontos ? '$ ******' : '$' + App.formatearMonto(t.monto)}</span>
-              <button class="btn-edit-mov" data-id="${t.id}" data-tipo="${t.tipo}" data-cat="${t.categoria}" data-subcat="${t.subcategoria || ''}" data-desc="${t.descripcion}" data-monto="${t.monto}" data-fecha="${t.fecha}" data-metodo="${t.metodoPago || ''}" style="background: none; border: none; cursor: pointer; color: #666;"><i class="ph ph-pencil"></i></button>
-              <button class="btn-delete" data-id="${t.id}">✕</button>
-            </div>`;
-          fragment.appendChild(div);
-        });
-        lista.innerHTML = '';
-        lista.appendChild(fragment);
 
-        lista.querySelectorAll('.btn-edit-mov').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            const d = this.dataset;
-            document.getElementById('idTransaccionEditar').value = d.id;
-            document.getElementById('fechaEditar').value = d.fecha;
-            document.getElementById('descripcionEditar').value = d.desc;
-            document.getElementById('montoEditar').value = d.monto;
-            
-            const selectCatEdit = document.getElementById('categoriaEditar');
-            const catsFiltradas = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
-            selectCatEdit.innerHTML = catsFiltradas.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
-            
-            const selectMetodoEdit = document.getElementById('metodoPagoEditar');
-            selectMetodoEdit.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
-            
-            document.getElementById('modalEditarTransaccion')?.classList.remove('hidden');
-          });
-        });
+  // 2. Filtrar transacciones según el botón Día/Semana/Mes
 
-        lista.querySelectorAll('.btn-delete').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar este movimiento?')) App.eliminarTransaccion(this.dataset.id);
-          });
-        });
-      }
+  const hoy = new Date();
 
-      // Gráficas
-      if (typeof App.actualizarGraficaTendencia === 'function') App.actualizarGraficaTendencia(filtradas, mesSeleccionado);
-      if (typeof App.dibujarGraficaTorta === 'function') App.dibujarGraficaTorta(filtradas, App.categoriasState);
+  let inicioPeriodo, finPeriodo;
+
+  
+
+  if (filtroTiempo === 'dia') {
+
+    const fechaRef = new Date(hoy);
+
+    fechaRef.setDate(hoy.getDate() + offsetTiempo);
+
+    inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
+
+    finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
+
+  } else if (filtroTiempo === 'semana') {
+
+    const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay(); // Lunes=1, Domingo=7
+
+    const lunes = new Date(hoy);
+
+    lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
+
+    inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
+
+    finPeriodo = new Date(lunes);
+
+    finPeriodo.setDate(lunes.getDate() + 6);
+
+    finPeriodo.setHours(23,59,59,999);
+
+  } else if (filtroTiempo === 'mes') {
+
+    const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
+
+    inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
+
+    finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
+
+  } else if (filtroTiempo === 'ano') {
+
+    const anoRef = hoy.getFullYear() + offsetTiempo;
+
+    inicioPeriodo = new Date(anoRef, 0, 1);
+
+    finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
+
+  } else {
+
+    // 'periodo' (Por ahora usaremos el mes actual)
+
+    inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+    finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+
+  }
+
+
+
+  // Formatear texto del rango de fechas
+
+  const elTextoRango = document.getElementById('textoRangoFechas');
+
+  if (elTextoRango) {
+
+    const opciones = { day: 'numeric', month: 'short' };
+
+    if (filtroTiempo === 'ano') {
+
+      elTextoRango.textContent = inicioPeriodo.getFullYear();
+
+    } else if (filtroTiempo === 'dia') {
+
+      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    } else {
+
+      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
+
     }
+
+  }
+
+
+
+  // Filtrar las transacciones que caen en ese rango
+
+  const filtradasPorFecha = transacciones.filter(t => {
+
+    if (!t.fecha) return false;
+
+    // Convertimos "YYYY-MM-DD" a objeto Date
+
+    const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
+
+    return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
+
+  });
+
+
+
+  // 3. Dibujar la gráfica Dona con las transacciones filtradas
+
+  if (typeof App.dibujarGraficaDona === 'function') {
+
+    App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
+
+  }
+
+
+
+  // 4. Actualizar las tarjetas de Ingresos y Gastos de abajo (con el mes completo)
+
+  let ingresosMes = 0, gastosMes = 0;
+
+  transacciones.forEach(t => t.tipo === 'ingreso' ? ingresosMes += t.monto : gastosMes += t.monto);
+
+
+
+  const elIngresos = document.getElementById('totalIngresos');
+
+  const elGastos = document.getElementById('totalGastos');
+
+  if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosMes);
+
+  if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosMes);
+
+
+
+  if (ocultarMontos) {
+
+    [elIngresos, elGastos, elBalanceHeader].forEach(el => {
+
+      if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
+
+    });
+
+  }
+
+}
 
     // ==================== LISTA DE CATEGORÍAS ====================
     function renderizarListaCategorias() {
