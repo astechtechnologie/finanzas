@@ -1,4 +1,4 @@
-// ui-main.js – Lógica de la interfaz principal (Parte 1/3)
+// ui-main.js – Lógica de la interfaz principal (Unificado y Corregido)
 (function() {
   const App = window.App;
 
@@ -203,313 +203,315 @@
 
     App.cambiarVista = cambiarVista;
     navItems.forEach(item => item.addEventListener('click', function() { cambiarVista(this.dataset.vista); }));
-    // ==================== ICONOS ====================
-const iconosConNombre = [
-  { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
-  { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
-  { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
-  { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
-  { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
-  { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
-  { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
-  { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
-  { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
-  { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
-  { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
-  { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
-  { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
-  { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
-  { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
-  { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
-  { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
-  { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
-  { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
-  { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
-  { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
-  { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
-  { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
-  { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
-  { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
-  { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
-  { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
-  { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
-  { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
-  { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
-  { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
-  { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
-  { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
-  { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
-  { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
-  { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
-  { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
-  { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
-];
 
-function generarListaIconos(filtro = '') {
-  const cont = document.getElementById('listaIconosCategoria');
-  if (!cont) return;
-  const textoBusqueda = filtro.toLowerCase();
-  const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(textoBusqueda) || i.icon.toLowerCase().includes(textoBusqueda));
-  if (filtrados.length === 0) {
-    cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
-    return;
-  }
-  cont.innerHTML = filtrados.map(i => `
-    <div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
-      <div class="circulo"><i class="ph ${i.icon}"></i></div>
-      <span>${i.name}</span>
-    </div>`).join('');
-  cont.querySelectorAll('.icono-item').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const icono = this.dataset.icono;
-      document.getElementById('iconoCategoria').value = icono;
-      document.getElementById('btnMostrarIconos').innerHTML = `<i class="ph ${icono}"></i>`;
+    // ==================== ICONOS ====================
+    const iconosConNombre = [
+      { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
+      { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
+      { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
+      { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
+      { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
+      { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
+      { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
+      { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
+      { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
+      { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
+      { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
+      { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
+      { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
+      { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
+      { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
+      { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
+      { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
+      { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
+      { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
+      { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
+      { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
+      { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
+      { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
+      { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
+      { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
+      { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
+      { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
+      { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
+      { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
+      { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
+      { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
+      { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
+      { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
+      { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
+      { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
+      { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
+      { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
+      { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
+    ];
+
+    function generarListaIconos(filtro = '') {
+      const cont = document.getElementById('listaIconosCategoria');
+      if (!cont) return;
+      const textoBusqueda = filtro.toLowerCase();
+      const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(textoBusqueda) || i.icon.toLowerCase().includes(textoBusqueda));
+      if (filtrados.length === 0) {
+        cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
+        return;
+      }
+      cont.innerHTML = filtrados.map(i => `
+        <div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
+          <div class="circulo"><i class="ph ${i.icon}"></i></div>
+          <span>${i.name}</span>
+        </div>`).join('');
+      cont.querySelectorAll('.icono-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const icono = this.dataset.icono;
+          document.getElementById('iconoCategoria').value = icono;
+          document.getElementById('btnMostrarIconos').innerHTML = `<i class="ph ${icono}"></i>`;
+          document.getElementById('selectorIconosModal').classList.add('hidden');
+        });
+      });
+    }
+
+    addListener('btnMostrarIconos', function() {
+      document.getElementById('selectorIconosModal').classList.remove('hidden');
+      generarListaIconos();
+    });
+    addListener('btnCerrarSelectorIconos', function() {
       document.getElementById('selectorIconosModal').classList.add('hidden');
     });
-  });
-}
 
-addListener('btnMostrarIconos', function() {
-  document.getElementById('selectorIconosModal').classList.remove('hidden');
-  generarListaIconos();
-});
-addListener('btnCerrarSelectorIconos', function() {
-  document.getElementById('selectorIconosModal').classList.add('hidden');
-});
+    // Colores
+    const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
+    const contenedorColores = document.getElementById('contenedorColores');
 
-// Colores
-const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
-const contenedorColores = document.getElementById('contenedorColores');
+    if (contenedorColores) {
+      let html = coloresDisponibles.map((color, index) => 
+        `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
+      ).join('');
+      html += `
+        <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
+          <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
+          <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+        </label>`;
+      contenedorColores.innerHTML = html;
 
-if (contenedorColores) {
-  let html = coloresDisponibles.map((color, index) => 
-    `<div class="color-circle ${index === 1 ? 'active' : ''}" data-color="${color}" style="background-color: ${color};"></div>`
-  ).join('');
-  html += `
-    <label class="color-circle" style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
-      <i class="ph ph-eyedropper" style="color: white; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"></i>
-      <input type="color" id="customColorPicker" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
-    </label>`;
-  contenedorColores.innerHTML = html;
+      contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
+        circle.addEventListener('click', function() {
+          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+          this.classList.add('active');
+          document.getElementById('colorCategoria').value = this.dataset.color;
+          const btn = document.getElementById('btnMostrarIconos');
+          if (btn) btn.style.background = this.dataset.color;
+        });
+      });
 
-  contenedorColores.querySelectorAll('.color-circle[data-color]').forEach(circle => {
-    circle.addEventListener('click', function() {
-      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
-      document.getElementById('colorCategoria').value = this.dataset.color;
-      const btn = document.getElementById('btnMostrarIconos');
-      if (btn) btn.style.background = this.dataset.color;
-    });
-  });
-
-  const customPicker = document.getElementById('customColorPicker');
-  if (customPicker) {
-    customPicker.addEventListener('input', function() {
-      const nuevoColor = this.value;
-      contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
-      document.getElementById('colorCategoria').value = nuevoColor;
-      this.parentElement.style.background = nuevoColor;
-      this.parentElement.classList.add('active');
-      const btn = document.getElementById('btnMostrarIconos');
-      if (btn) btn.style.background = nuevoColor;
-    });
-  }
-}
-
-// ==================== MODAL TRANSACCIÓN ====================
-function abrirModalTransaccion(tipo) {
-  tipoTransaccion = tipo;
-  if (tipo === 'ingreso') {
-    document.getElementById('tabIngreso')?.classList.add('active');
-    document.getElementById('tabGasto')?.classList.remove('active');
-  } else {
-    document.getElementById('tabGasto')?.classList.add('active');
-    document.getElementById('tabIngreso')?.classList.remove('active');
-  }
-  document.getElementById('categoria').value = '';
-  renderizarChipsCategorias();
-  modal?.classList.remove('hidden');
-}
-
-addListener('btnAccesoGasto', () => abrirModalTransaccion('gasto'));
-addListener('btnAccesoIngreso', () => abrirModalTransaccion('ingreso'));
-addListener('tabIngreso', () => abrirModalTransaccion('ingreso'));
-addListener('tabGasto', () => abrirModalTransaccion('gasto'));
-if (fab) fab.addEventListener('click', () => abrirModalTransaccion('ingreso'));
-
-addListener('btnAccesoPresupuesto', () => cambiarVista('vistaPresupuesto'));
-addListener('btnAccesoMetas', () => {
-  cambiarVista('vistaPresupuesto');
-  setTimeout(() => document.getElementById('tabMetasAhorro')?.click(), 300);
-});
-
-if (filtroMes) {
-  filtroMes.value = mesSeleccionado;
-  filtroMes.addEventListener('change', function() {
-    mesSeleccionado = filtroMes.value;
-    recargarTransacciones();
-  });
-}
-
-// ==================== GUARDAR TRANSACCIÓN ====================
-addListener('btnCerrarModalX', () => modal?.classList.add('hidden'));
-
-function guardarTransaccion() {
-  const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
-  const cat = chipActivo ? chipActivo.dataset.nombre : '';
-  const subcat = document.getElementById('subcategoria').value || null;
-  const desc = document.getElementById('descripcion').value.trim();
-  const montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
-  const monto = parseFloat(montoLimpio) || 0;
-  const fecha = document.getElementById('fecha').value;
-  const metodoPago = document.getElementById('metodoPago').value || null;
-
-  if (!cat) { alert('Por favor, selecciona una categoría.'); return; }
-  if (!monto || monto <= 0) { alert('Por favor, escribe un monto mayor a 0.'); return; }
-
-  App.agregarTransaccion(tipoTransaccion, cat, subcat, desc || 'Sin descripción', monto, fecha, metodoPago, App.cuentaActual);
-  
-  if (modal) modal.classList.add('hidden');
-  document.getElementById('descripcion').value = '';
-  document.getElementById('monto').value = '';
-  document.getElementById('categoria').value = '';
-}
-
-addListener('btnGuardarModalQuick', guardarTransaccion);
-
-// ==================== SUBCATEGORÍA ====================
-addListener('btnAgregarSubcategoria', function() {
-  const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
-  const catSeleccionada = chipActivo ? chipActivo.dataset.nombre : '';
-  if (!catSeleccionada) { alert('Primero selecciona una categoría.'); return; }
-  const nombreSub = prompt(`Nombre de la nueva subcategoría para "${catSeleccionada}":`);
-  if (!nombreSub || !nombreSub.trim()) return;
-  const subLimpia = nombreSub.trim().toLowerCase();
-
-  App.agregarSubcategoria(catSeleccionada, subLimpia).then(function() {
-    if (!App.subcategoriasPorCategoria[catSeleccionada]) App.subcategoriasPorCategoria[catSeleccionada] = [];
-    if (!App.subcategoriasPorCategoria[catSeleccionada].includes(subLimpia)) {
-      App.subcategoriasPorCategoria[catSeleccionada].push(subLimpia);
+      const customPicker = document.getElementById('customColorPicker');
+      if (customPicker) {
+        customPicker.addEventListener('input', function() {
+          const nuevoColor = this.value;
+          contenedorColores.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+          document.getElementById('colorCategoria').value = nuevoColor;
+          this.parentElement.style.background = nuevoColor;
+          this.parentElement.classList.add('active');
+          const btn = document.getElementById('btnMostrarIconos');
+          if (btn) btn.style.background = nuevoColor;
+        });
+      }
     }
-    const select = document.getElementById('subcategoria');
-    if (select) {
-      select.innerHTML = '<option value="">Sin subcategoría</option>' + 
-        App.subcategoriasPorCategoria[catSeleccionada].map(sub => `<option value="${sub}" ${sub === subLimpia ? 'selected' : ''}>${sub}</option>`).join('');
+
+    // ==================== MODAL TRANSACCIÓN ====================
+    function abrirModalTransaccion(tipo) {
+      tipoTransaccion = tipo;
+      if (tipo === 'ingreso') {
+        document.getElementById('tabIngreso')?.classList.add('active');
+        document.getElementById('tabGasto')?.classList.remove('active');
+      } else {
+        document.getElementById('tabGasto')?.classList.add('active');
+        document.getElementById('tabIngreso')?.classList.remove('active');
+      }
+      document.getElementById('categoria').value = '';
+      renderizarChipsCategorias();
+      modal?.classList.remove('hidden');
     }
-    alert('Subcategoría agregada.');
-  }).catch(function(error) {
-    console.error(error);
-    alert('Error al crear subcategoría: ' + error.message);
-  });
-});
 
-// ==================== CHIPS DE CATEGORÍA ====================
-function renderizarChipsCategorias() {
-  const cont = document.getElementById('chipsCategorias');
-  if (!cont) return;
-  const cats = (App.categoriasState || []).filter(c => c.tipo === tipoTransaccion);
-  const selectHidden = document.getElementById('categoria');
+    addListener('btnAccesoGasto', () => abrirModalTransaccion('gasto'));
+    addListener('btnAccesoIngreso', () => abrirModalTransaccion('ingreso'));
+    addListener('tabIngreso', () => abrirModalTransaccion('ingreso'));
+    addListener('tabGasto', () => abrirModalTransaccion('gasto'));
+    if (fab) fab.addEventListener('click', () => abrirModalTransaccion('ingreso'));
 
-  if (cats.length === 0) {
-    cont.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
-    return;
-  }
+    addListener('btnAccesoPresupuesto', () => cambiarVista('vistaPresupuesto'));
+    addListener('btnAccesoMetas', () => {
+      cambiarVista('vistaPresupuesto');
+      setTimeout(() => document.getElementById('tabMetasAhorro')?.click(), 300);
+    });
 
-  cont.innerHTML = cats.map((c, index) => `
-    <div class="chip-categoria ${index === 0 ? 'activo' : ''}" data-nombre="${c.nombre}">
-      <i class="ph ${c.icono}"></i><span>${c.nombre}</span>
-    </div>`).join('');
+    if (filtroMes) {
+      filtroMes.value = mesSeleccionado;
+      filtroMes.addEventListener('change', function() {
+        mesSeleccionado = filtroMes.value;
+        recargarTransacciones();
+      });
+    }
 
-  if (cats.length > 0) selectHidden.value = cats[0].nombre;
+    // ==================== GUARDAR TRANSACCIÓN ====================
+    addListener('btnCerrarModalX', () => modal?.classList.add('hidden'));
+    
+    function guardarTransaccion() {
+      const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
+      const cat = chipActivo ? chipActivo.dataset.nombre : '';
+      const subcat = document.getElementById('subcategoria').value || null;
+      const desc = document.getElementById('descripcion').value.trim();
+      const montoLimpio = document.getElementById('monto').value.trim().replace(/\./g, '').replace(',', '.');
+      const monto = parseFloat(montoLimpio) || 0;
+      const fecha = document.getElementById('fecha').value;
+      const metodoPago = document.getElementById('metodoPago').value || null;
 
-  cont.querySelectorAll('.chip-categoria').forEach(chip => {
-    chip.addEventListener('click', function() {
-      cont.querySelectorAll('.chip-categoria').forEach(c => c.classList.remove('activo'));
-      this.classList.add('activo');
-      selectHidden.value = this.dataset.nombre;
+      if (!cat) { alert('Por favor, selecciona una categoría.'); return; }
+      if (!monto || monto <= 0) { alert('Por favor, escribe un monto mayor a 0.'); return; }
+
+      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc || 'Sin descripción', monto, fecha, metodoPago, App.cuentaActual);
+      
+      if (modal) modal.classList.add('hidden');
+      document.getElementById('descripcion').value = '';
+      document.getElementById('monto').value = '';
+      document.getElementById('categoria').value = '';
+    }
+
+    addListener('btnGuardarModalQuick', guardarTransaccion);
+
+    // ==================== SUBCATEGORÍA ====================
+    addListener('btnAgregarSubcategoria', function() {
+      const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
+      const catSeleccionada = chipActivo ? chipActivo.dataset.nombre : '';
+      if (!catSeleccionada) { alert('Primero selecciona una categoría.'); return; }
+      const nombreSub = prompt(`Nombre de la nueva subcategoría para "${catSeleccionada}":`);
+      if (!nombreSub || !nombreSub.trim()) return;
+      const subLimpia = nombreSub.trim().toLowerCase();
+
+      App.agregarSubcategoria(catSeleccionada, subLimpia).then(function() {
+        if (!App.subcategoriasPorCategoria[catSeleccionada]) App.subcategoriasPorCategoria[catSeleccionada] = [];
+        if (!App.subcategoriasPorCategoria[catSeleccionada].includes(subLimpia)) {
+          App.subcategoriasPorCategoria[catSeleccionada].push(subLimpia);
+        }
+        const select = document.getElementById('subcategoria');
+        if (select) {
+          select.innerHTML = '<option value="">Sin subcategoría</option>' + 
+            App.subcategoriasPorCategoria[catSeleccionada].map(sub => `<option value="${sub}" ${sub === subLimpia ? 'selected' : ''}>${sub}</option>`).join('');
+        }
+        alert('Subcategoría agregada.');
+      }).catch(function(error) {
+        console.error(error);
+        alert('Error al crear subcategoría: ' + error.message);
+      });
+    });
+
+    // ==================== CHIPS DE CATEGORÍA ====================
+    function renderizarChipsCategorias() {
+      const cont = document.getElementById('chipsCategorias');
+      if (!cont) return;
+      const cats = (App.categoriasState || []).filter(c => c.tipo === tipoTransaccion);
+      const selectHidden = document.getElementById('categoria');
+
+      if (cats.length === 0) {
+        cont.innerHTML = '<p class="texto-secundario text-sm">No hay categorías</p>';
+        return;
+      }
+
+      cont.innerHTML = cats.map((c, index) => `
+        <div class="chip-categoria ${index === 0 ? 'activo' : ''}" data-nombre="${c.nombre}">
+          <i class="ph ${c.icono}"></i><span>${c.nombre}</span>
+        </div>`).join('');
+
+      if (cats.length > 0) selectHidden.value = cats[0].nombre;
+
+      cont.querySelectorAll('.chip-categoria').forEach(chip => {
+        chip.addEventListener('click', function() {
+          cont.querySelectorAll('.chip-categoria').forEach(c => c.classList.remove('activo'));
+          this.classList.add('activo');
+          selectHidden.value = this.dataset.nombre;
+          llenarSelectSubcategorias();
+        });
+      });
       llenarSelectSubcategorias();
+    }
+
+    function llenarSelectSubcategorias() {
+      const select = document.getElementById('subcategoria');
+      if (!select) return;
+      const cat = document.getElementById('categoria').value;
+      const subcats = App.subcategoriasPorCategoria[cat] || [];
+      select.innerHTML = '<option value="">Sin subcategoría</option>' + 
+        subcats.map(sub => `<option value="${sub}">${sub}</option>`).join('');
+    }
+
+    const fechaInput = document.getElementById('fecha');
+    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+
+    // ==================== EDITAR TRANSACCIÓN ====================
+    addListener('btnCancelarEditar', () => modalEditar?.classList.add('hidden'));
+    addListener('btnGuardarEditar', function() {
+      const id = document.getElementById('idTransaccionEditar').value;
+      const cat = document.getElementById('categoriaEditar').value;
+      const subcat = document.getElementById('subcategoriaEditar').value || null;
+      const desc = document.getElementById('descripcionEditar').value.trim();
+      const montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
+      const monto = parseFloat(montoLimpio) || 0;
+      const fecha = document.getElementById('fechaEditar').value;
+      const metodoPago = document.getElementById('metodoPagoEditar').value || null;
+
+      if (!id || !cat || isNaN(monto)) return;
+      App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc || 'Sin descripción', monto, fecha, metodoPago });
+      modalEditar?.classList.add('hidden');
     });
-  });
-  llenarSelectSubcategorias();
-}
 
-function llenarSelectSubcategorias() {
-  const select = document.getElementById('subcategoria');
-  if (!select) return;
-  const cat = document.getElementById('categoria').value;
-  const subcats = App.subcategoriasPorCategoria[cat] || [];
-  select.innerHTML = '<option value="">Sin subcategoría</option>' + 
-    subcats.map(sub => `<option value="${sub}">${sub}</option>`).join('');
-}
-
-const fechaInput = document.getElementById('fecha');
-if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
-
-// ==================== EDITAR TRANSACCIÓN ====================
-addListener('btnCancelarEditar', () => modalEditar?.classList.add('hidden'));
-addListener('btnGuardarEditar', function() {
-  const id = document.getElementById('idTransaccionEditar').value;
-  const cat = document.getElementById('categoriaEditar').value;
-  const subcat = document.getElementById('subcategoriaEditar').value || null;
-  const desc = document.getElementById('descripcionEditar').value.trim();
-  const montoLimpio = document.getElementById('montoEditar').value.trim().replace(/\./g, '').replace(',', '.');
-  const monto = parseFloat(montoLimpio) || 0;
-  const fecha = document.getElementById('fechaEditar').value;
-  const metodoPago = document.getElementById('metodoPagoEditar').value || null;
-
-  if (!id || !cat || isNaN(monto)) return;
-  App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc || 'Sin descripción', monto, fecha, metodoPago });
-  modalEditar?.classList.add('hidden');
-});
-
-// ==================== EXPORTAR CSV ====================
-addListener('btnExportarCSV', function() {
-  App.obtenerTransacciones(function(todas) {
-    let csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
-    todas.forEach(t => {
-      csv += `${t.tipo},${t.categoria},${t.subcategoria || ''},${t.descripcion},${t.monto},${t.fecha},${t.metodoPago || ''}\n`;
+    // ==================== EXPORTAR CSV ====================
+    addListener('btnExportarCSV', function() {
+      App.obtenerTransacciones(function(todas) {
+        let csv = 'Tipo,Categoría,Subcategoría,Descripción,Monto,Fecha,Método de pago\n';
+        todas.forEach(t => {
+          csv += `${t.tipo},${t.categoria},${t.subcategoria || ''},${t.descripcion},${t.monto},${t.fecha},${t.metodoPago || ''}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finanzas-${mesSeleccionado}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, App.cuentaActual, mesSeleccionado);
     });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `finanzas-${mesSeleccionado}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, App.cuentaActual, mesSeleccionado);
-});
 
-// ==================== MÉTODOS DE PAGO ====================
-addListener('btnGestionarMetodos', function() {
-  document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
-  renderizarListaMetodosPago();
-});
+    // ==================== MÉTODOS DE PAGO ====================
+    addListener('btnGestionarMetodos', function() {
+      document.getElementById('panelMetodosPago')?.classList.toggle('hidden');
+      renderizarListaMetodosPago();
+    });
 
-addListener('btnAgregarMetodoPago', function() {
-  const nombre = document.getElementById('nombreMetodoPago').value.trim();
-  if (!nombre) return;
-  App.agregarMetodoPago(nombre);
-  document.getElementById('nombreMetodoPago').value = '';
-});
+    addListener('btnAgregarMetodoPago', function() {
+      const nombre = document.getElementById('nombreMetodoPago').value.trim();
+      if (!nombre) return;
+      App.agregarMetodoPago(nombre);
+      document.getElementById('nombreMetodoPago').value = '';
+    });
 
-function renderizarListaMetodosPago() {
-  const lista = document.getElementById('listaMetodosPago');
-  if (!lista) return;
-  if (metodosPago.length === 0) { lista.innerHTML = '<p class="texto-secundario">No hay métodos de pago</p>'; return; }
-  lista.innerHTML = metodosPago.map(m => `<div class="metodo-pago-item"><span>${m.nombre}</span><button class="btn-delete" data-id="${m.id}">✕</button></div>`).join('');
-  lista.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', function() { App.eliminarMetodoPago(this.dataset.id); });
-  });
-}
+    function renderizarListaMetodosPago() {
+      const lista = document.getElementById('listaMetodosPago');
+      if (!lista) return;
+      if (metodosPago.length === 0) { lista.innerHTML = '<p class="texto-secundario">No hay métodos de pago</p>'; return; }
+      lista.innerHTML = metodosPago.map(m => `<div class="metodo-pago-item"><span>${m.nombre}</span><button class="btn-delete" data-id="${m.id}">✕</button></div>`).join('');
+      lista.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function() { App.eliminarMetodoPago(this.dataset.id); });
+      });
+    }
 
-function llenarSelectMetodosPago() {
-  const opciones = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
-  const sAgregar = document.getElementById('metodoPago');
-  const sEditar = document.getElementById('metodoPagoEditar');
-  if (sAgregar) sAgregar.innerHTML = opciones;
-  if (sEditar) sEditar.innerHTML = opciones;
-}
-        // ==================== DASHBOARD ====================
+    function llenarSelectMetodosPago() {
+      const opciones = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
+      const sAgregar = document.getElementById('metodoPago');
+      const sEditar = document.getElementById('metodoPagoEditar');
+      if (sAgregar) sAgregar.innerHTML = opciones;
+      if (sEditar) sEditar.innerHTML = opciones;
+    }
+
+    // ==================== DASHBOARD ====================
     function cargarFiltros() {
       const selectCat = document.getElementById('filtroCategoriaMov');
       const selectMet = document.getElementById('filtroMetodoPago');
