@@ -113,86 +113,84 @@
           </div>
         </div>
       </div>
-
-      <!-- ==================== VISTA INICIO ==================== -->
-      <div id="vistaInicio" class="vista activa">
-        
-        <div class="inicio-saludo">
-          <div>
-            <h2 id="saludoUsuario" class="saludo-texto">Buenos días</h2>
-            <p class="texto-secundario">Este es tu resumen del mes</p>
-          </div>
-          <button id="btnTogglePrivacidad" class="btn-icon" title="Ocultar/Mostrar montos" aria-label="Alternar privacidad">
-            <i class="ph ph-eye"></i>
-          </button>
-        </div>
-
-        <div class="resumen-grid">
-          <div class="resumen-card ingreso-card">
-            <i class="ph ph-trend-up"></i>
-            <span>Ingresos</span>
-            <strong id="totalIngresos" class="monto-sensible">$0</strong>
-          </div>
-          <div class="resumen-card gasto-card">
-            <i class="ph ph-trend-down"></i>
-            <span>Gastos</span>
-            <strong id="totalGastos" class="monto-sensible">$0</strong>
-          </div>
-        </div>
-
-        <div class="balance-card">
-          <span>Balance del mes</span>
-          <strong id="balance" class="monto-sensible"></strong>
-          <div id="barraPresupuestoRapida" class="hidden mt-2">
-            <div class="progress-bar"><div id="fillPresupuestoRapido" class="progress-fill"></div></div>
-          </div>
-        </div>
-
-        <div class="accesos-rapidos">
-          <button id="btnAccesoGasto" class="btn-acceso"><i class="ph ph-plus-circle"></i><span>Gasto</span></button>
-          <button id="btnAccesoIngreso" class="btn-acceso"><i class="ph ph-money"></i><span>Ingreso</span></button>
-          <button id="btnAccesoPresupuesto" class="btn-acceso"><i class="ph ph-wallet"></i><span>Presupuesto</span></button>
-          <button id="btnAccesoMetas" class="btn-acceso"><i class="ph ph-piggy-bank"></i><span>Metas</span></button>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card"><i class="ph ph-calendar"></i><span class="kpi-label">Promedio diario</span><strong id="kpiPromedioDiario" class="kpi-valor monto-sensible">$0</strong></div>
-          <div class="kpi-card"><i class="ph ph-fire"></i><span class="kpi-label">Categoría top</span><strong id="kpiCategoriaTop" class="kpi-valor">-</strong></div>
-          <div class="kpi-card"><i class="ph ph-piggy-bank"></i><span class="kpi-label">Ahorro</span><strong id="kpiAhorro" class="kpi-valor">0%</strong></div>
-          <div class="kpi-card"><i class="ph ph-chart-bar"></i><span class="kpi-label">vs Mes anterior</span><strong id="kpiVariacion" class="kpi-valor">-</strong></div>
-          <div class="kpi-card"><i class="ph ph-target"></i><span class="kpi-label">Metas</span><strong id="kpiMetas" class="kpi-valor">0</strong></div>
-          <div class="kpi-card"><i class="ph ph-bank"></i><span class="kpi-label">Ahorro en metas</span><strong id="kpiAhorroMetas" class="kpi-valor monto-sensible">$0</strong></div>
-        </div>
-
-        <div class="tendencia-container">
-          <h3 class="text-sm font-semibold mb-2">Tendencia últimos meses</h3>
-          <canvas id="graficaTendencia" class="max-h-32"></canvas>
-        </div>
-
-        <div class="card grafica-torta-card">
-          <h3 class="text-sm font-semibold mb-2">Gastos por categoría</h3>
-          <div class="chart-container-200">
-            <canvas id="graficaGastosTorta"></canvas>
-          </div>
-        </div>
-
-        <div class="movimientos-container">
-          <div class="movimientos-header">
-            <h2>Movimientos</h2>
-          </div>
-          <div class="filtros-movimientos">
-            <select id="filtroCategoriaMov" class="input-field" aria-label="Filtrar por categoría">
-              <option value="">Todas las categorías</option>
-            </select>
-            <select id="filtroMetodoPago" class="input-field" aria-label="Filtrar por método de pago">
-              <option value="">Todos los métodos</option>
-            </select>
-          </div>
-          <div id="listaTransacciones"></div>
-        </div>
-
-        <button id="fabAgregar" class="fab" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
+      <!-- ==================== VISTA INICIO (Rediseñada) ==================== -->
+<div id="vistaInicio" class="vista activa">
+  
+  <!-- Header Verde Superior -->
+  <div class="inicio-header-verde">
+    <div class="inicio-top-bar">
+      <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
+      <div class="inicio-balance-central">
+        <span class="balance-label"><i class="ph ph-wallet"></i> Total <i class="ph ph-caret-down"></i></span>
+        <h1 id="balanceTotalHeader" class="balance-total-verde monto-sensible">$0</h1>
       </div>
+      <button class="btn-icon-white" aria-label="Reportes"><i class="ph ph-receipt"></i></button>
+    </div>
+    
+    <div class="inicio-tabs-verde">
+      <button class="tab-verde active" data-tipo-verde="gasto">GASTOS</button>
+      <button class="tab-verde" data-tipo-verde="ingreso">INGRESOS</button>
+    </div>
+  </div>
+
+  <!-- Tarjeta Blanca con Filtros y Gráfico -->
+  <div class="inicio-card-blanca">
+    <div class="filtros-tiempo">
+      <button class="filtro-tiempo" data-filtro="dia">Día</button>
+      <button class="filtro-tiempo active" data-filtro="semana">Semana</button>
+      <button class="filtro-tiempo" data-filtro="mes">Mes</button>
+      <button class="filtro-tiempo" data-filtro="ano">Año</button>
+      <button class="filtro-tiempo" data-filtro="periodo">Período</button>
+    </div>
+
+    <div class="selector-rango-fechas">
+      <button class="btn-flecha-fecha" id="btnMesAnteriorGrafico"><i class="ph ph-caret-left"></i></button>
+      <span id="textoRangoFechas" class="texto-rango">2 nov – 8 nov</span>
+      <button class="btn-flecha-fecha" id="btnMesSiguienteGrafico"><i class="ph ph-caret-right"></i></button>
+    </div>
+
+    <div class="grafico-dona-container">
+      <canvas id="graficaDonaInicio"></canvas>
+      <div class="grafico-dona-centro hidden" id="textoCentroDona">
+        <span>No hubo<br>gastos esta<br>semana</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen de Tarjetas (KPIs) debajo del gráfico -->
+  <div class="resumen-grid mt-4">
+    <div class="resumen-card ingreso-card">
+      <i class="ph ph-trend-up"></i>
+      <span>Ingresos</span>
+      <strong id="totalIngresos" class="monto-sensible">$0</strong>
+    </div>
+    <div class="resumen-card gasto-card">
+      <i class="ph ph-trend-down"></i>
+      <span>Gastos</span>
+      <strong id="totalGastos" class="monto-sensible">$0</strong>
+    </div>
+  </div>
+
+  <!-- Botón Flotante -->
+  <button id="fabAgregar" class="fab fab-amarillo" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
+
+  <!-- Contenedor oculto para mantener la lógica antigua de tus movimientos -->
+  <div class="hidden">
+    <div id="barraPresupuestoRapida"></div>
+    <div id="fillPresupuestoRapido"></div>
+    <div id="kpiPromedioDiario"></div>
+    <div id="kpiCategoriaTop"></div>
+    <div id="kpiAhorro"></div>
+    <div id="kpiVariacion"></div>
+    <div id="kpiMetas"></div>
+    <div id="kpiAhorroMetas"></div>
+    <canvas id="graficaTendencia"></canvas>
+    <canvas id="graficaGastosTorta"></canvas>
+    <div id="filtroCategoriaMov"></div>
+    <div id="filtroMetodoPago"></div>
+    <div id="listaTransacciones"></div>
+  </div>
+</div>
 
       <!-- ==================== VISTA PRESUPUESTO ==================== -->
       <div id="vistaPresupuesto" class="vista">
