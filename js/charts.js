@@ -142,4 +142,81 @@
     }
   });
 };
+  // ===== GRÁFICA DONA PARA EL NUEVO INICIO =====
+App.dibujarGraficaDona = function(transacciones, tipoFiltro) {
+  const canvas = document.getElementById('graficaDonaInicio');
+  const textoCentro = document.getElementById('textoCentroDona');
+  if (!canvas) return;
+
+  // Agrupamos por categoría
+  const datosPorCategoria = {};
+  let total = 0;
+
+  transacciones.forEach(t => {
+    if (t.tipo === tipoFiltro) {
+      datosPorCategoria[t.categoria] = (datosPorCategoria[t.categoria] || 0) + t.monto;
+      total += t.monto;
+    }
+  });
+
+  const labels = Object.keys(datosPorCategoria);
+  const data = Object.values(datosPorCategoria);
+
+  // Si ya existía un gráfico, lo destruimos para que no se superpongan
+  if (App.chartDonaInstance) {
+    App.chartDonaInstance.destroy();
+  }
+
+  if (total === 0) {
+    // Mostrar texto central y dibujar círculo gris
+    if (textoCentro) {
+      textoCentro.innerHTML = `No hubo<br>${tipoFiltro === 'gasto' ? 'gastos' : 'ingresos'}<br>en este periodo`;
+      textoCentro.classList.remove('hidden');
+    }
+    
+    App.chartDonaInstance = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Sin datos'],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#d1d5db'],
+          borderWidth: 0,
+          cutout: '75%'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+      }
+    });
+  } else {
+    // Ocultar texto central y mostrar la gráfica real
+    if (textoCentro) textoCentro.classList.add('hidden');
+
+    // Paleta de colores para las categorías
+    const colores = ['#7a9c86', '#f2d057', '#e5989b', '#8e9aaf', '#c9ada7', '#9a8c98'];
+
+    App.chartDonaInstance = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colores.slice(0, labels.length),
+          borderWidth: 0,
+          cutout: '75%'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+};
 })();
