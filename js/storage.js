@@ -468,5 +468,28 @@
   App.eliminarCuenta = function(cuentaId) {
     return db.collection('usuarios/' + uid() + '/cuentas').doc(cuentaId).delete();
   };
+// ===== FUNCIÓN PARA OBTENER TOTALES DE UN MES ESPECÍFICO =====
+App.obtenerTotalesMes = function(mes, espacioId, callback) {
+  let query = db.collection('usuarios/' + uid() + '/transacciones')
+    .where('fecha', '>=', mes + '-01')
+    .where('fecha', '<=', mes + '-99');
+  
+  if (espacioId && espacioId !== 'personal') {
+    query = query.where('espacioId', '==', espacioId);
+  }
 
+  query.get().then(function(snap) {
+    let ingresos = 0;
+    let gastos = 0;
+    snap.forEach(function(doc) {
+      const t = doc.data();
+      if (t.tipo === 'ingreso') ingresos += t.monto;
+      else gastos += t.monto;
+    });
+    callback({ ingresos: ingresos, gastos: gastos });
+  }).catch(function(error) {
+    console.error("Error obteniendo totales del mes:", error);
+    callback({ ingresos: 0, gastos: 0 });
+  });
+};
 })();
