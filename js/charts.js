@@ -142,7 +142,7 @@
     }
   });
 };
-  // ===== GRÁFICA DONA PARA EL NUEVO INICIO =====
+// ===== GRÁFICA DONA CON CLICS =====
 App.dibujarGraficaDona = function(transacciones, tipoFiltro) {
   const canvas = document.getElementById('graficaDonaInicio');
   const textoCentro = document.getElementById('textoCentroDona');
@@ -162,13 +162,11 @@ App.dibujarGraficaDona = function(transacciones, tipoFiltro) {
   const labels = Object.keys(datosPorCategoria);
   const data = Object.values(datosPorCategoria);
 
-  // Si ya existía un gráfico, lo destruimos para que no se superpongan
   if (App.chartDonaInstance) {
     App.chartDonaInstance.destroy();
   }
 
   if (total === 0) {
-    // Mostrar texto central y dibujar círculo gris
     if (textoCentro) {
       textoCentro.innerHTML = `No hubo<br>${tipoFiltro === 'gasto' ? 'gastos' : 'ingresos'}<br>en este periodo`;
       textoCentro.classList.remove('hidden');
@@ -192,11 +190,9 @@ App.dibujarGraficaDona = function(transacciones, tipoFiltro) {
       }
     });
   } else {
-    // Ocultar texto central y mostrar la gráfica real
     if (textoCentro) textoCentro.classList.add('hidden');
 
-    // Paleta de colores para las categorías
-    const colores = ['#7a9c86', '#f2d057', '#e5989b', '#8e9aaf', '#c9ada7', '#9a8c98'];
+    const colores = ['#7a9c86', '#f2d057', '#e5989b', '#8e9aaf', '#c9ada7', '#9a8c98', '#d4a373', '#a3b18a'];
 
     App.chartDonaInstance = new Chart(canvas, {
       type: 'doughnut',
@@ -214,6 +210,16 @@ App.dibujarGraficaDona = function(transacciones, tipoFiltro) {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false }
+        },
+        // AQUÍ AGREGAMOS LA DETECCIÓN DE CLICS
+        onClick: (e, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const categoriaSeleccionada = labels[index];
+            if (typeof App.mostrarDetalleCategoria === 'function') {
+              App.mostrarDetalleCategoria(categoriaSeleccionada, transacciones, tipoFiltro);
+            }
+          }
         }
       }
     });
