@@ -1,23 +1,52 @@
-// storage.js – acceso a Firestore con todas las funciones
+// storage.js – Acceso a Firestore (Refactorizado y Limpio)
 (function() {
   const App = window.App;
   const db = App.db;
-  function uid() { return App.auth.currentUser.uid; }
+
+  // Función segura para obtener el UID del usuario actual
+  function uid() {
+    const user = App.auth.currentUser;
+    if (!user) throw new Error('Usuario no autenticado');
+    return user.uid;
+  }
 
   // ===== TRANSACCIONES =====
   App.obtenerTransacciones = function(callback, espacioId, mes) {
-  let query = db.collection('usuarios/' + uid() + '/transacciones');
-  
-  if (espacioId) query = query.where('espacioId', '==', espacioId);
-  
-  if (mes) { // mes = "2023-10"
-    const inicio = mes + '-01';
-    const fin = mes + '-31'; // Firestore acepta hasta -31 como string
-    query = query.where('fecha', '>=', inicio).where('fecha', '<=', fin);
-  }
-  
-  return query.orderBy('fecha', 'desc').onSnapshot(function(snap) { ... });
-};
+    try {
+      const ref = db.collection('usuarios/' + uid() + '/transacciones');
+      let query = ref;
+
+      if (espacioId) {
+        query = query.where('espacioId', '==', espacioId);
+      }
+
+      if (mes) {
+        const inicio = mes + '-01';
+        const fin = mes + '-31';
+        query = query.where('fecha', '>=', inicio).where('fecha', '<=', fin);
+      }
+
+      query = query.orderBy('fecha', 'desc');
+
+      return query.onSnapshot(
+        function(snap) {
+          const arr = [];
+          snap.forEach(function(doc) { 
+            arr.push(Object.assign({ id: doc.id }, doc.data())); 
+          });
+          callback(arr);
+        },
+        function(error) {
+          console.error('Error en onSnapshot de transacciones:', error);
+          callback([]);
+        }
+      );
+    } catch (error) {
+      console.error('Error al obtener transacciones:', error);
+      callback([]);
+      return function() {};
+    }
+  };
 
   App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioId) {
     return db.collection('usuarios/' + uid() + '/transacciones').add({
@@ -42,16 +71,24 @@
 
   // ===== CATEGORÍAS =====
   App.obtenerCategorias = function(callback) {
-    return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(function(snap) {
-      const cats = [];
-      snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(cats); 
-    });
+    return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(
+      function(snap) {
+        const cats = [];
+        snap.forEach(function(doc) { 
+          cats.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(cats);
+      },
+      function(error) { 
+        console.error('Error en categorías:', error); 
+        callback([]);
+      }
+    );
   };
 
   App.inicializarCategoriasPorDefecto = function() {
     const categoriasRef = db.collection('usuarios/' + uid() + '/categorias');
-    categoriasRef.limit(1).get().then(function(snap) {
+    return categoriasRef.limit(1).get().then(function(snap) {
       if (snap.empty) {
         const pre = [
           { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
@@ -64,9 +101,7 @@
         ];
         const batch = db.batch();
         pre.forEach(function(c) { batch.set(categoriasRef.doc(), c); });
-        batch.commit().then(function() {
-          console.log("Categorías por defecto creadas.");
-        });
+        return batch.commit();
       }
     });
   };
@@ -79,20 +114,18 @@
       tipo: tipo || 'gasto'
     });
   };
-App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
-  // Buscamos el ID de la categoría por su nombre
-  return db.collection('usuarios/' + uid() + '/categorias').where('nombre', '==', categoriaNombre).get().then(function(query) {
-    if (query.empty) throw new Error('Categoría no encontrada');
-    
-    const catId = query.docs[0].id;
-    const catRef = db.collection('usuarios/' + uid() + '/categorias').doc(catId);
-    
-    // Usamos un FieldValue arrayUnion para agregar la subcategoría sin borrar las anteriores
-    return catRef.update({
-      subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase())
+
+  App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
+    return db.collection('usuarios/' + uid() + '/categorias').where('nombre', '==', categoriaNombre).get().then(function(query) {
+      if (query.empty) throw new Error('Categoría no encontrada');
+      const catId = query.docs[0].id;
+      const catRef = db.collection('usuarios/' + uid() + '/categorias').doc(catId);
+      return catRef.update({
+        subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase())
+      });
     });
-  });
-};
+  };
+
   App.eliminarCategoria = function(id) {
     return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
   };
@@ -106,7 +139,7 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
     db.collection('usuarios').doc(userId).get().then(function(doc) {
       const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
       callback(orden);
-    });
+    }).catch(function() { callback('nombre'); });
   };
 
   App.guardarOrdenCategorias = function(orden) {
@@ -119,10 +152,12 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
       if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
       const data = doc.data();
       callback({ gastos: data.gastos || {}, ingresos: data.ingresos || {} });
+    }).catch(function(error) {
+      console.error('Error obteniendo límites:', error);
+      callback({ gastos: {}, ingresos: {} });
     });
   };
 
-  // NUEVA FUNCIÓN: Para ver presupuestos de otros usuarios (Admin)
   App.obtenerLimitesCategoriasDeUsuario = function(usuarioUid, mes, callback) {
     db.collection('usuarios').doc(usuarioUid).collection('presupuestos').doc(mes).get().then(function(doc) {
       if (!doc.exists) return callback({ gastos: {}, ingresos: {} });
@@ -146,54 +181,52 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
         data[campo] = categorias;
         return transaction.set(ref, data, { merge: true });
       });
-    }).then(callback);
+    }).then(callback).catch(function(err) { console.error(err); });
   };
 
   App.guardarLimiteSubcategoria = function(mes, categoriaPadre, subcategoriaNombre, limite, callback) {
-  const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
-  db.runTransaction(function(transaction) {
-    return transaction.get(ref).then(function(doc) {
-      const data = doc.exists ? doc.data() : {};
-      const categorias = data.gastos || {};
-      
-      // Si la categoría padre no existe, la creamos
-      if (!categorias[categoriaPadre]) {
-        categorias[categoriaPadre] = { limite: 0, subcategorias: {} };
-      }
-      
-      // Si la subcategoría no existe, la creamos con límite 0
-      if (!categorias[categoriaPadre].subcategorias) {
-        categorias[categoriaPadre].subcategorias = {};
-      }
-      if (!categorias[categoriaPadre].subcategorias[subcategoriaNombre]) {
-        categorias[categoriaPadre].subcategorias[subcategoriaNombre] = { limite: 0 };
-      }
-      
-      // Asignamos el nuevo límite
-      categorias[categoriaPadre].subcategorias[subcategoriaNombre].limite = limite;
-      
-      data.gastos = categorias;
-      return transaction.set(ref, data, { merge: true });
-    });
-  }).then(callback);
-};
+    const ref = db.collection('usuarios').doc(uid()).collection('presupuestos').doc(mes);
+    db.runTransaction(function(transaction) {
+      return transaction.get(ref).then(function(doc) {
+        const data = doc.exists ? doc.data() : {};
+        const categorias = data.gastos || {};
+        if (!categorias[categoriaPadre]) categorias[categoriaPadre] = { limite: 0, subcategorias: {} };
+        if (!categorias[categoriaPadre].subcategorias) categorias[categoriaPadre].subcategorias = {};
+        if (!categorias[categoriaPadre].subcategorias[subcategoriaNombre]) {
+          categorias[categoriaPadre].subcategorias[subcategoriaNombre] = { limite: 0 };
+        }
+        categorias[categoriaPadre].subcategorias[subcategoriaNombre].limite = limite;
+        data.gastos = categorias;
+        return transaction.set(ref, data, { merge: true });
+      });
+    }).then(callback).catch(function(err) { console.error(err); });
+  };
 
   // ===== METAS =====
   App.obtenerMetas = function(callback) {
-    return db.collection('usuarios/' + uid() + '/metas').onSnapshot(function(snap) {
-      const metas = [];
-      snap.forEach(function(doc) { metas.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(metas);
-    });
+    return db.collection('usuarios/' + uid() + '/metas').onSnapshot(
+      function(snap) {
+        const metas = [];
+        snap.forEach(function(doc) { 
+          metas.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(metas);
+      },
+      function(error) { console.error('Error en metas:', error); }
+    );
   };
 
-  // NUEVA FUNCIÓN: Para ver metas de otros usuarios (Admin)
   App.obtenerMetasDeUsuario = function(usuarioUid, callback) {
-    return db.collection('usuarios/' + usuarioUid + '/metas').onSnapshot(function(snap) {
-      const metas = [];
-      snap.forEach(function(doc) { metas.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(metas);
-    });
+    return db.collection('usuarios/' + usuarioUid + '/metas').onSnapshot(
+      function(snap) {
+        const metas = [];
+        snap.forEach(function(doc) { 
+          metas.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(metas);
+      },
+      function(error) { console.error('Error en metas del usuario:', error); }
+    );
   };
 
   App.agregarMeta = function(meta) {
@@ -220,34 +253,18 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
     return db.collection('usuarios/' + uid() + '/metas').doc(id).delete();
   };
 
-  // ===== SUSCRIPCIONES =====
-  App.obtenerSuscripciones = function(callback) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').onSnapshot(function(snap) {
-      const suscripciones = [];
-      snap.forEach(function(doc) { suscripciones.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(suscripciones);
-    });
-  };
-
-  App.agregarSuscripcion = function(suscripcion) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').add(suscripcion);
-  };
-
-  App.actualizarSuscripcion = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).update(datos);
-  };
-
-  App.eliminarSuscripcion = function(id) {
-    return db.collection('usuarios/' + uid() + '/suscripciones').doc(id).delete();
-  };
-
   // ===== MÉTODOS DE PAGO =====
   App.obtenerMetodosPago = function(callback) {
-    return db.collection('usuarios/' + uid() + '/metodos_pago').onSnapshot(function(snap) {
-      const metodos = [];
-      snap.forEach(function(doc) { metodos.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(metodos);
-    });
+    return db.collection('usuarios/' + uid() + '/metodos_pago').onSnapshot(
+      function(snap) {
+        const metodos = [];
+        snap.forEach(function(doc) { 
+          metodos.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(metodos);
+      },
+      function(error) { console.error('Error en métodos de pago:', error); }
+    );
   };
 
   App.agregarMetodoPago = function(nombre) {
@@ -256,27 +273,6 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
 
   App.eliminarMetodoPago = function(id) {
     return db.collection('usuarios/' + uid() + '/metodos_pago').doc(id).delete();
-  };
-
-  // ===== PRÉSTAMOS =====
-  App.obtenerPrestamos = function(callback) {
-    return db.collection('usuarios/' + uid() + '/prestamos').onSnapshot(function(snap) {
-      const prestamos = [];
-      snap.forEach(function(doc) { prestamos.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(prestamos);
-    });
-  };
-
-  App.agregarPrestamo = function(prestamo) {
-    return db.collection('usuarios/' + uid() + '/prestamos').add(prestamo);
-  };
-
-  App.actualizarPrestamo = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/prestamos').doc(id).update(datos);
-  };
-
-  App.eliminarPrestamo = function(id) {
-    return db.collection('usuarios/' + uid() + '/prestamos').doc(id).delete();
   };
 
   // ===== ADMIN =====
@@ -292,16 +288,24 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
   };
 
   App.obtenerUsuariosVinculados = function(callback) {
-    return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(function(snap) {
-      const usuarios = [];
-      snap.forEach(function(doc) { usuarios.push(Object.assign({ uid: doc.id }, doc.data())); });
-      callback(usuarios);
-    });
+    return db.collection('usuarios').doc(uid()).collection('vinculados').onSnapshot(
+      function(snap) {
+        const usuarios = [];
+        snap.forEach(function(doc) { 
+          usuarios.push(Object.assign({ uid: doc.id }, doc.data())); 
+        });
+        callback(usuarios);
+      },
+      function(error) { console.error('Error en vinculados:', error); }
+    );
   };
 
   App.obtenerUsuarioPorId = function(usuarioUid, callback) {
     db.collection('usuarios').doc(usuarioUid).get().then(function(doc) {
       callback(doc.exists ? Object.assign({ uid: doc.id }, doc.data()) : null);
+    }).catch(function(error) { 
+      console.error(error); 
+      callback(null); 
     });
   };
 
@@ -314,14 +318,21 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
   };
 
   App.obtenerTransaccionesDeUsuario = function(usuarioUid, callback) {
-    return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const arr = [];
-      snap.forEach(function(doc) { arr.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(arr);
-    });
+    return db.collection('usuarios/' + usuarioUid + '/transacciones').orderBy('fecha', 'desc').limit(100).onSnapshot(
+      function(snap) {
+        const arr = [];
+        snap.forEach(function(doc) { 
+          arr.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(arr);
+      },
+      function(error) { 
+        console.error('Error en transacciones del usuario:', error); 
+        callback([]); 
+      }
+    );
   };
 
-  // ===== BUSCAR USUARIO POR EMAIL =====
   App.buscarUsuarioPorEmail = function(email, callback) {
     if (!email) {
       callback({ encontrado: false, mensaje: 'Ingresa un correo electrónico' });
@@ -330,12 +341,9 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
     db.collection('usuarios').where('email', '==', email.trim().toLowerCase()).get().then(function(query) {
       if (!query.empty) {
         const doc = query.docs[0];
-        callback({
-          encontrado: true,
-          usuario: Object.assign({ uid: doc.id }, doc.data())
-        });
+        callback({ encontrado: true, usuario: Object.assign({ uid: doc.id }, doc.data()) });
       } else {
-        callback({ encontrado: false, mensaje: 'No se encontró un usuario registrado con ese email' });
+        callback({ encontrado: false, mensaje: 'No se encontró un usuario con ese email' });
       }
     }).catch(function(error) {
       console.error('Error al buscar usuario:', error);
@@ -343,38 +351,24 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
     });
   };
 
-  // ===== VERIFICAR SI YA ESTÁ VINCULADO =====
   App.verificarSiYaVinculado = function(usuarioUid, callback) {
     const adminUid = uid();
     db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuarioUid).get().then(function(doc) {
       callback(doc.exists);
-    });
+    }).catch(function() { callback(false); });
   };
 
-  // ===== VINCULAR USUARIO =====
   App.vincularUsuarioPorEmail = function(email, callback) {
-    if (!email) {
-      alert('Ingresa un correo electrónico');
-      return;
-    }
+    if (!email) return;
     const emailLimpio = email.trim().toLowerCase();
     db.collection('usuarios').where('email', '==', emailLimpio).get().then(function(query) {
       if (!query.empty) {
         const usuario = query.docs[0];
         const adminUid = uid();
-        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({
-          email: emailLimpio
-        }).then(function() {
-          if (callback) callback();
-        }).catch(function(error) {
-          alert('Error al crear vínculo: ' + error.message);
-        });
-      } else {
-        alert('No se encontró usuario con ese email');
+        return db.collection('usuarios').doc(adminUid).collection('vinculados').doc(usuario.id).set({ email: emailLimpio })
+          .then(function() { if (callback) callback(); });
       }
-    }).catch(function(error) {
-      alert('Error buscando usuario: ' + error.message);
-    });
+    }).catch(function(error) { console.error(error); });
   };
 
   App.eliminarVinculacion = function(usuarioUid) {
@@ -387,36 +381,42 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
   };
 
   App.obtenerOrganizaciones = function(callback) {
-    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(function(snap) {
-      const orgs = [];
-      snap.forEach(function(doc) { orgs.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(orgs);
-    });
+    return db.collection('organizaciones').where('adminId', '==', uid()).onSnapshot(
+      function(snap) {
+        const orgs = [];
+        snap.forEach(function(doc) { 
+          orgs.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(orgs);
+      },
+      function(error) { console.error(error); }
+    );
   };
 
   App.eliminarOrganizacion = function(orgId) {
     return db.collection('organizaciones').doc(orgId).delete();
   };
 
-  // ===== AUDITORÍA =====
   App.obtenerAuditoria = function(callback) {
-    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').onSnapshot(function(snap) {
-      const registros = [];
-      snap.forEach(function(doc) { registros.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(registros);
-    });
+    return db.collection('usuarios').doc(uid()).collection('auditoria').orderBy('fecha', 'desc').limit(50).onSnapshot(
+      function(snap) {
+        const registros = [];
+        snap.forEach(function(doc) { 
+          registros.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        callback(registros);
+      },
+      function(error) { console.error(error); }
+    );
   };
 
-  // ===== ESTADÍSTICAS GLOBALES =====
   App.obtenerEstadisticasGlobales = function(callback) {
     App.obtenerUsuariosVinculados(function(usuarios) {
       if (usuarios.length === 0) {
         callback({ usuarios: 0, transacciones: 0, ingresos: 0, gastos: 0 });
         return;
       }
-      let totalTransacciones = 0;
-      let totalIngresos = 0;
-      let totalGastos = 0;
+      let totalTransacciones = 0, totalIngresos = 0, totalGastos = 0;
       let pendientes = usuarios.length;
 
       usuarios.forEach(function(usuario) {
@@ -428,12 +428,7 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
           });
           pendientes--;
           if (pendientes === 0) {
-            callback({
-              usuarios: usuarios.length,
-              transacciones: totalTransacciones,
-              ingresos: totalIngresos,
-              gastos: totalGastos
-            });
+            callback({ usuarios: usuarios.length, transacciones: totalTransacciones, ingresos: totalIngresos, gastos: totalGastos });
           }
         });
       });
@@ -443,28 +438,32 @@ App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
   // ===== CUENTAS =====
   App.obtenerCuentas = function(callback) {
     const userId = uid();
-    return db.collection('usuarios/' + userId + '/cuentas').onSnapshot(function(snap) {
-      const cuentas = [];
-      snap.forEach(function(doc) { cuentas.push(Object.assign({ id: doc.id }, doc.data())); });
-      if (cuentas.length === 0) {
-        db.collection('usuarios/' + userId + '/cuentas').add({ nombre: 'Personal', tipo: 'personal', color: '#e8c84c' });
-        return;
-      }
-      callback(cuentas);
-    });
+    return db.collection('usuarios/' + userId + '/cuentas').onSnapshot(
+      function(snap) {
+        const cuentas = [];
+        snap.forEach(function(doc) { 
+          cuentas.push(Object.assign({ id: doc.id }, doc.data())); 
+        });
+        if (cuentas.length === 0) {
+          db.collection('usuarios/' + userId + '/cuentas').add({ nombre: 'Personal', tipo: 'personal', color: '#e8c84c' });
+          return;
+        }
+        callback(cuentas);
+      },
+      function(error) { console.error(error); }
+    );
   };
 
   App.agregarCuenta = function(nombre, tipo, color) {
-    const userId = uid();
-    return db.collection('usuarios/' + userId + '/cuentas').add({
-      nombre: nombre.trim(),
-      tipo: tipo || 'personal',
+    return db.collection('usuarios/' + uid() + '/cuentas').add({
+      nombre: nombre.trim(), 
+      tipo: tipo || 'personal', 
       color: color || '#e8c84c'
     });
   };
 
   App.eliminarCuenta = function(cuentaId) {
-    const userId = uid();
-    return db.collection('usuarios/' + userId + '/cuentas').doc(cuentaId).delete();
+    return db.collection('usuarios/' + uid() + '/cuentas').doc(cuentaId).delete();
   };
+
 })();
