@@ -1,4 +1,4 @@
-// storage.js – Acceso a Firestore (Refactorizado y Limpio)
+// storage.js – Acceso a Firestore (Refactorizado y Corregido)
 (function() {
   const App = window.App;
   const db = App.db;
@@ -11,18 +11,21 @@
   }
 
   // ===== TRANSACCIONES =====
+  // NOTA: Se cambió el fin del rango a '-99' para capturar cualquier fecha (con o sin hora)
   App.obtenerTransacciones = function(callback, espacioId, mes) {
     try {
       const ref = db.collection('usuarios/' + uid() + '/transacciones');
       let query = ref;
 
-      if (espacioId) {
+      // Si se pasa un espacioId, filtramos por él. Si es nulo o 'personal', no filtramos (para pruebas).
+      if (espacioId && espacioId !== 'personal') {
         query = query.where('espacioId', '==', espacioId);
       }
 
+      // Filtro por rango de fechas del mes seleccionado
       if (mes) {
         const inicio = mes + '-01';
-        const fin = mes + '-31';
+        const fin = mes + '-99'; // '-99' asegura que atrape cualquier día del mes
         query = query.where('fecha', '>=', inicio).where('fecha', '<=', fin);
       }
 
