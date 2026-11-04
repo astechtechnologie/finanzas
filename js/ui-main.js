@@ -14,6 +14,10 @@
     App.cuentaActual = 'personal';
     let filtroTipoCategoria = 'gasto';
     let ocultarMontos = localStorage.getItem('ocultarMontos') === 'true';
+    // Variables para el nuevo diseño de Inicio
+let tipoVerde = 'gasto';
+let filtroTiempo = 'semana';
+let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
 
     const vistas = {
       inicio: document.getElementById('vistaInicio'),
