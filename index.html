@@ -70,7 +70,7 @@
   <!-- ==================== APP SHELL ==================== -->
   <div id="appShell" class="hidden app-shell">
     
-    <!-- HEADER -->
+    <!-- HEADER (Sin selector de mes) -->
     <header class="app-header">
       <div class="header-logo">
         <img src="logo-192.png" alt="Finora" class="logo-header">
@@ -79,7 +79,6 @@
       <div class="header-actions">
         <select id="selectorCuenta" class="input-mes" title="Cambiar cuenta" aria-label="Seleccionar cuenta"></select>
         <button id="btnNuevaCuenta" class="btn btn-outline-small" title="Nueva cuenta" aria-label="Crear nueva cuenta">+</button>
-        <input type="month" id="filtroMesHeader" class="input-mes" aria-label="Filtrar por mes">
       </div>
     </header>
 
@@ -117,7 +116,7 @@
       <!-- ==================== VISTA INICIO (NUEVO DISEÑO) ==================== -->
       <div id="vistaInicio" class="vista activa">
         
-        <!-- Header con color de fondo -->
+        <!-- Header Oscuro -->
         <div class="inicio-header-verde">
           <div class="inicio-top-bar">
             <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
@@ -175,7 +174,7 @@
         <!-- Botón Flotante -->
         <button id="fabAgregar" class="fab fab-amarillo" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
 
-        <!-- Contenedores ocultos para mantener la lógica antigua de tus movimientos y KPIs -->
+        <!-- Contenedores ocultos para mantener la lógica de KPIs y lista -->
         <div class="hidden">
           <div id="btnTogglePrivacidad"></div>
           <div id="barraPresupuestoRapida"></div>
@@ -485,7 +484,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL DETALLE CATEGORÍA (NUEVO) ==================== -->
+    <!-- ==================== MODAL DETALLE CATEGORÍA ==================== -->
     <div id="modalDetalleCategoria" class="modal hidden">
       <div class="modal-content">
         <div class="seccion-header" style="margin-bottom: 20px;">
