@@ -14,10 +14,11 @@
     App.cuentaActual = 'personal';
     let filtroTipoCategoria = 'gasto';
     let ocultarMontos = localStorage.getItem('ocultarMontos') === 'true';
-    // Variables para el nuevo diseño de Inicio
-let tipoVerde = 'gasto';
-let filtroTiempo = 'semana';
-let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
+
+    // === VARIABLES PARA EL NUEVO INICIO (HEADER VERDE) ===
+    let tipoVerde = 'gasto';
+    let filtroTiempo = 'semana';
+    let offsetTiempo = 0;
 
     const vistas = {
       inicio: document.getElementById('vistaInicio'),
@@ -208,169 +209,40 @@ let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
     App.cambiarVista = cambiarVista;
     navItems.forEach(item => item.addEventListener('click', function() { cambiarVista(this.dataset.vista); }));
 
-    function actualizarDashboard(transacciones) {
 
-  // 1. Actualizar Balance Total en el Header Verde (Suma de todos los ingresos - gastos del mes)
-
-  let balanceTotal = 0;
-
-  transacciones.forEach(t => {
-
-    if (t.tipo === 'ingreso') balanceTotal += t.monto;
-
-    else balanceTotal -= t.monto;
-
-  });
-
-  const elBalanceHeader = document.getElementById('balanceTotalHeader');
-
-  if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceTotal);
-
-
-
-  // 2. Filtrar transacciones según el botón Día/Semana/Mes
-
-  const hoy = new Date();
-
-  let inicioPeriodo, finPeriodo;
-
-  
-
-  if (filtroTiempo === 'dia') {
-
-    const fechaRef = new Date(hoy);
-
-    fechaRef.setDate(hoy.getDate() + offsetTiempo);
-
-    inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
-
-    finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
-
-  } else if (filtroTiempo === 'semana') {
-
-    const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay(); // Lunes=1, Domingo=7
-
-    const lunes = new Date(hoy);
-
-    lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
-
-    inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
-
-    finPeriodo = new Date(lunes);
-
-    finPeriodo.setDate(lunes.getDate() + 6);
-
-    finPeriodo.setHours(23,59,59,999);
-
-  } else if (filtroTiempo === 'mes') {
-
-    const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
-
-    inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
-
-    finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
-
-  } else if (filtroTiempo === 'ano') {
-
-    const anoRef = hoy.getFullYear() + offsetTiempo;
-
-    inicioPeriodo = new Date(anoRef, 0, 1);
-
-    finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
-
-  } else {
-
-    // 'periodo' (Por ahora usaremos el mes actual)
-
-    inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-
-    finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
-
-  }
-
-
-
-  // Formatear texto del rango de fechas
-
-  const elTextoRango = document.getElementById('textoRangoFechas');
-
-  if (elTextoRango) {
-
-    const opciones = { day: 'numeric', month: 'short' };
-
-    if (filtroTiempo === 'ano') {
-
-      elTextoRango.textContent = inicioPeriodo.getFullYear();
-
-    } else if (filtroTiempo === 'dia') {
-
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    } else {
-
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
-
-    }
-
-  }
-
-
-
-  // Filtrar las transacciones que caen en ese rango
-
-  const filtradasPorFecha = transacciones.filter(t => {
-
-    if (!t.fecha) return false;
-
-    // Convertimos "YYYY-MM-DD" a objeto Date
-
-    const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
-
-    return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
-
-  });
-
-
-
-  // 3. Dibujar la gráfica Dona con las transacciones filtradas
-
-  if (typeof App.dibujarGraficaDona === 'function') {
-
-    App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
-
-  }
-
-
-
-  // 4. Actualizar las tarjetas de Ingresos y Gastos de abajo (con el mes completo)
-
-  let ingresosMes = 0, gastosMes = 0;
-
-  transacciones.forEach(t => t.tipo === 'ingreso' ? ingresosMes += t.monto : gastosMes += t.monto);
-
-
-
-  const elIngresos = document.getElementById('totalIngresos');
-
-  const elGastos = document.getElementById('totalGastos');
-
-  if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosMes);
-
-  if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosMes);
-
-
-
-  if (ocultarMontos) {
-
-    [elIngresos, elGastos, elBalanceHeader].forEach(el => {
-
-      if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
-
+    // ==================== EVENTOS DEL NUEVO INICIO (VERDE) ====================
+    
+    // Pestañas GASTOS / INGRESOS
+    document.querySelectorAll('.tab-verde').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-verde').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        tipoVerde = this.dataset.tipoVerde;
+        recargarTransacciones();
+      });
     });
 
-  }
+    // Botones Día/Semana/Mes/Año/Período
+    document.querySelectorAll('.filtro-tiempo').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filtro-tiempo').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        filtroTiempo = this.dataset.filtro;
+        offsetTiempo = 0;
+        recargarTransacciones();
+      });
+    });
 
-}
+    // Flechas de navegación
+    addListener('btnMesAnteriorGrafico', function() {
+      offsetTiempo--;
+      recargarTransacciones();
+    });
+    addListener('btnMesSiguienteGrafico', function() {
+      offsetTiempo++;
+      recargarTransacciones();
+    });
+
 
     // ==================== ICONOS ====================
     const iconosConNombre = [
@@ -679,7 +551,7 @@ let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
       if (sEditar) sEditar.innerHTML = opciones;
     }
 
-    // ==================== DASHBOARD ====================
+    // ==================== DASHBOARD (Nuevo Diseño) ====================
     function cargarFiltros() {
       const selectCat = document.getElementById('filtroCategoriaMov');
       const selectMet = document.getElementById('filtroMetodoPago');
@@ -697,168 +569,85 @@ let offsetTiempo = 0; // 0 = actual, -1 = anterior, 1 = siguiente
     addListener('filtroMetodoPago', () => recargarTransacciones());
 
     function actualizarDashboard(transacciones) {
+      // 1. Actualizar Balance Total en el Header Verde
+      let balanceTotal = 0;
+      transacciones.forEach(t => {
+        if (t.tipo === 'ingreso') balanceTotal += t.monto;
+        else balanceTotal -= t.monto;
+      });
+      const elBalanceHeader = document.getElementById('balanceTotalHeader');
+      if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceTotal);
 
-  // 1. Actualizar Balance Total en el Header Verde (Suma de todos los ingresos - gastos del mes)
+      // 2. Calcular fechas según el filtro (Día/Semana/Mes/Año)
+      const hoy = new Date();
+      let inicioPeriodo, finPeriodo;
+      
+      if (filtroTiempo === 'dia') {
+        const fechaRef = new Date(hoy);
+        fechaRef.setDate(hoy.getDate() + offsetTiempo);
+        inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
+        finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
+      } else if (filtroTiempo === 'semana') {
+        const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay();
+        const lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
+        inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
+        finPeriodo = new Date(lunes);
+        finPeriodo.setDate(lunes.getDate() + 6);
+        finPeriodo.setHours(23,59,59,999);
+      } else if (filtroTiempo === 'mes') {
+        const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
+        inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
+        finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
+      } else if (filtroTiempo === 'ano') {
+        const anoRef = hoy.getFullYear() + offsetTiempo;
+        inicioPeriodo = new Date(anoRef, 0, 1);
+        finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
+      } else {
+        inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+      }
 
-  let balanceTotal = 0;
+      // Formatear texto del rango de fechas
+      const elTextoRango = document.getElementById('textoRangoFechas');
+      if (elTextoRango) {
+        const opciones = { day: 'numeric', month: 'short' };
+        if (filtroTiempo === 'ano') {
+          elTextoRango.textContent = inicioPeriodo.getFullYear();
+        } else if (filtroTiempo === 'dia') {
+          elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        } else {
+          elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
+        }
+      }
 
-  transacciones.forEach(t => {
+      // Filtrar transacciones por el rango de fechas seleccionado
+      const filtradasPorFecha = transacciones.filter(t => {
+        if (!t.fecha) return false;
+        const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
+        return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
+      });
 
-    if (t.tipo === 'ingreso') balanceTotal += t.monto;
+      // 3. Dibujar la gráfica Dona
+      if (typeof App.dibujarGraficaDona === 'function') {
+        App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
+      }
 
-    else balanceTotal -= t.monto;
+      // 4. Actualizar tarjetas de Ingresos y Gastos (totales del mes)
+      let ingresosMes = 0, gastosMes = 0;
+      transacciones.forEach(t => t.tipo === 'ingreso' ? ingresosMes += t.monto : gastosMes += t.monto);
 
-  });
+      const elIngresos = document.getElementById('totalIngresos');
+      const elGastos = document.getElementById('totalGastos');
+      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosMes);
+      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosMes);
 
-  const elBalanceHeader = document.getElementById('balanceTotalHeader');
-
-  if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceTotal);
-
-
-
-  // 2. Filtrar transacciones según el botón Día/Semana/Mes
-
-  const hoy = new Date();
-
-  let inicioPeriodo, finPeriodo;
-
-  
-
-  if (filtroTiempo === 'dia') {
-
-    const fechaRef = new Date(hoy);
-
-    fechaRef.setDate(hoy.getDate() + offsetTiempo);
-
-    inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
-
-    finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
-
-  } else if (filtroTiempo === 'semana') {
-
-    const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay(); // Lunes=1, Domingo=7
-
-    const lunes = new Date(hoy);
-
-    lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
-
-    inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
-
-    finPeriodo = new Date(lunes);
-
-    finPeriodo.setDate(lunes.getDate() + 6);
-
-    finPeriodo.setHours(23,59,59,999);
-
-  } else if (filtroTiempo === 'mes') {
-
-    const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
-
-    inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
-
-    finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
-
-  } else if (filtroTiempo === 'ano') {
-
-    const anoRef = hoy.getFullYear() + offsetTiempo;
-
-    inicioPeriodo = new Date(anoRef, 0, 1);
-
-    finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
-
-  } else {
-
-    // 'periodo' (Por ahora usaremos el mes actual)
-
-    inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-
-    finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
-
-  }
-
-
-
-  // Formatear texto del rango de fechas
-
-  const elTextoRango = document.getElementById('textoRangoFechas');
-
-  if (elTextoRango) {
-
-    const opciones = { day: 'numeric', month: 'short' };
-
-    if (filtroTiempo === 'ano') {
-
-      elTextoRango.textContent = inicioPeriodo.getFullYear();
-
-    } else if (filtroTiempo === 'dia') {
-
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    } else {
-
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
-
+      if (ocultarMontos) {
+        [elIngresos, elGastos, elBalanceHeader].forEach(el => {
+          if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
+        });
+      }
     }
-
-  }
-
-
-
-  // Filtrar las transacciones que caen en ese rango
-
-  const filtradasPorFecha = transacciones.filter(t => {
-
-    if (!t.fecha) return false;
-
-    // Convertimos "YYYY-MM-DD" a objeto Date
-
-    const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
-
-    return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
-
-  });
-
-
-
-  // 3. Dibujar la gráfica Dona con las transacciones filtradas
-
-  if (typeof App.dibujarGraficaDona === 'function') {
-
-    App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
-
-  }
-
-
-
-  // 4. Actualizar las tarjetas de Ingresos y Gastos de abajo (con el mes completo)
-
-  let ingresosMes = 0, gastosMes = 0;
-
-  transacciones.forEach(t => t.tipo === 'ingreso' ? ingresosMes += t.monto : gastosMes += t.monto);
-
-
-
-  const elIngresos = document.getElementById('totalIngresos');
-
-  const elGastos = document.getElementById('totalGastos');
-
-  if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosMes);
-
-  if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosMes);
-
-
-
-  if (ocultarMontos) {
-
-    [elIngresos, elGastos, elBalanceHeader].forEach(el => {
-
-      if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
-
-    });
-
-  }
-
-}
 
     // ==================== LISTA DE CATEGORÍAS ====================
     function renderizarListaCategorias() {
