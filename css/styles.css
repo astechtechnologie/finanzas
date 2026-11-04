@@ -1334,3 +1334,22 @@ body {
 .tab-verde {
   color: rgba(255,255,255,0.6);
 }
+/* Header Oscuro Premium */
+.inicio-header-verde {
+  background-color: #2c2c2c; /* Cambia a #e8c84c si prefieres dorado */
+  border-radius: 0 0 24px 24px;
+  padding: 15px 20px 0 20px;
+  color: white;
+  margin: -15px -15px 20px -15px;
+  padding-bottom: 1px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.tab-verde.active {
+  color: #e8c84c; /* Acento dorado */
+  border-bottom-color: #e8c84c;
+}
+
+.tab-verde {
+  color: rgba(255,255,255,0.6);
+}
