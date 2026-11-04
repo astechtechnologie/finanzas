@@ -1,4 +1,4 @@
-// ui-main.js – Lógica de la interfaz principal (Unificado y Corregido)
+// ui-main.js – Lógica de la interfaz principal
 (function() {
   const App = window.App;
 
@@ -33,7 +33,6 @@
     const modal = document.getElementById('modalTransaccion');
     const modalEditar = document.getElementById('modalEditarTransaccion');
     const fab = document.getElementById('fabAgregar');
-    const filtroMes = document.getElementById('filtroMesHeader');
     const selectorCuenta = document.getElementById('selectorCuenta');
 
     if (!vistas.inicio) return;
@@ -48,10 +47,12 @@
 
     function recargarTransacciones() {
       if (unsubscribeTransacciones) unsubscribeTransacciones();
+      // Traemos todas las transacciones de la cuenta, sin filtro de mes,
+      // para poder calcular Día/Semana/Mes/Año localmente.
       unsubscribeTransacciones = App.obtenerTransacciones(
         function(t) { actualizarDashboard(t); },
         App.cuentaActual,
-        mesSeleccionado
+        null // Sin filtro de mes en Firestore
       );
     }
 
@@ -209,7 +210,6 @@
     App.cambiarVista = cambiarVista;
     navItems.forEach(item => item.addEventListener('click', function() { cambiarVista(this.dataset.vista); }));
 
-
     // ==================== EVENTOS DEL NUEVO INICIO ====================
     
     // Pestañas GASTOS / INGRESOS
@@ -250,7 +250,6 @@
         App.cambiarVista('vistaAjustes');
       });
     }
-
 
     // ==================== ICONOS ====================
     const iconosConNombre = [
@@ -392,14 +391,6 @@
       setTimeout(() => document.getElementById('tabMetasAhorro')?.click(), 300);
     });
 
-    if (filtroMes) {
-      filtroMes.value = mesSeleccionado;
-      filtroMes.addEventListener('change', function() {
-        mesSeleccionado = filtroMes.value;
-        recargarTransacciones();
-      });
-    }
-
     // ==================== GUARDAR TRANSACCIÓN ====================
     addListener('btnCerrarModalX', () => modal?.classList.add('hidden'));
     
@@ -525,7 +516,7 @@
         a.download = `finanzas-${mesSeleccionado}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      }, App.cuentaActual, mesSeleccionado);
+      }, App.cuentaActual);
     });
 
     // ==================== MÉTODOS DE PAGO ====================
@@ -559,7 +550,7 @@
       if (sEditar) sEditar.innerHTML = opciones;
     }
 
-    // ==================== DASHBOARD ====================
+    // ==================== DASHBOARD (NUEVA LÓGICA) ====================
     function cargarFiltros() {
       const selectCat = document.getElementById('filtroCategoriaMov');
       const selectMet = document.getElementById('filtroMetodoPago');
@@ -577,16 +568,7 @@
     addListener('filtroMetodoPago', () => recargarTransacciones());
 
     function actualizarDashboard(transacciones) {
-      // 1. Actualizar Balance Total en el Header
-      let balanceTotal = 0;
-      transacciones.forEach(t => {
-        if (t.tipo === 'ingreso') balanceTotal += t.monto;
-        else balanceTotal -= t.monto;
-      });
-      const elBalanceHeader = document.getElementById('balanceTotalHeader');
-      if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceTotal);
-
-      // 2. Calcular fechas según el filtro
+      // 1. Calcular fechas según el filtro (Día/Semana/Mes/Año)
       const hoy = new Date();
       let inicioPeriodo, finPeriodo;
       
@@ -616,7 +598,7 @@
         finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
       }
 
-      // Formatear texto del rango
+      // 2. Formatear texto del rango
       const elTextoRango = document.getElementById('textoRangoFechas');
       if (elTextoRango) {
         const opciones = { day: 'numeric', month: 'short' };
@@ -629,26 +611,36 @@
         }
       }
 
-      // Filtrar por fecha
+      // 3. Filtrar transacciones por el rango de fechas
       const filtradasPorFecha = transacciones.filter(t => {
         if (!t.fecha) return false;
+        // Parseamos la fecha asegurando que sea un objeto Date
         const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
         return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
       });
 
-      // 3. Dibujar Gráfica Dona (Le pasamos todas las transacciones del mes para que los clics funcionen mejor)
+      // 4. Actualizar Balance Total en el Header (SOLO CON LOS DATOS DEL PERÍODO)
+      let balancePeriodo = 0;
+      filtradasPorFecha.forEach(t => {
+        if (t.tipo === 'ingreso') balancePeriodo += t.monto;
+        else balancePeriodo -= t.monto;
+      });
+      const elBalanceHeader = document.getElementById('balanceTotalHeader');
+      if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balancePeriodo);
+
+      // 5. Dibujar Gráfica Dona
       if (typeof App.dibujarGraficaDona === 'function') {
         App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
       }
 
-      // 4. Actualizar tarjetas de Ingresos/Gastos del mes
-      let ingresosMes = 0, gastosMes = 0;
-      transacciones.forEach(t => t.tipo === 'ingreso' ? ingresosMes += t.monto : gastosMes += t.monto);
+      // 6. Actualizar tarjetas de Ingresos y Gastos del PERÍODO
+      let ingresosPeriodo = 0, gastosPeriodo = 0;
+      filtradasPorFecha.forEach(t => t.tipo === 'ingreso' ? ingresosPeriodo += t.monto : gastosPeriodo += t.monto);
 
       const elIngresos = document.getElementById('totalIngresos');
       const elGastos = document.getElementById('totalGastos');
-      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosMes);
-      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosMes);
+      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosPeriodo);
+      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosPeriodo);
 
       if (ocultarMontos) {
         [elIngresos, elGastos, elBalanceHeader].forEach(el => {
