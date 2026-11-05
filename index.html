@@ -70,7 +70,7 @@
   <!-- ==================== APP SHELL ==================== -->
   <div id="appShell" class="hidden app-shell">
     
-    <!-- HEADER (Sin selector de mes) -->
+    <!-- HEADER -->
     <header class="app-header">
       <div class="header-logo">
         <img src="logo-192.png" alt="Finora" class="logo-header">
@@ -113,10 +113,9 @@
         </div>
       </div>
 
-      <!-- ==================== VISTA INICIO (NUEVO DISEÑO) ==================== -->
+      <!-- ==================== VISTA INICIO ==================== -->
       <div id="vistaInicio" class="vista activa">
         
-        <!-- Header Oscuro -->
         <div class="inicio-header-verde">
           <div class="inicio-top-bar">
             <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
@@ -133,7 +132,6 @@
           </div>
         </div>
 
-        <!-- Tarjeta Blanca con Filtros y Gráfico -->
         <div class="inicio-card-blanca">
           <div class="filtros-tiempo">
             <button class="filtro-tiempo" data-filtro="dia">Día</button>
@@ -157,7 +155,6 @@
           </div>
         </div>
 
-        <!-- Resumen de Tarjetas (KPIs) -->
         <div class="resumen-grid mt-4">
           <div class="resumen-card ingreso-card">
             <i class="ph ph-trend-up"></i>
@@ -171,10 +168,8 @@
           </div>
         </div>
 
-        <!-- Botón Flotante -->
         <button id="fabAgregar" class="fab fab-amarillo" aria-label="Agregar transacción"><i class="ph ph-plus"></i></button>
 
-        <!-- Contenedores ocultos para mantener la lógica de KPIs y lista -->
         <div class="hidden">
           <div id="btnTogglePrivacidad"></div>
           <div id="barraPresupuestoRapida"></div>
@@ -293,7 +288,18 @@
             </label>
           </div>
 
-          <div class="ajuste-item ajuste-item-no-border">
+          <!-- ==================== ESPACIO COMPARTIDO ==================== -->
+          <div class="ajuste-item ajuste-item-no-border" style="margin-top: 15px;">
+            <span>Espacio Compartido (Pareja)</span>
+          </div>
+          <div class="cuentas-box" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+            <div id="panelEspacioCompartido">
+              <!-- Aquí el JS inyectará si tienes espacios o no -->
+            </div>
+          </div>
+          <!-- ========================================================= -->
+
+          <div class="ajuste-item ajuste-item-no-border" style="margin-top: 15px;">
             <span>Mis Cuentas</span>
           </div>
           <div class="cuentas-box">
@@ -501,7 +507,7 @@
       </div>
     </div>
 
-    <!-- ==================== SELECTOR DE ICONOS (PANTALLA COMPLETA) ==================== -->
+    <!-- ==================== SELECTOR DE ICONOS ==================== -->
     <div id="selectorIconosModal" class="hidden">
       <div class="selector-iconos-header">
         <button type="button" id="btnCerrarSelectorIconos" aria-label="Volver"><i class="ph ph-arrow-left"></i></button>
