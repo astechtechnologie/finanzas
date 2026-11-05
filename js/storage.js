@@ -1,4 +1,4 @@
-// storage.js – Acceso a Firestore (Completo con Espacios Compartidos Optimizados)
+// storage.js – Acceso a Firestore (Completo con Espacios Compartidos)
 (function() {
   const App = window.App;
   const db = App.db;
@@ -9,10 +9,11 @@
     return user.uid;
   }
 
-  // ===== LÓGICA DE RUTAS (PERSONAL VS ESPACIO) =====
+  // ===== LÓGICA DE RUTAS =====
   function obtenerRutaTransacciones() {
     const espacioId = localStorage.getItem('espacioActivoId');
-    if (espacioId) {
+    // Si estamos en modo espacio (no vacío y no 'personal')
+    if (espacioId && espacioId !== '' && espacioId !== 'personal') {
       return db.collection('espacios').doc(espacioId).collection('transacciones');
     }
     return db.collection('usuarios').doc(uid()).collection('transacciones');
@@ -23,7 +24,7 @@
     try {
       const ref = obtenerRutaTransacciones();
       let query = ref;
-      const esEspacio = !!localStorage.getItem('espacioActivoId');
+      const esEspacio = !!localStorage.getItem('espacioActivoId') && localStorage.getItem('espacioActivoId') !== 'personal';
 
       if (!esEspacio && espacioIdCuenta && espacioIdCuenta !== 'personal') {
         query = query.where('espacioId', '==', espacioIdCuenta);
@@ -54,7 +55,7 @@
 
   App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioIdCuenta) {
     const ref = obtenerRutaTransacciones();
-    const esEspacio = !!localStorage.getItem('espacioActivoId');
+    const esEspacio = !!localStorage.getItem('espacioActivoId') && localStorage.getItem('espacioActivoId') !== 'personal';
     
     return ref.add({
       tipo: tipo,
@@ -77,12 +78,11 @@
     return obtenerRutaTransacciones().doc(id).delete();
   };
 
-  // ===== ESPACIOS COMPARTIDOS (USANDO CÓDIGO COMO ID) =====
+  // ===== ESPACIOS COMPARTIDOS =====
   App.crearEspacioCompartido = function(nombre, callback) {
     const userId = uid();
     const codigoInvitacion = 'PAREJA-' + Math.floor(1000 + Math.random() * 9000);
     
-    // Usamos el código como ID del documento
     return db.collection('espacios').doc(codigoInvitacion).set({
       nombre: nombre,
       adminId: userId,
@@ -97,30 +97,15 @@
   App.unirseAEspacio = function(codigo, callback) {
     const userId = uid();
     const codigoLimpio = codigo.trim().toUpperCase();
-    
-    // Vamos DIRECTO al documento usando el código como ID
     const espacioRef = db.collection('espacios').doc(codigoLimpio);
 
     return espacioRef.get().then(function(doc) {
-      if (!doc.exists) {
-        throw new Error('El código de invitación no existe.');
-      }
-
-      // Añadimos al usuario al array de miembros
+      if (!doc.exists) throw new Error('El código de invitación no existe.');
       return espacioRef.update({
         miembros: firebase.firestore.FieldValue.arrayUnion(userId)
       }).then(function() {
         callback(codigoLimpio, doc.data().nombre);
       });
-    });
-  };
-
-  App.obtenerEspaciosDeUsuario = function(callback) {
-    const userId = uid();
-    return db.collection('espacios').where('miembros', 'array-contains', userId).onSnapshot(function(snap) {
-      const espacios = [];
-      snap.forEach(function(doc) { espacios.push(Object.assign({ id: doc.id }, doc.data())); });
-      callback(espacios);
     });
   };
 
@@ -176,18 +161,6 @@
       const catRef = db.collection('usuarios/' + uid() + '/categorias').doc(query.docs[0].id);
       return catRef.update({ subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase()) });
     });
-  };
-
-  App.obtenerOrdenCategorias = function(callback) {
-    const userId = uid();
-    db.collection('usuarios').doc(userId).get().then(function(doc) {
-      const orden = doc.exists && doc.data().ordenCategorias ? doc.data().ordenCategorias : 'nombre';
-      callback(orden);
-    }).catch(function() { callback('nombre'); });
-  };
-
-  App.guardarOrdenCategorias = function(orden) {
-    return db.collection('usuarios').doc(uid()).set({ ordenCategorias: orden }, { merge: true });
   };
 
   // ===== CUENTAS =====
