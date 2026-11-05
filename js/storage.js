@@ -1,4 +1,4 @@
-// storage.js – Acceso a Firestore (Completo con Espacios Compartidos)
+// storage.js – Acceso a Firestore (Completo y Definitivo)
 (function() {
   const App = window.App;
   const db = App.db;
@@ -9,26 +9,29 @@
     return user.uid;
   }
 
-  // ===== LÓGICA DE RUTAS =====
+  // ===== LÓGICA DE RUTAS (PERSONAL VS ESPACIO) =====
   function obtenerRutaTransacciones() {
-  const espacioId = localStorage.getItem('espacioActivoId');
-  const perfilActivo = localStorage.getItem('perfilActivo') || 'personal'; // Nuevo
+    const espacioId = localStorage.getItem('espacioActivoId');
+    const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
 
-  // Si hay un espacio Y estamos en modo espacio, usamos el espacio
-  if (espacioId && perfilActivo === 'espacio') {
-    return db.collection('espacios').doc(espacioId).collection('transacciones');
+    // Si tenemos un espacio guardado Y el usuario ha elegido el perfil del espacio
+    if (espacioId && perfilActivo === 'espacio') {
+      return db.collection('espacios').doc(espacioId).collection('transacciones');
+    }
+    // De lo contrario, usamos la cuenta personal
+    return db.collection('usuarios').doc(uid()).collection('transacciones');
   }
-  // De lo contrario, usamos la cuenta personal
-  return db.collection('usuarios').doc(uid()).collection('transacciones');
-}
 
   // ===== TRANSACCIONES =====
   App.obtenerTransacciones = function(callback, espacioIdCuenta, mes) {
     try {
       const ref = obtenerRutaTransacciones();
+      const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
+      const esEspacio = (perfilActivo === 'espacio');
+      
       let query = ref;
-      const esEspacio = !!localStorage.getItem('espacioActivoId') && localStorage.getItem('espacioActivoId') !== 'personal';
 
+      // Si estamos en modo personal, filtramos por la cuenta seleccionada
       if (!esEspacio && espacioIdCuenta && espacioIdCuenta !== 'personal') {
         query = query.where('espacioId', '==', espacioIdCuenta);
       }
@@ -58,7 +61,8 @@
 
   App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioIdCuenta) {
     const ref = obtenerRutaTransacciones();
-    const esEspacio = !!localStorage.getItem('espacioActivoId') && localStorage.getItem('espacioActivoId') !== 'personal';
+    const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
+    const esEspacio = (perfilActivo === 'espacio');
     
     return ref.add({
       tipo: tipo,
@@ -86,6 +90,7 @@
     const userId = uid();
     const codigoInvitacion = 'PAREJA-' + Math.floor(1000 + Math.random() * 9000);
     
+    // Usamos el código como ID del documento
     return db.collection('espacios').doc(codigoInvitacion).set({
       nombre: nombre,
       adminId: userId,
