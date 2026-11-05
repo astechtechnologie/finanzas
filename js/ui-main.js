@@ -12,6 +12,7 @@
     let metodosPago = [];
     App.subcategoriasPorCategoria = {};
     App.cuentaActual = 'personal';
+    let modoActual = localStorage.getItem('espacioActivoId') || 'personal';
     let filtroTipoCategoria = 'gasto';
     let ocultarMontos = localStorage.getItem('ocultarMontos') === 'true';
 
