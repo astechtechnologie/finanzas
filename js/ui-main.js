@@ -972,7 +972,7 @@
       });
     }
 
-    // ==================== CARGA INICIAL ====================
+        // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       cargarCuentas();
       App.obtenerCategorias(function(cats) {
@@ -987,7 +987,73 @@
           cargarFiltros();
         });
         App.actualizarBotonAdmin();
+
+        // NUEVO: Cargar la interfaz de espacios compartidos
+        if (typeof App.cargarUIEspacios === 'function') {
+          App.cargarUIEspacios();
+        }
       });
+    };
+
+    // ==================== LÓGICA DE ESPACIOS COMPARTIDOS ====================
+    App.cargarUIEspacios = function() {
+      const panel = document.getElementById('panelEspacioCompartido');
+      if (!panel) return;
+
+      const espacioActivoId = localStorage.getItem('espacioActivoId');
+      const nombreEspacioActivo = localStorage.getItem('espacioActivoNombre');
+
+      if (espacioActivoId) {
+        // Si ya está en un espacio, mostramos opción de salir
+        panel.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <strong style="color: #166534;">Espacio: ${nombreEspacioActivo}</strong>
+              <p style="font-size: 12px; color: #15803d;">Estás compartiendo datos.</p>
+            </div>
+            <button id="btnSalirEspacio" class="btn btn-peligro" style="padding: 6px 12px; font-size: 12px;">Salir</button>
+          </div>
+        `;
+        document.getElementById('btnSalirEspacio').addEventListener('click', function() {
+          if (confirm('¿Salir del espacio compartido? Volverás a tus finanzas personales.')) {
+            localStorage.removeItem('espacioActivoId');
+            localStorage.removeItem('espacioActivoNombre');
+            window.location.reload();
+          }
+        });
+      } else {
+        // Si no está en un espacio, mostramos opciones de crear o unirse
+        panel.innerHTML = `
+          <button id="btnCrearEspacio" class="btn btn-primario w-full" style="margin-bottom: 8px;">Crear Espacio</button>
+          <button id="btnUnirseEspacio" class="btn btn-outline w-full">Unirse con Código</button>
+        `;
+
+        document.getElementById('btnCrearEspacio').addEventListener('click', function() {
+          const nombre = prompt('Nombre del espacio (ej: Nuestra Casa):');
+          if (nombre) {
+            App.crearEspacioCompartido(nombre, function(espacioId, codigo) {
+              alert(`¡Espacio creado! Tu código de invitación es: ${codigo}\nCompártelo con tu pareja.`);
+              localStorage.setItem('espacioActivoId', espacioId);
+              localStorage.setItem('espacioActivoNombre', nombre);
+              window.location.reload();
+            });
+          }
+        });
+
+        document.getElementById('btnUnirseEspacio').addEventListener('click', function() {
+          const codigo = prompt('Ingresa el código de invitación (ej: PAREJA-1234):');
+          if (codigo) {
+            App.unirseAEspacio(codigo.toUpperCase(), function(espacioId, nombre) {
+              alert(`¡Te has unido al espacio: ${nombre}!`);
+              localStorage.setItem('espacioActivoId', espacioId);
+              localStorage.setItem('espacioActivoNombre', nombre);
+              window.location.reload();
+            }).catch(function(error) {
+              alert('Error: ' + error.message);
+            });
+          }
+        });
+      }
     };
 
     App.actualizarBotonAdmin = function() {
@@ -1000,5 +1066,6 @@
       });
     };
 
-  });
+  }); // <--- CIERRE DEL DOMContentLoaded
+
 })();
