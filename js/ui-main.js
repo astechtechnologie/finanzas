@@ -997,7 +997,7 @@
     };
 
     // ==================== LÓGICA DE ESPACIOS COMPARTIDOS ====================
-    App.cargarUIEspacios = function() {
+   App.cargarUIEspacios = function() {
   const panel = document.getElementById('panelEspacioCompartido');
   const selectPerfil = document.getElementById('selectorPerfil');
   const selectorCuenta = document.getElementById('selectorCuenta');
@@ -1005,8 +1005,10 @@
   
   if (!panel || !selectPerfil) return;
 
+  // Leemos el espacio activo (sin borrarlo nunca) y el perfil que elegimos
   const espacioActivoId = localStorage.getItem('espacioActivoId');
   const nombreEspacioActivo = localStorage.getItem('espacioActivoNombre') || 'Compartido';
+  let perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
 
   // 1. Actualizar el Selector de Perfiles
   if (espacioActivoId) {
@@ -1014,26 +1016,29 @@
       <option value="personal">👤 Personal</option>
       <option value="${espacioActivoId}">🏠 ${nombreEspacioActivo}</option>
     `;
-    // Si estamos en el espacio, ocultamos el selector de cuentas
-    if (selectorCuenta) selectorCuenta.style.display = 'none';
-    if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'none';
+    selectPerfil.value = perfilActivo;
+    
+    // Mostrar u ocultar el selector de cuentas según el perfil
+    if (perfilActivo === 'espacio') {
+      if (selectorCuenta) selectorCuenta.style.display = 'none';
+      if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'none';
+    } else {
+      if (selectorCuenta) selectorCuenta.style.display = 'block';
+      if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
+    }
+
+    // Evento para cambiar de perfil
+    selectPerfil.addEventListener('change', function() {
+      // Guardamos la preferencia sin borrar el ID del espacio
+      localStorage.setItem('perfilActivo', this.value === 'personal' ? 'personal' : 'espacio');
+      window.location.reload();
+    });
+
   } else {
     selectPerfil.innerHTML = '<option value="personal">👤 Personal</option>';
     if (selectorCuenta) selectorCuenta.style.display = 'block';
     if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
   }
-  selectPerfil.value = modoActual;
-
-  // Evento para cambiar de perfil
-  selectPerfil.addEventListener('change', function() {
-    modoActual = this.value;
-    if (modoActual === 'personal') {
-      localStorage.removeItem('espacioActivoId'); // Borrar para que use personal
-    } else {
-      localStorage.setItem('espacioActivoId', modoActual);
-    }
-    window.location.reload();
-  });
 
   // 2. Renderizar el panel de Ajustes
   if (espacioActivoId) {
@@ -1043,14 +1048,15 @@
           <strong style="color: #166534;">Espacio: ${nombreEspacioActivo}</strong>
           <p style="font-size: 12px; color: #15803d;">Estás compartiendo datos.</p>
         </div>
-        <button id="btnSalirEspacio" class="btn btn-peligro" style="padding: 6px 12px; font-size: 12px;">Salir</button>
+        <button id="btnSalirEspacio" class="btn btn-peligro" style="padding: 6px 12px; font-size: 12px;">Abandonar</button>
       </div>
     `;
+    // Botón para abandonar el espacio definitivamente
     document.getElementById('btnSalirEspacio').addEventListener('click', function() {
-      if (confirm('¿Salir del espacio compartido? Volverás a tus finanzas personales.')) {
+      if (confirm('¿Abandonar el espacio? Dejarás de ver los datos compartidos.')) {
         localStorage.removeItem('espacioActivoId');
         localStorage.removeItem('espacioActivoNombre');
-        modoActual = 'personal';
+        localStorage.setItem('perfilActivo', 'personal');
         window.location.reload();
       }
     });
@@ -1067,6 +1073,7 @@
           alert(`¡Espacio creado! Tu código de invitación es: ${codigo}\nCompártelo con tu pareja.`);
           localStorage.setItem('espacioActivoId', espacioId);
           localStorage.setItem('espacioActivoNombre', nombre);
+          localStorage.setItem('perfilActivo', 'espacio');
           window.location.reload();
         });
       }
@@ -1079,6 +1086,7 @@
           alert(`¡Te has unido al espacio: ${nombre}!`);
           localStorage.setItem('espacioActivoId', espacioId);
           localStorage.setItem('espacioActivoNombre', nombre);
+          localStorage.setItem('perfilActivo', 'espacio');
           window.location.reload();
         }).catch(function(error) {
           alert('Error: ' + error.message);
