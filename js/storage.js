@@ -1,4 +1,4 @@
-// storage.js – Acceso a Firestore (Completo con Espacios Compartidos)
+// storage.js – Acceso a Firestore (Completo con Espacios Compartidos Optimizados)
 (function() {
   const App = window.App;
   const db = App.db;
@@ -77,33 +77,40 @@
     return obtenerRutaTransacciones().doc(id).delete();
   };
 
-  // ===== ESPACIOS COMPARTIDOS =====
+  // ===== ESPACIOS COMPARTIDOS (USANDO CÓDIGO COMO ID) =====
   App.crearEspacioCompartido = function(nombre, callback) {
     const userId = uid();
     const codigoInvitacion = 'PAREJA-' + Math.floor(1000 + Math.random() * 9000);
     
-    return db.collection('espacios').add({
+    // Usamos el código como ID del documento
+    return db.collection('espacios').doc(codigoInvitacion).set({
       nombre: nombre,
       adminId: userId,
       miembros: [userId],
       codigoInvitacion: codigoInvitacion,
       creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function(docRef) {
-      callback(docRef.id, codigoInvitacion);
+    }).then(function() {
+      callback(codigoInvitacion, codigoInvitacion);
     });
   };
 
   App.unirseAEspacio = function(codigo, callback) {
     const userId = uid();
-    return db.collection('espacios').where('codigoInvitacion', '==', codigo).get().then(function(query) {
-      if (query.empty) throw new Error('Código no válido');
-      const espacioDoc = query.docs[0];
-      const espacioId = espacioDoc.id;
-      
-      return db.collection('espacios').doc(espacioId).update({
+    const codigoLimpio = codigo.trim().toUpperCase();
+    
+    // Vamos DIRECTO al documento usando el código como ID
+    const espacioRef = db.collection('espacios').doc(codigoLimpio);
+
+    return espacioRef.get().then(function(doc) {
+      if (!doc.exists) {
+        throw new Error('El código de invitación no existe.');
+      }
+
+      // Añadimos al usuario al array de miembros
+      return espacioRef.update({
         miembros: firebase.firestore.FieldValue.arrayUnion(userId)
       }).then(function() {
-        callback(espacioId, espacioDoc.data().nombre);
+        callback(codigoLimpio, doc.data().nombre);
       });
     });
   };
@@ -210,7 +217,7 @@
     return db.collection('usuarios/' + uid() + '/cuentas').doc(cuentaId).delete();
   };
 
-  // ===== METODOS DE PAGO =====
+  // ===== MÉTODOS DE PAGO =====
   App.obtenerMetodosPago = function(callback) {
     return db.collection('usuarios/' + uid() + '/metodos_pago').onSnapshot(
       function(snap) {
