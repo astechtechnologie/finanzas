@@ -71,16 +71,22 @@
   <div id="appShell" class="hidden app-shell">
     
     <!-- HEADER -->
-    <header class="app-header">
-      <div class="header-logo">
-        <img src="logo-192.png" alt="Finora" class="logo-header">
-      </div>
-      <h1 id="tituloSeccion" class="titulo-seccion">Inicio</h1>
-      <div class="header-actions">
-        <select id="selectorCuenta" class="input-mes" title="Cambiar cuenta" aria-label="Seleccionar cuenta"></select>
-        <button id="btnNuevaCuenta" class="btn btn-outline-small" title="Nueva cuenta" aria-label="Crear nueva cuenta">+</button>
-      </div>
-    </header>
+<header class="app-header">
+  <div class="header-logo">
+    <img src="logo-192.png" alt="Finora" class="logo-header">
+  </div>
+  <h1 id="tituloSeccion" class="titulo-seccion">Inicio</h1>
+  <div class="header-actions">
+    <!-- Selector de Perfiles (Personal vs Espacio Pareja) -->
+    <select id="selectorPerfil" class="input-mes" title="Cambiar perfil" aria-label="Seleccionar perfil" style="font-weight: bold; background: var(--primary-color); color: black;">
+      <option value="personal">👤 Personal</option>
+    </select>
+    
+    <!-- Selector de Cuentas (Consultorio, Efectivo, etc.) -->
+    <select id="selectorCuenta" class="input-mes" title="Cambiar cuenta" aria-label="Seleccionar cuenta"></select>
+    <button id="btnNuevaCuenta" class="btn btn-outline-small" title="Nueva cuenta" aria-label="Crear nueva cuenta">+</button>
+  </div>
+</header>
 
     <!-- CONTENEDOR DE VISTAS -->
     <main class="vistas-container">
