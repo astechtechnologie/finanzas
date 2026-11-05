@@ -11,13 +11,16 @@
 
   // ===== LÓGICA DE RUTAS =====
   function obtenerRutaTransacciones() {
-    const espacioId = localStorage.getItem('espacioActivoId');
-    // Si estamos en modo espacio (no vacío y no 'personal')
-    if (espacioId && espacioId !== '' && espacioId !== 'personal') {
-      return db.collection('espacios').doc(espacioId).collection('transacciones');
-    }
-    return db.collection('usuarios').doc(uid()).collection('transacciones');
+  const espacioId = localStorage.getItem('espacioActivoId');
+  const perfilActivo = localStorage.getItem('perfilActivo') || 'personal'; // Nuevo
+
+  // Si hay un espacio Y estamos en modo espacio, usamos el espacio
+  if (espacioId && perfilActivo === 'espacio') {
+    return db.collection('espacios').doc(espacioId).collection('transacciones');
   }
+  // De lo contrario, usamos la cuenta personal
+  return db.collection('usuarios').doc(uid()).collection('transacciones');
+}
 
   // ===== TRANSACCIONES =====
   App.obtenerTransacciones = function(callback, espacioIdCuenta, mes) {
