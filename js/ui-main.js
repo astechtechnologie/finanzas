@@ -12,7 +12,6 @@
     let metodosPago = [];
     App.subcategoriasPorCategoria = {};
     App.cuentaActual = 'personal';
-    let modoActual = localStorage.getItem('espacioActivoId') || 'personal';
     let filtroTipoCategoria = 'gasto';
     let ocultarMontos = localStorage.getItem('ocultarMontos') === 'true';
 
@@ -35,6 +34,8 @@
     const modalEditar = document.getElementById('modalEditarTransaccion');
     const fab = document.getElementById('fabAgregar');
     const selectorCuenta = document.getElementById('selectorCuenta');
+    const btnNuevaCuenta = document.getElementById('btnNuevaCuenta');
+    const selectorPerfil = document.getElementById('selectorPerfil');
 
     if (!vistas.inicio) return;
 
@@ -48,12 +49,12 @@
 
     function recargarTransacciones() {
       if (unsubscribeTransacciones) unsubscribeTransacciones();
-      // Traemos todas las transacciones de la cuenta, sin filtro de mes,
-      // para poder calcular Día/Semana/Mes/Año localmente.
+      const cuentaParaFiltrar = (localStorage.getItem('perfilActivo') === 'espacio') ? null : App.cuentaActual;
+      
       unsubscribeTransacciones = App.obtenerTransacciones(
         function(t) { actualizarDashboard(t); },
-        App.cuentaActual,
-        null // Sin filtro de mes en Firestore
+        cuentaParaFiltrar,
+        null 
       );
     }
 
@@ -133,7 +134,7 @@
               btn.style.cssText = 'background: none; border: none; color: #ef4444; cursor: pointer;';
               btn.innerHTML = '<i class="ph ph-trash"></i>';
               btn.addEventListener('click', function() {
-                if (confirm('¿Eliminar esta cuenta? Los movimientos asociados quedarán huérfanos.')) {
+                if (confirm('¿Eliminar esta cuenta?')) {
                   App.eliminarCuenta(this.dataset.id).then(cargarCuentas);
                 }
               });
@@ -213,7 +214,6 @@
 
     // ==================== EVENTOS DEL NUEVO INICIO ====================
     
-    // Pestañas GASTOS / INGRESOS
     document.querySelectorAll('.tab-verde').forEach(btn => {
       btn.addEventListener('click', function() {
         document.querySelectorAll('.tab-verde').forEach(b => b.classList.remove('active'));
@@ -223,7 +223,6 @@
       });
     });
 
-    // Botones Día/Semana/Mes/Año/Período
     document.querySelectorAll('.filtro-tiempo').forEach(btn => {
       btn.addEventListener('click', function() {
         document.querySelectorAll('.filtro-tiempo').forEach(b => b.classList.remove('active'));
@@ -234,25 +233,15 @@
       });
     });
 
-    // Flechas de navegación
-    addListener('btnMesAnteriorGrafico', function() {
-      offsetTiempo--;
-      recargarTransacciones();
-    });
-    addListener('btnMesSiguienteGrafico', function() {
-      offsetTiempo++;
-      recargarTransacciones();
-    });
+    addListener('btnMesAnteriorGrafico', function() { offsetTiempo--; recargarTransacciones(); });
+    addListener('btnMesSiguienteGrafico', function() { offsetTiempo++; recargarTransacciones(); });
 
-    // Botón de Menú (las 3 rayitas)
     const btnMenu = document.querySelector('.inicio-top-bar .btn-icon-white');
     if (btnMenu) {
-      btnMenu.addEventListener('click', function() {
-        App.cambiarVista('vistaAjustes');
-      });
+      btnMenu.addEventListener('click', function() { App.cambiarVista('vistaAjustes'); });
     }
 
-    // ==================== ICONOS ====================
+    // ==================== ICONOS Y COLORES ====================
     const iconosConNombre = [
       { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
       { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
@@ -297,8 +286,7 @@
     function generarListaIconos(filtro = '') {
       const cont = document.getElementById('listaIconosCategoria');
       if (!cont) return;
-      const textoBusqueda = filtro.toLowerCase();
-      const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(textoBusqueda) || i.icon.toLowerCase().includes(textoBusqueda));
+      const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(filtro.toLowerCase()) || i.icon.toLowerCase().includes(filtro.toLowerCase()));
       if (filtrados.length === 0) {
         cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
         return;
@@ -326,7 +314,6 @@
       document.getElementById('selectorIconosModal').classList.add('hidden');
     });
 
-    // Colores
     const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
     const contenedorColores = document.getElementById('contenedorColores');
 
@@ -551,7 +538,7 @@
       if (sEditar) sEditar.innerHTML = opciones;
     }
 
-    // ==================== DASHBOARD (NUEVA LÓGICA) ====================
+    // ==================== DASHBOARD ====================
     function cargarFiltros() {
       const selectCat = document.getElementById('filtroCategoriaMov');
       const selectMet = document.getElementById('filtroMetodoPago');
@@ -569,7 +556,6 @@
     addListener('filtroMetodoPago', () => recargarTransacciones());
 
     function actualizarDashboard(transacciones) {
-      // 1. Calcular fechas según el filtro (Día/Semana/Mes/Año)
       const hoy = new Date();
       let inicioPeriodo, finPeriodo;
       
@@ -599,7 +585,6 @@
         finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
       }
 
-      // 2. Formatear texto del rango
       const elTextoRango = document.getElementById('textoRangoFechas');
       if (elTextoRango) {
         const opciones = { day: 'numeric', month: 'short' };
@@ -612,15 +597,12 @@
         }
       }
 
-      // 3. Filtrar transacciones por el rango de fechas
       const filtradasPorFecha = transacciones.filter(t => {
         if (!t.fecha) return false;
-        // Parseamos la fecha asegurando que sea un objeto Date
         const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
         return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
       });
 
-      // 4. Actualizar Balance Total en el Header (SOLO CON LOS DATOS DEL PERÍODO)
       let balancePeriodo = 0;
       filtradasPorFecha.forEach(t => {
         if (t.tipo === 'ingreso') balancePeriodo += t.monto;
@@ -629,12 +611,10 @@
       const elBalanceHeader = document.getElementById('balanceTotalHeader');
       if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balancePeriodo);
 
-      // 5. Dibujar Gráfica Dona
       if (typeof App.dibujarGraficaDona === 'function') {
         App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
       }
 
-      // 6. Actualizar tarjetas de Ingresos y Gastos del PERÍODO
       let ingresosPeriodo = 0, gastosPeriodo = 0;
       filtradasPorFecha.forEach(t => t.tipo === 'ingreso' ? ingresosPeriodo += t.monto : gastosPeriodo += t.monto);
 
@@ -650,27 +630,20 @@
       }
     }
 
-    // ==================== DETALLE POR CATEGORÍA (CLIC EN GRÁFICA) ====================
+    // ==================== DETALLE POR CATEGORÍA ====================
     App.mostrarDetalleCategoria = function(nombreCategoria, transacciones, tipo) {
-      // 1. Filtrar solo las transacciones de esa categoría y tipo
       const transaccionesFiltradas = transacciones.filter(t => t.categoria === nombreCategoria && t.tipo === tipo);
-      
-      // 2. Calcular el total
       let total = 0;
       transaccionesFiltradas.forEach(t => total += t.monto);
 
-      // 3. Actualizar el modal
       document.getElementById('tituloDetalleCat').textContent = 'Categoría: ' + nombreCategoria.charAt(0).toUpperCase() + nombreCategoria.slice(1);
       document.getElementById('totalDetalleCat').textContent = '$' + App.formatearMonto(total);
 
-      // 4. Generar la lista
       const lista = document.getElementById('listaDetalleCat');
       if (transaccionesFiltradas.length === 0) {
         lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos</p>';
       } else {
-        // Ordenar por fecha descendente
         transaccionesFiltradas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-        
         lista.innerHTML = transaccionesFiltradas.map(t => `
           <div class="mov-detalle-item">
             <div class="info">
@@ -683,12 +656,9 @@
           </div>
         `).join('');
       }
-
-      // 5. Mostrar el modal
       document.getElementById('modalDetalleCategoria').classList.remove('hidden');
     };
 
-    // Evento para cerrar el modal
     addListener('btnCerrarDetalleCat', function() {
       document.getElementById('modalDetalleCategoria').classList.add('hidden');
     });
@@ -792,7 +762,6 @@
       btnMostrar.style.background = '#b0c4c0';
     });
 
-    // Formulario de categoría
     const formCat = document.getElementById('formCategoria');
     if (formCat) {
       formCat.addEventListener('submit', function(e) {
@@ -819,7 +788,7 @@
       });
     }
 
-    // ==================== ADMIN (BÁSICO) ====================
+    // ==================== ADMIN ====================
     App.cargarOrganizaciones = function() {
       const cont = document.getElementById('listaOrganizaciones');
       if (!cont) return;
@@ -973,7 +942,97 @@
       });
     }
 
-        // ==================== CARGA INICIAL ====================
+    // ==================== LÓGICA DE ESPACIOS COMPARTIDOS ====================
+    App.cargarUIEspacios = function() {
+      const panel = document.getElementById('panelEspacioCompartido');
+      
+      if (!panel || !selectorPerfil) return;
+
+      const espacioActivoId = localStorage.getItem('espacioActivoId');
+      const nombreEspacioActivo = localStorage.getItem('espacioActivoNombre') || 'Compartido';
+      let perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
+
+      if (espacioActivoId) {
+        selectorPerfil.innerHTML = `
+          <option value="personal">👤 Personal</option>
+          <option value="espacio">🏠 ${nombreEspacioActivo}</option>
+        `;
+        selectorPerfil.value = perfilActivo;
+        
+        if (perfilActivo === 'espacio') {
+          if (selectorCuenta) selectorCuenta.style.display = 'none';
+          if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'none';
+        } else {
+          if (selectorCuenta) selectorCuenta.style.display = 'block';
+          if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
+        }
+
+        selectorPerfil.addEventListener('change', function() {
+          localStorage.setItem('perfilActivo', this.value);
+          window.location.reload();
+        });
+
+      } else {
+        selectorPerfil.innerHTML = '<option value="personal">👤 Personal</option>';
+        if (selectorCuenta) selectorCuenta.style.display = 'block';
+        if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
+      }
+
+      if (espacioActivoId) {
+        panel.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <strong style="color: #166534;">Espacio: ${nombreEspacioActivo}</strong>
+              <p style="font-size: 12px; color: #15803d;">Estás compartiendo datos.</p>
+            </div>
+            <button id="btnSalirEspacio" class="btn btn-peligro" style="padding: 6px 12px; font-size: 12px;">Abandonar</button>
+          </div>
+        `;
+        document.getElementById('btnSalirEspacio').addEventListener('click', function() {
+          if (confirm('¿Abandonar el espacio? Dejarás de ver los datos compartidos.')) {
+            localStorage.removeItem('espacioActivoId');
+            localStorage.removeItem('espacioActivoNombre');
+            localStorage.setItem('perfilActivo', 'personal');
+            window.location.reload();
+          }
+        });
+      } else {
+        panel.innerHTML = `
+          <button id="btnCrearEspacio" class="btn btn-primario w-full" style="margin-bottom: 8px;">Crear Espacio</button>
+          <button id="btnUnirseEspacio" class="btn btn-outline w-full">Unirse con Código</button>
+        `;
+
+        document.getElementById('btnCrearEspacio').addEventListener('click', function() {
+          const nombre = prompt('Nombre del espacio (ej: Nuestra Casa):');
+          if (nombre) {
+            App.crearEspacioCompartido(nombre, function(espacioId, codigo) {
+              alert(`¡Espacio creado! Tu código de invitación es: ${codigo}\nCompártelo con tu pareja.`);
+              localStorage.setItem('espacioActivoId', espacioId);
+              localStorage.setItem('espacioActivoNombre', nombre);
+              localStorage.setItem('perfilActivo', 'espacio');
+              window.location.reload();
+            });
+          }
+        });
+
+        document.getElementById('btnUnirseEspacio').addEventListener('click', function() {
+          const codigo = prompt('Ingresa el código de invitación (ej: PAREJA-1234):');
+          if (codigo) {
+            App.unirseAEspacio(codigo.toUpperCase(), function(espacioId, nombre) {
+              alert(`¡Te has unido al espacio: ${nombre}!`);
+              localStorage.setItem('espacioActivoId', espacioId);
+              localStorage.setItem('espacioActivoNombre', nombre);
+              localStorage.setItem('perfilActivo', 'espacio');
+              window.location.reload();
+            }).catch(function(error) {
+              alert('Error: ' + error.message);
+            });
+          }
+        });
+      }
+    };
+
+    // ==================== CARGA INICIAL ====================
     App.cargarDatosIniciales = function() {
       cargarCuentas();
       App.obtenerCategorias(function(cats) {
@@ -989,112 +1048,11 @@
         });
         App.actualizarBotonAdmin();
 
-        // NUEVO: Cargar la interfaz de espacios compartidos
         if (typeof App.cargarUIEspacios === 'function') {
           App.cargarUIEspacios();
         }
       });
     };
-
-    // ==================== LÓGICA DE ESPACIOS COMPARTIDOS ====================
-   App.cargarUIEspacios = function() {
-  const panel = document.getElementById('panelEspacioCompartido');
-  const selectPerfil = document.getElementById('selectorPerfil');
-  const selectorCuenta = document.getElementById('selectorCuenta');
-  const btnNuevaCuenta = document.getElementById('btnNuevaCuenta');
-  
-  if (!panel || !selectPerfil) return;
-
-  // Leemos el espacio activo (sin borrarlo nunca) y el perfil que elegimos
-  const espacioActivoId = localStorage.getItem('espacioActivoId');
-  const nombreEspacioActivo = localStorage.getItem('espacioActivoNombre') || 'Compartido';
-  let perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
-
-  // 1. Actualizar el Selector de Perfiles
-  if (espacioActivoId) {
-    selectPerfil.innerHTML = `
-      <option value="personal">👤 Personal</option>
-      <option value="${espacioActivoId}">🏠 ${nombreEspacioActivo}</option>
-    `;
-    selectPerfil.value = perfilActivo;
-    
-    // Mostrar u ocultar el selector de cuentas según el perfil
-    if (perfilActivo === 'espacio') {
-      if (selectorCuenta) selectorCuenta.style.display = 'none';
-      if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'none';
-    } else {
-      if (selectorCuenta) selectorCuenta.style.display = 'block';
-      if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
-    }
-
-    // Evento para cambiar de perfil
-    selectPerfil.addEventListener('change', function() {
-      // Guardamos la preferencia sin borrar el ID del espacio
-      localStorage.setItem('perfilActivo', this.value === 'personal' ? 'personal' : 'espacio');
-      window.location.reload();
-    });
-
-  } else {
-    selectPerfil.innerHTML = '<option value="personal">👤 Personal</option>';
-    if (selectorCuenta) selectorCuenta.style.display = 'block';
-    if (btnNuevaCuenta) btnNuevaCuenta.style.display = 'inline-flex';
-  }
-
-  // 2. Renderizar el panel de Ajustes
-  if (espacioActivoId) {
-    panel.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <div>
-          <strong style="color: #166534;">Espacio: ${nombreEspacioActivo}</strong>
-          <p style="font-size: 12px; color: #15803d;">Estás compartiendo datos.</p>
-        </div>
-        <button id="btnSalirEspacio" class="btn btn-peligro" style="padding: 6px 12px; font-size: 12px;">Abandonar</button>
-      </div>
-    `;
-    // Botón para abandonar el espacio definitivamente
-    document.getElementById('btnSalirEspacio').addEventListener('click', function() {
-      if (confirm('¿Abandonar el espacio? Dejarás de ver los datos compartidos.')) {
-        localStorage.removeItem('espacioActivoId');
-        localStorage.removeItem('espacioActivoNombre');
-        localStorage.setItem('perfilActivo', 'personal');
-        window.location.reload();
-      }
-    });
-  } else {
-    panel.innerHTML = `
-      <button id="btnCrearEspacio" class="btn btn-primario w-full" style="margin-bottom: 8px;">Crear Espacio</button>
-      <button id="btnUnirseEspacio" class="btn btn-outline w-full">Unirse con Código</button>
-    `;
-
-    document.getElementById('btnCrearEspacio').addEventListener('click', function() {
-      const nombre = prompt('Nombre del espacio (ej: Nuestra Casa):');
-      if (nombre) {
-        App.crearEspacioCompartido(nombre, function(espacioId, codigo) {
-          alert(`¡Espacio creado! Tu código de invitación es: ${codigo}\nCompártelo con tu pareja.`);
-          localStorage.setItem('espacioActivoId', espacioId);
-          localStorage.setItem('espacioActivoNombre', nombre);
-          localStorage.setItem('perfilActivo', 'espacio');
-          window.location.reload();
-        });
-      }
-    });
-
-    document.getElementById('btnUnirseEspacio').addEventListener('click', function() {
-      const codigo = prompt('Ingresa el código de invitación (ej: PAREJA-1234):');
-      if (codigo) {
-        App.unirseAEspacio(codigo.toUpperCase(), function(espacioId, nombre) {
-          alert(`¡Te has unido al espacio: ${nombre}!`);
-          localStorage.setItem('espacioActivoId', espacioId);
-          localStorage.setItem('espacioActivoNombre', nombre);
-          localStorage.setItem('perfilActivo', 'espacio');
-          window.location.reload();
-        }).catch(function(error) {
-          alert('Error: ' + error.message);
-        });
-      }
-    });
-  }
-};
 
     App.actualizarBotonAdmin = function() {
       App.obtenerRolUsuario(function(rol) {
@@ -1106,6 +1064,6 @@
       });
     };
 
-  }); // <--- CIERRE DEL DOMContentLoaded
+  }); // Cierre del DOMContentLoaded
 
 })();
