@@ -1,6 +1,5 @@
-const CACHE_NAME = 'finanzas-v12.77';
-
-const ARCHIVOS_CACHE = [
+const CACHE_NAME = 'finora-cache-v12.78';
+const urlsToCache = [
   './',
   './index.html',
   './css/styles.css',
@@ -12,46 +11,59 @@ const ARCHIVOS_CACHE = [
   './js/ui-main.js',
   './js/ui-presupuesto.js',
   './js/app.js',
-  './manifest.json',
   './logo-192.png',
-  './logo-512.png'
+  './logo-512.png',
+  './manifest.json'
 ];
 
+// Instalar el Service Worker y guardar archivos en caché
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ARCHIVOS_CACHE))
-      .then(() => self.skipWaiting())
+      .then(cache => {
+        console.log('Archivos cacheados');
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
+// Activar y limpiar cachés antiguos
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    )).then(() => self.clients.claim())
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
+// Estrategia: Network First (Primero red, si falla, caché)
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  // No interceptar peticiones a Firebase o Google
+  if (event.request.url.includes('firestore') || event.request.url.includes('googleapis')) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
       .then(response => {
+        // Si la respuesta es válida, la clonamos y guardamos en caché
         if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
+          });
         }
         return response;
       })
       .catch(() => {
-        return caches.match(event.request).then(cached => {
-          if (cached) return cached;
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
-        });
+        // Si falla la red, buscamos en caché
+        return caches.match(event.request);
       })
   );
 });
