@@ -1,11 +1,12 @@
 {
-  "name": "Finora",
+  "name": "Finora - Mis Finanzas",
   "short_name": "Finora",
-  "start_url": ".",
+  "description": "Controla tus ingresos y gastos personales y compartidos.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "background_color": "#f4f5f7",
   "theme_color": "#e8c84c",
-  "description": "Gestor personal de ingresos y gastos",
   "icons": [
     {
       "src": "logo-192.png",
