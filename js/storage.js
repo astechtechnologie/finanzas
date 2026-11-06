@@ -1,4 +1,4 @@
-// storage.js – Acceso a Firestore (Completo y Definitivo)
+// storage.js – Acceso a Firestore (Completo con Categorías Compartidas)
 (function() {
   const App = window.App;
   const db = App.db;
@@ -9,17 +9,23 @@
     return user.uid;
   }
 
-  // ===== LÓGICA DE RUTAS (PERSONAL VS ESPACIO) =====
+  // ===== LÓGICA DE RUTAS =====
   function obtenerRutaTransacciones() {
     const espacioId = localStorage.getItem('espacioActivoId');
     const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
-
-    // Si tenemos un espacio guardado Y el usuario ha elegido el perfil del espacio
     if (espacioId && perfilActivo === 'espacio') {
       return db.collection('espacios').doc(espacioId).collection('transacciones');
     }
-    // De lo contrario, usamos la cuenta personal
     return db.collection('usuarios').doc(uid()).collection('transacciones');
+  }
+
+  function obtenerRutaCategorias() {
+    const espacioId = localStorage.getItem('espacioActivoId');
+    const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
+    if (espacioId && perfilActivo === 'espacio') {
+      return db.collection('espacios').doc(espacioId).collection('categorias');
+    }
+    return db.collection('usuarios').doc(uid()).collection('categorias');
   }
 
   // ===== TRANSACCIONES =====
@@ -28,10 +34,8 @@
       const ref = obtenerRutaTransacciones();
       const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
       const esEspacio = (perfilActivo === 'espacio');
-      
       let query = ref;
 
-      // Si estamos en modo personal, filtramos por la cuenta seleccionada
       if (!esEspacio && espacioIdCuenta && espacioIdCuenta !== 'personal') {
         query = query.where('espacioId', '==', espacioIdCuenta);
       }
@@ -61,8 +65,7 @@
 
   App.agregarTransaccion = function(tipo, categoria, subcategoria, descripcion, monto, fecha, metodoPago, espacioIdCuenta) {
     const ref = obtenerRutaTransacciones();
-    const perfilActivo = localStorage.getItem('perfilActivo') || 'personal';
-    const esEspacio = (perfilActivo === 'espacio');
+    const esEspacio = (localStorage.getItem('perfilActivo') === 'espacio');
     
     return ref.add({
       tipo: tipo,
@@ -85,12 +88,65 @@
     return obtenerRutaTransacciones().doc(id).delete();
   };
 
+  // ===== CATEGORÍAS (AHORA COMPARTIDAS) =====
+  App.obtenerCategorias = function(callback) {
+    return obtenerRutaCategorias().onSnapshot(
+      function(snap) {
+        const cats = [];
+        snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
+        callback(cats);
+      },
+      function(error) { console.error('Error categorías:', error); callback([]); }
+    );
+  };
+
+  App.inicializarCategoriasPorDefecto = function() {
+    const categoriasRef = obtenerRutaCategorias();
+    return categoriasRef.limit(1).get().then(function(snap) {
+      if (snap.empty) {
+        const pre = [
+          { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
+          { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
+          { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
+          { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
+          { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
+          { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
+          { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
+        ];
+        const batch = db.batch();
+        pre.forEach(function(c) { batch.set(categoriasRef.doc(), c); });
+        return batch.commit();
+      }
+    });
+  };
+
+  App.agregarCategoria = function(nombre, icono, color, tipo) {
+    return obtenerRutaCategorias().add({
+      nombre: nombre.trim().toLowerCase(), icono: icono || 'ph-house', color: color || '#e8c84c', tipo: tipo || 'gasto'
+    });
+  };
+
+  App.actualizarCategoria = function(id, datos) {
+    return obtenerRutaCategorias().doc(id).update(datos);
+  };
+
+  App.eliminarCategoria = function(id) {
+    return obtenerRutaCategorias().doc(id).delete();
+  };
+
+  App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
+    return obtenerRutaCategorias().where('nombre', '==', categoriaNombre).get().then(function(query) {
+      if (query.empty) throw new Error('Categoría no encontrada');
+      const catRef = obtenerRutaCategorias().doc(query.docs[0].id);
+      return catRef.update({ subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase()) });
+    });
+  };
+
   // ===== ESPACIOS COMPARTIDOS =====
   App.crearEspacioCompartido = function(nombre, callback) {
     const userId = uid();
     const codigoInvitacion = 'PAREJA-' + Math.floor(1000 + Math.random() * 9000);
     
-    // Usamos el código como ID del documento
     return db.collection('espacios').doc(codigoInvitacion).set({
       nombre: nombre,
       adminId: userId,
@@ -114,60 +170,6 @@
       }).then(function() {
         callback(codigoLimpio, doc.data().nombre);
       });
-    });
-  };
-
-  // ===== CATEGORÍAS =====
-  App.obtenerCategorias = function(callback) {
-    return db.collection('usuarios/' + uid() + '/categorias').onSnapshot(
-      function(snap) {
-        const cats = [];
-        snap.forEach(function(doc) { cats.push(Object.assign({ id: doc.id }, doc.data())); });
-        callback(cats);
-      },
-      function(error) { console.error('Error categorías:', error); callback([]); }
-    );
-  };
-
-  App.inicializarCategoriasPorDefecto = function() {
-    const categoriasRef = db.collection('usuarios/' + uid() + '/categorias');
-    return categoriasRef.limit(1).get().then(function(snap) {
-      if (snap.empty) {
-        const pre = [
-          { nombre: 'salud', icono: 'ph-heartbeat', color: '#ef4444', tipo: 'gasto' },
-          { nombre: 'comida', icono: 'ph-utensils', color: '#FF6384', tipo: 'gasto' },
-          { nombre: 'transporte', icono: 'ph-bus', color: '#36A2EB', tipo: 'gasto' },
-          { nombre: 'ocio', icono: 'ph-game-controller', color: '#FFCE56', tipo: 'gasto' },
-          { nombre: 'servicios', icono: 'ph-lightbulb', color: '#4BC0C0', tipo: 'gasto' },
-          { nombre: 'salario', icono: 'ph-money', color: '#10b981', tipo: 'ingreso' },
-          { nombre: 'freelance', icono: 'ph-laptop', color: '#34d399', tipo: 'ingreso' }
-        ];
-        const batch = db.batch();
-        pre.forEach(function(c) { batch.set(categoriasRef.doc(), c); });
-        return batch.commit();
-      }
-    });
-  };
-
-  App.agregarCategoria = function(nombre, icono, color, tipo) {
-    return db.collection('usuarios/' + uid() + '/categorias').add({
-      nombre: nombre.trim().toLowerCase(), icono: icono || 'ph-house', color: color || '#e8c84c', tipo: tipo || 'gasto'
-    });
-  };
-
-  App.actualizarCategoria = function(id, datos) {
-    return db.collection('usuarios/' + uid() + '/categorias').doc(id).update(datos);
-  };
-
-  App.eliminarCategoria = function(id) {
-    return db.collection('usuarios/' + uid() + '/categorias').doc(id).delete();
-  };
-
-  App.agregarSubcategoria = function(categoriaNombre, subcategoriaNombre) {
-    return db.collection('usuarios/' + uid() + '/categorias').where('nombre', '==', categoriaNombre).get().then(function(query) {
-      if (query.empty) throw new Error('Categoría no encontrada');
-      const catRef = db.collection('usuarios/' + uid() + '/categorias').doc(query.docs[0].id);
-      return catRef.update({ subcategorias: firebase.firestore.FieldValue.arrayUnion(subcategoriaNombre.trim().toLowerCase()) });
     });
   };
 
