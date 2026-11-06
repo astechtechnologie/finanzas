@@ -1059,50 +1059,62 @@ App.verDetalleUsuario = function(usuarioUid) {
       });
     };
 
-    // ==================== NOTIFICACIONES ====================
-    const toggleNotificaciones = document.getElementById('toggleNotificaciones');
-    let timerNotificacion = null;
+   // ==================== NOTIFICACIONES PUSH (FCM) ====================
+const toggleNotificaciones = document.getElementById('toggleNotificaciones');
 
-    function programarNotificacion() {
-      if (Notification.permission === 'granted') {
-        const ahora = new Date();
-        const horaRecordatorio = new Date();
-        horaRecordatorio.setHours(20, 0, 0, 0);
-        if (horaRecordatorio <= ahora) horaRecordatorio.setDate(horaRecordatorio.getDate() + 1);
-        const msHastaRecordatorio = horaRecordatorio - ahora;
-        if (timerNotificacion) clearTimeout(timerNotificacion);
-        timerNotificacion = setTimeout(() => {
-          if (Notification.permission === 'granted') {
-            new Notification('Finora - Recordatorio', { body: 'No olvides registrar tus gastos de hoy 💰', icon: 'logo-192.png' });
-          }
-          programarNotificacion();
-        }, msHastaRecordatorio);
-        localStorage.setItem('notificacionesActivas', 'true');
+async function activarNotificaciones() {
+  try {
+    // 1. Pedir permiso al usuario
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      alert('Debes permitir las notificaciones para activar esta función.');
+      return false;
+    }
+
+    // 2. Obtener el token del dispositivo (necesario para enviar notificaciones)
+    const messaging = firebase.messaging();
+    const token = await messaging.getToken({
+      vapidKey: 'TU_VAPID_KEY_PUBLICA' // Lo sacamos en el paso 4
+    });
+
+    if (token) {
+      console.log('Token de notificaciones:', token);
+      // Guardamos el token en Firestore para este usuario
+      // (Así el servidor sabe a quién enviarle la notificación)
+      if (typeof App.guardarTokenNotificacion === 'function') {
+        App.guardarTokenNotificacion(token);
       }
+      return true;
+    } else {
+      console.warn('No se pudo obtener el token.');
+      return false;
     }
+  } catch (error) {
+    console.error('Error activando notificaciones:', error);
+    return false;
+  }
+}
 
-    if (toggleNotificaciones) {
-      const notificacionesActivas = localStorage.getItem('notificacionesActivas') === 'true';
-      toggleNotificaciones.checked = notificacionesActivas;
-      if (notificacionesActivas) programarNotificacion();
-      toggleNotificaciones.addEventListener('change', function() {
-        if (this.checked) {
-          if (!("Notification" in window)) { alert('Tu navegador no soporta notificaciones.'); this.checked = false; return; }
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              programarNotificacion();
-              alert('¡Notificaciones activadas! Te recordaremos a las 8 PM.');
-            } else {
-              alert('Debes permitir las notificaciones.');
-              this.checked = false;
-            }
-          });
-        } else {
-          if (timerNotificacion) clearTimeout(timerNotificacion);
-          localStorage.setItem('notificacionesActivas', 'false');
-        }
-      });
+if (toggleNotificaciones) {
+  const notificacionesActivas = localStorage.getItem('notificacionesActivas') === 'true';
+  toggleNotificaciones.checked = notificacionesActivas;
+
+  toggleNotificaciones.addEventListener('change', async function() {
+    if (this.checked) {
+      const activado = await activarNotificaciones();
+      if (activado) {
+        localStorage.setItem('notificacionesActivas', 'true');
+        alert('¡Notificaciones activadas! Te recordaremos registrar tus gastos.');
+      } else {
+        this.checked = false;
+        localStorage.setItem('notificacionesActivas', 'false');
+      }
+    } else {
+      localStorage.setItem('notificacionesActivas', 'false');
+      alert('Notificaciones desactivadas.');
     }
+  });
+}
 
     // ==================== LÓGICA DE ESPACIOS COMPARTIDOS ====================
     App.cargarUIEspacios = function() {
