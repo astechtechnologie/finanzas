@@ -930,7 +930,85 @@ cont.querySelectorAll('.btn-ver-cliente').forEach(btn => {
     });
   });
 };
+App.verDetalleUsuario = function(usuarioUid) {
+  const detalleCont = document.getElementById('detalleUsuarioAdmin');
+  if (!detalleCont) return;
 
+  detalleCont.innerHTML = '<p class="text-center texto-secundario" style="padding: 20px;">Cargando detalles del cliente...</p>';
+  detalleCont.style.display = 'block';
+
+  App.obtenerUsuarioPorId(usuarioUid, function(datosUsuario) {
+    if (!datosUsuario) return;
+
+    App.obtenerTransaccionesDeUsuario(usuarioUid, function(transacciones) {
+      const mesActual = getMes(); // Obtiene YYYY-MM
+      let ingresos = 0, gastos = 0;
+      
+      // Filtramos las transacciones del mes actual para el resumen
+      const transaccionesMes = transacciones.filter(t => t.fecha && t.fecha.startsWith(mesActual));
+
+      transaccionesMes.forEach(t => {
+        if (t.tipo === 'ingreso') ingresos += t.monto;
+        else gastos += t.monto;
+      });
+      const balance = ingresos - gastos;
+
+      // Renderizamos la tarjeta de detalle
+      let html = '<div class="detalle-cliente" style="background: var(--bg-card); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px; border: 1px solid var(--border-color);">';
+      
+      // Encabezado
+      html += '<div style="background: #f8f9fa; padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">';
+      html += '<div style="display: flex; align-items: center; gap: 15px;">';
+      html += `<div style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary-color); color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">${datosUsuario.email.charAt(0).toUpperCase()}</div>`;
+      html += '<div>';
+      html += `<div style="font-weight: 700; font-size: 16px; color: var(--text-color);">${datosUsuario.email}</div>`;
+      html += `<div style="font-size: 13px; color: ${datosUsuario.activo !== false ? '#10b981' : '#ef4444'}; font-weight: 600;">${datosUsuario.activo !== false ? '● Activo' : '● Inactivo'}</div>`;
+      html += '</div></div>';
+      html += '<button id="btnCerrarDetalleAdmin" style="background: #eee; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="ph ph-x" style="font-size: 18px; color: #333;"></i></button>';
+      html += '</div>';
+
+      // Resumen de números
+      html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 20px;">';
+      html += '<div style="text-align: center; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 12px;"><i class="ph ph-trend-up" style="font-size: 24px; color: #10b981; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: var(--text-color);">$' + App.formatearMonto(ingresos) + '</div><div style="font-size: 12px; color: var(--text-secondary);">Ingresos</div></div>';
+      html += '<div style="text-align: center; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px;"><i class="ph ph-trend-down" style="font-size: 24px; color: #ef4444; margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: var(--text-color);">$' + App.formatearMonto(gastos) + '</div><div style="font-size: 12px; color: var(--text-secondary);">Gastos</div></div>';
+      html += '<div style="text-align: center; padding: 15px; background: rgba(232, 200, 76, 0.1); border-radius: 12px;"><i class="ph ph-wallet" style="font-size: 24px; color: var(--primary-color); margin-bottom: 5px;"></i><div style="font-size: 18px; font-weight: 700; color: var(--text-color);">$' + App.formatearMonto(balance) + '</div><div style="font-size: 12px; color: var(--text-secondary);">Balance</div></div>';
+      html += '</div>';
+
+      // Últimas transacciones
+      html += '<div style="padding: 0 20px 20px 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">';
+      html += '<h5 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-color); display: flex; align-items: center; gap: 5px;"><i class="ph ph-clock"></i> Últimas transacciones</h5>';
+      
+      const recientes = transacciones.slice(0, 5);
+      if (recientes.length === 0) {
+        html += '<p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Sin transacciones.</p>';
+      } else {
+        recientes.forEach(t => {
+          const esIngreso = t.tipo === 'ingreso';
+          html += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color);">';
+          html += `<div><div style="font-size: 14px; font-weight: 500; color: var(--text-color);">${t.descripcion}</div><div style="font-size: 12px; color: var(--text-secondary); text-transform: capitalize;">${t.categoria} • ${t.fecha}</div></div>`;
+          html += `<div style="font-weight: bold; font-size: 14px; color: ${esIngreso ? '#10b981' : '#ef4444'};">${esIngreso ? '+' : '-'}$${App.formatearMonto(t.monto)}</div>`;
+          html += '</div>';
+        });
+      }
+      html += '</div></div>';
+
+      detalleCont.innerHTML = html;
+
+      // Evento para cerrar el panel de detalle
+      const btnCerrar = detalleCont.querySelector('#btnCerrarDetalleAdmin');
+      if (btnCerrar) {
+        btnCerrar.addEventListener('click', function() {
+          detalleCont.style.display = 'none';
+          detalleCont.innerHTML = '';
+        });
+      }
+      
+      setTimeout(() => {
+        detalleCont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    });
+  });
+};
     addListener('btnBuscarUsuario', function() {
       const email = document.getElementById('emailUsuarioVincular').value.trim();
       const resultado = document.getElementById('resultadoBusqueda');
