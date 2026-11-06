@@ -898,17 +898,21 @@
         
         let html = '';
         usuarios.forEach(usuario => {
-          const inicial = (usuario.email || '?').charAt(0).toUpperCase();
-          html += `<div class="cliente-card">
-            <div class="cliente-header">
-              <div class="cliente-avatar">${inicial}</div>
-              <div class="cliente-info"><div class="cliente-nombre">${usuario.email}</div></div>
-            </div>
-            <div class="cliente-acciones">
-              <button class="btn-eliminar-cliente" data-uid="${usuario.uid}"><i class="ph ph-trash"></i> Eliminar</button>
-            </div>
-          </div>`;
-        });
+  const inicial = (usuario.email || '?').charAt(0).toUpperCase();
+  // Usamos la estructura original para que se vea bien con el CSS existente
+  html += `<div class="cliente-card">
+    <div class="cliente-header">
+      <div class="cliente-avatar">${inicial}</div>
+      <div class="cliente-info">
+        <div class="cliente-nombre">${usuario.email}</div>
+      </div>
+    </div>
+    <div class="cliente-acciones">
+      <button class="btn-ver-cliente" data-uid="${usuario.uid}"><i class="ph ph-eye"></i> Ver</button>
+      <button class="btn-eliminar-cliente" data-uid="${usuario.uid}"><i class="ph ph-trash"></i> Eliminar</button>
+    </div>
+  </div>`;
+});
         cont.innerHTML = html;
         cont.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
           btn.addEventListener('click', function() {
