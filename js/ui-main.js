@@ -556,89 +556,150 @@
     addListener('filtroMetodoPago', () => recargarTransacciones());
 
     function actualizarDashboard(transacciones) {
-  const hoy = new Date();
-  let inicioPeriodo, finPeriodo;
-  
-  if (filtroTiempo === 'dia') {
-    const fechaRef = new Date(hoy);
-    fechaRef.setDate(hoy.getDate() + offsetTiempo);
-    inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
-    finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
-  } else if (filtroTiempo === 'semana') {
-    const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay();
-    const lunes = new Date(hoy);
-    lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
-    inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
-    finPeriodo = new Date(lunes);
-    finPeriodo.setDate(lunes.getDate() + 6);
-    finPeriodo.setHours(23,59,59,999);
-  } else if (filtroTiempo === 'mes') {
-    const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
-    inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
-    finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
-  } else if (filtroTiempo === 'ano') {
-    const anoRef = hoy.getFullYear() + offsetTiempo;
-    inicioPeriodo = new Date(anoRef, 0, 1);
-    finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
-  } else {
-    inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
-  }
+      const hoy = new Date();
+      let inicioPeriodo, finPeriodo;
+      
+      if (filtroTiempo === 'dia') {
+        const fechaRef = new Date(hoy);
+        fechaRef.setDate(hoy.getDate() + offsetTiempo);
+        inicioPeriodo = new Date(fechaRef.setHours(0,0,0,0));
+        finPeriodo = new Date(fechaRef.setHours(23,59,59,999));
+      } else if (filtroTiempo === 'semana') {
+        const diaSemana = hoy.getDay() === 0 ? 7 : hoy.getDay();
+        const lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() - diaSemana + 1 + (offsetTiempo * 7));
+        inicioPeriodo = new Date(lunes.setHours(0,0,0,0));
+        finPeriodo = new Date(lunes);
+        finPeriodo.setDate(lunes.getDate() + 6);
+        finPeriodo.setHours(23,59,59,999);
+      } else if (filtroTiempo === 'mes') {
+        const mesRef = new Date(hoy.getFullYear(), hoy.getMonth() + offsetTiempo, 1);
+        inicioPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth(), 1);
+        finPeriodo = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0, 23, 59, 59);
+      } else if (filtroTiempo === 'ano') {
+        const anoRef = hoy.getFullYear() + offsetTiempo;
+        inicioPeriodo = new Date(anoRef, 0, 1);
+        finPeriodo = new Date(anoRef, 11, 31, 23, 59, 59);
+      } else {
+        inicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        finPeriodo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59);
+      }
 
-  const elTextoRango = document.getElementById('textoRangoFechas');
-  if (elTextoRango) {
-    const opciones = { day: 'numeric', month: 'short' };
-    if (filtroTiempo === 'ano') {
-      elTextoRango.textContent = inicioPeriodo.getFullYear();
-    } else if (filtroTiempo === 'dia') {
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    } else {
-      elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
+      const elTextoRango = document.getElementById('textoRangoFechas');
+      if (elTextoRango) {
+        const opciones = { day: 'numeric', month: 'short' };
+        if (filtroTiempo === 'ano') {
+          elTextoRango.textContent = inicioPeriodo.getFullYear();
+        } else if (filtroTiempo === 'dia') {
+          elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        } else {
+          elTextoRango.textContent = inicioPeriodo.toLocaleDateString('es-ES', opciones) + ' – ' + finPeriodo.toLocaleDateString('es-ES', opciones);
+        }
+      }
+
+      // 1. FILTRAR PARA LAS GRÁFICAS
+      const filtradasPorFecha = transacciones.filter(t => {
+        if (!t.fecha) return false;
+        const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
+        return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
+      });
+
+      // 2. CALCULAR EL SALDO ACUMULADO (Header)
+      let balanceAcumulado = 0;
+      transacciones.forEach(t => {
+        if (!t.fecha) return;
+        const fechaTrans = new Date(t.fecha + 'T12:00:00');
+        if (fechaTrans <= finPeriodo) {
+          if (t.tipo === 'ingreso') balanceAcumulado += t.monto;
+          else balanceAcumulado -= t.monto;
+        }
+      });
+
+      const elBalanceHeader = document.getElementById('balanceTotalHeader');
+      if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceAcumulado);
+
+      // 3. DIBUJAR GRÁFICA
+      if (typeof App.dibujarGraficaDona === 'function') {
+        App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
+      }
+
+      // 4. INGRESOS Y GASTOS DEL PERÍODO
+      let ingresosPeriodo = 0, gastosPeriodo = 0;
+      filtradasPorFecha.forEach(t => t.tipo === 'ingreso' ? ingresosPeriodo += t.monto : gastosPeriodo += t.monto);
+
+      const elIngresos = document.getElementById('totalIngresos');
+      const elGastos = document.getElementById('totalGastos');
+      if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosPeriodo);
+      if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosPeriodo);
+
+      // 5. RENDERIZAR LISTA DE MOVIMIENTOS
+      const lista = document.getElementById('listaTransacciones');
+      if (lista) {
+        if (filtradasPorFecha.length === 0) {
+          lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos en este período</p>';
+        } else {
+          const fragment = document.createDocumentFragment();
+          const ordenadas = [...filtradasPorFecha].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+          
+          ordenadas.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'movimiento-item';
+            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+            
+            div.innerHTML = `
+              <div style="flex: 1; min-width: 0;">
+                <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.descripcion}</span>
+                <small style="color: var(--text-secondary); font-size: 11px;">${t.categoria} • ${t.fecha}</small>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-weight: 700; font-size: 14px; color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
+                  ${t.tipo === 'ingreso' ? '+' : '-'}$${App.formatearMonto(t.monto)}
+                </span>
+                <button class="btn-edit-mov" data-id="${t.id}" data-tipo="${t.tipo}" data-cat="${t.categoria}" data-subcat="${t.subcategoria || ''}" data-desc="${t.descripcion}" data-monto="${t.monto}" data-fecha="${t.fecha}" data-metodo="${t.metodoPago || ''}" style="background: none; border: none; cursor: pointer; color: #666;"><i class="ph ph-pencil"></i></button>
+                <button class="btn-delete-mov" data-id="${t.id}" style="background: none; border: none; cursor: pointer; color: #ef4444;"><i class="ph ph-trash"></i></button>
+              </div>
+            `;
+            fragment.appendChild(div);
+          });
+          
+          lista.innerHTML = '';
+          lista.appendChild(fragment);
+
+          lista.querySelectorAll('.btn-edit-mov').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const d = this.dataset;
+              document.getElementById('idTransaccionEditar').value = d.id;
+              document.getElementById('fechaEditar').value = d.fecha;
+              document.getElementById('descripcionEditar').value = d.desc;
+              document.getElementById('montoEditar').value = d.monto;
+              
+              const selectCat = document.getElementById('categoriaEditar');
+              const cats = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
+              selectCat.innerHTML = cats.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
+              
+              const selectMet = document.getElementById('metodoPagoEditar');
+              selectMet.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
+              
+              document.getElementById('modalEditarTransaccion').classList.remove('hidden');
+            });
+          });
+
+          lista.querySelectorAll('.btn-delete-mov').forEach(btn => {
+            btn.addEventListener('click', function() {
+              if (confirm('¿Eliminar este movimiento?')) {
+                App.eliminarTransaccion(this.dataset.id);
+              }
+            });
+          });
+        }
+      }
+
+      if (ocultarMontos) {
+        [elIngresos, elGastos, elBalanceHeader].forEach(el => {
+          if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
+        });
+      }
     }
-  }
-
-  // 1. FILTRAR PARA LAS GRÁFICAS (Solo el período seleccionado)
-  const filtradasPorFecha = transacciones.filter(t => {
-    if (!t.fecha) return false;
-    const fechaTrans = new Date(t.fecha + 'T12:00:00'); 
-    return fechaTrans >= inicioPeriodo && fechaTrans <= finPeriodo;
-  });
-
-  // 2. CALCULAR EL SALDO ACUMULADO (Desde el principio hasta el fin del período)
-  let balanceAcumulado = 0;
-  transacciones.forEach(t => {
-    if (!t.fecha) return;
-    const fechaTrans = new Date(t.fecha + 'T12:00:00');
-    // Sumamos todo lo que sea ANTERIOR o IGUAL al fin del período
-    if (fechaTrans <= finPeriodo) {
-      if (t.tipo === 'ingreso') balanceAcumulado += t.monto;
-      else balanceAcumulado -= t.monto;
-    }
-  });
-
-  const elBalanceHeader = document.getElementById('balanceTotalHeader');
-  if (elBalanceHeader) elBalanceHeader.textContent = '$' + App.formatearMonto(balanceAcumulado);
-
-  // 3. DIBUJAR GRÁFICA
-  if (typeof App.dibujarGraficaDona === 'function') {
-    App.dibujarGraficaDona(filtradasPorFecha, tipoVerde);
-  }
-
-  // 4. INGRESOS Y GASTOS DEL PERÍODO (Tarjetas de abajo)
-  let ingresosPeriodo = 0, gastosPeriodo = 0;
-  filtradasPorFecha.forEach(t => t.tipo === 'ingreso' ? ingresosPeriodo += t.monto : gastosPeriodo += t.monto);
-
-  const elIngresos = document.getElementById('totalIngresos');
-  const elGastos = document.getElementById('totalGastos');
-  if (elIngresos) elIngresos.textContent = '$' + App.formatearMonto(ingresosPeriodo);
-  if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosPeriodo);
-
-  if (ocultarMontos) {
-    [elIngresos, elGastos, elBalanceHeader].forEach(el => {
-      if (el) { el.dataset.valorOriginal = el.textContent; el.textContent = '$ ******'; }
-    });
-  }
-}
 
     // ==================== DETALLE POR CATEGORÍA ====================
     App.mostrarDetalleCategoria = function(nombreCategoria, transacciones, tipo) {
