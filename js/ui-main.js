@@ -1074,7 +1074,7 @@ async function activarNotificaciones() {
     // 2. Obtener el token del dispositivo (necesario para enviar notificaciones)
     const messaging = firebase.messaging();
     const token = await messaging.getToken({
-      vapidKey: 'TU_VAPID_KEY_PUBLICA' // Lo sacamos en el paso 4
+      vapidKey: 'BBi6ZoZTitsdB3U53vlaLFA718CvOo1dvupA7IxoARjlrQLgGb5tUUaUsIyin9-wfY5PYUIKbT4m4rcqVBxIIQg' // Lo sacamos en el paso 4
     });
 
     if (token) {
