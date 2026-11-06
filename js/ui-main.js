@@ -914,13 +914,22 @@
   </div>`;
 });
         cont.innerHTML = html;
-        cont.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
-          btn.addEventListener('click', function() {
-            if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid);
-          });
-        });
+
+// Evento Eliminar (ya lo tenías)
+cont.querySelectorAll('.btn-eliminar-cliente').forEach(btn => {
+  btn.addEventListener('click', function() {
+    if (confirm('¿Eliminar cliente?')) App.eliminarVinculacion(this.dataset.uid);
+  });
+});
+
+// ¡NUEVO! Evento Ver (para abrir el detalle del cliente)
+cont.querySelectorAll('.btn-ver-cliente').forEach(btn => {
+  btn.addEventListener('click', function() {
+    App.verDetalleUsuario(this.dataset.uid);
       });
-    };
+    });
+  });
+};
 
     addListener('btnBuscarUsuario', function() {
       const email = document.getElementById('emailUsuarioVincular').value.trim();
