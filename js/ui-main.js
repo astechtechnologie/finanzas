@@ -1071,16 +1071,21 @@ async function activarNotificaciones() {
       return false;
     }
 
-    // 2. Obtener el token del dispositivo (necesario para enviar notificaciones)
+    // 2. Obtener el Service Worker que registramos manualmente en el index.html
+    // Le pasamos la ruta exacta de tu GitHub Pages
+    const swRegistration = await navigator.serviceWorker.register('/finanzas/firebase-messaging-sw.js', {
+      scope: '/finanzas/firebase-cloud-messaging-push-scope'
+    });
+
+    // 3. Obtener el token del dispositivo
     const messaging = firebase.messaging();
     const token = await messaging.getToken({
-      vapidKey: 'BBi6ZoZTitsdB3U53vlaLFA718CvOo1dvupA7IxoARjlrQLgGb5tUUaUsIyin9-wfY5PYUIKbT4m4rcqVBxIIQg' // Lo sacamos en el paso 4
+      vapidKey: 'AQUI_TU_VAPID_KEY', // <-- Pon aquí tu llave que empieza con B...
+      serviceWorkerRegistration: swRegistration // <-- Le pasamos el SW manual
     });
 
     if (token) {
       console.log('Token de notificaciones:', token);
-      // Guardamos el token en Firestore para este usuario
-      // (Así el servidor sabe a quién enviarle la notificación)
       if (typeof App.guardarTokenNotificacion === 'function') {
         App.guardarTokenNotificacion(token);
       }
