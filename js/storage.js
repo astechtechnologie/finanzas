@@ -467,5 +467,14 @@
       });
     });
   };
-
+// ===== GUARDAR TOKEN DE NOTIFICACIONES =====
+App.guardarTokenNotificacion = function(token) {
+  return db.collection('usuarios').doc(uid()).set({
+    fcmToken: token
+  }, { merge: true }).then(function() {
+    console.log('Token guardado en Firestore correctamente.');
+  }).catch(function(error) {
+    console.error('Error guardando token:', error);
+  });
+};
 })();
