@@ -23,8 +23,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title || 'Finora';
   const notificationOptions = {
     body: payload.notification.body || 'Tienes una nueva notificación',
-    icon: '/logo-192.png',
-    badge: '/logo-192.png'
+    icon: './logo-192.png',
+    badge: './logo-192.png'
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
