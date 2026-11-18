@@ -539,21 +539,133 @@
     }
 
     // ==================== DASHBOARD ====================
+    // Almacenar solo los movimientos del período visible para filtrar la lista
+    // sin consultar de nuevo Firebase ni recalcular las gráficas en cada búsqueda.
+    let movimientosDelPeriodo = [];
+
+    function normalizarTexto(valor) {
+      return String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    // Proteger los textos de los movimientos al insertarlos en plantillas HTML.
+    function escaparHTML(valor) {
+      return String(valor ?? '').replace(/[&<>"']/g, function(caracter) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[caracter];
+      });
+    }
+
     function cargarFiltros() {
       const selectCat = document.getElementById('filtroCategoriaMov');
       const selectMet = document.getElementById('filtroMetodoPago');
+      const categoriaAnterior = selectCat ? selectCat.value : '';
+      const metodoAnterior = selectMet ? selectMet.value : '';
       if (selectCat && App.categoriasState) {
-        selectCat.innerHTML = '<option value="">Todas las categorías</option>' + 
-          App.categoriasState.map(c => `<option value="${c.nombre}">${c.nombre.charAt(0).toUpperCase() + c.nombre.slice(1)}</option>`).join('');
+        selectCat.innerHTML = '<option value="">Todas las categorías</option>' +
+          App.categoriasState.map(c => `<option value="${escaparHTML(c.nombre)}">${escaparHTML(c.nombre.charAt(0).toUpperCase() + c.nombre.slice(1))}</option>`).join('');
+        if (Array.from(selectCat.options).some(op => op.value === categoriaAnterior)) selectCat.value = categoriaAnterior;
       }
       if (selectMet) {
-        selectMet.innerHTML = '<option value="">Todos los métodos</option>' + 
-          metodosPago.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
+        selectMet.innerHTML = '<option value="">Todos los métodos</option>' +
+          metodosPago.map(m => `<option value="${escaparHTML(m.nombre)}">${escaparHTML(m.nombre)}</option>`).join('');
+        if (Array.from(selectMet.options).some(op => op.value === metodoAnterior)) selectMet.value = metodoAnterior;
       }
     }
 
-    addListener('filtroCategoriaMov', () => recargarTransacciones());
-    addListener('filtroMetodoPago', () => recargarTransacciones());
+    // Los filtros son exclusivamente visuales; no modifican importes ni registros.
+    ['filtroCategoriaMov', 'filtroMetodoPago', 'filtroTipoMov'].forEach(id => {
+      const selector = document.getElementById(id);
+      if (selector) selector.addEventListener('change', renderizarListaMovimientos);
+    });
+    const buscarMovimiento = document.getElementById('buscarMovimiento');
+    if (buscarMovimiento) buscarMovimiento.addEventListener('input', renderizarListaMovimientos);
+
+    // ==================== MOVIMIENTOS: BÚSQUEDA Y FILTROS ====================
+    function renderizarListaMovimientos() {
+      const lista = document.getElementById('listaTransacciones');
+      if (!lista) return;
+
+      const categoriaFiltro = document.getElementById('filtroCategoriaMov')?.value || '';
+      const metodoFiltro = document.getElementById('filtroMetodoPago')?.value || '';
+      const tipoFiltro = document.getElementById('filtroTipoMov')?.value || '';
+      const busqueda = normalizarTexto(document.getElementById('buscarMovimiento')?.value.trim() || '');
+
+      const filtradas = movimientosDelPeriodo.filter(t => {
+        if (categoriaFiltro && t.categoria !== categoriaFiltro) return false;
+        if (metodoFiltro && t.metodoPago !== metodoFiltro) return false;
+        if (tipoFiltro && t.tipo !== tipoFiltro) return false;
+        if (!busqueda) return true;
+        const campos = [t.categoria, t.subcategoria, t.descripcion, t.fecha, t.metodoPago, t.monto, App.formatearMonto(t.monto)];
+        return normalizarTexto(campos.join(' ')).includes(busqueda);
+      });
+
+      const contador = document.getElementById('contadorMovimientos');
+      if (contador) contador.textContent = filtradas.length + ' de ' + movimientosDelPeriodo.length;
+
+      if (filtradas.length === 0) {
+        lista.innerHTML = movimientosDelPeriodo.length === 0
+          ? '<p class="texto-secundario text-center">No hay movimientos en este período</p>'
+          : '<p class="texto-secundario text-center">No se encontraron movimientos con estos filtros</p>';
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      const ordenadas = [...filtradas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      ordenadas.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'movimiento-item';
+        div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+
+        const descripcion = String(t.descripcion || '').trim();
+        const mostrarDescripcion = descripcion && normalizarTexto(descripcion) !== 'sin descripcion';
+        const subtitulo = [t.subcategoria || '', mostrarDescripcion ? descripcion : '', t.fecha || ''].filter(Boolean).join(' • ');
+        div.innerHTML = `
+          <div style="flex: 1; min-width: 0;">
+            <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize;">${escaparHTML(t.categoria || 'Sin categoría')}</span>
+            <small style="color: var(--text-secondary); font-size: 11px;">${escaparHTML(subtitulo)}</small>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 700; font-size: 14px; color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
+              ${t.tipo === 'ingreso' ? '+' : '-'}$${App.formatearMonto(t.monto)}
+            </span>
+            <button class="btn-edit-mov" data-id="${escaparHTML(t.id)}" data-tipo="${escaparHTML(t.tipo)}" data-cat="${escaparHTML(t.categoria)}" data-subcat="${escaparHTML(t.subcategoria || '')}" data-desc="${escaparHTML(t.descripcion || '')}" data-monto="${escaparHTML(t.monto)}" data-fecha="${escaparHTML(t.fecha)}" data-metodo="${escaparHTML(t.metodoPago || '')}" style="background: none; border: none; cursor: pointer; color: #666;" aria-label="Editar movimiento"><i class="ph ph-pencil"></i></button>
+            <button class="btn-delete-mov" data-id="${escaparHTML(t.id)}" style="background: none; border: none; cursor: pointer; color: #ef4444;" aria-label="Eliminar movimiento"><i class="ph ph-trash"></i></button>
+          </div>
+        `;
+        fragment.appendChild(div);
+      });
+
+      lista.innerHTML = '';
+      lista.appendChild(fragment);
+
+      // Conservar exactamente las acciones de editar y eliminar existentes.
+      lista.querySelectorAll('.btn-edit-mov').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const d = this.dataset;
+          document.getElementById('idTransaccionEditar').value = d.id;
+          document.getElementById('fechaEditar').value = d.fecha;
+          document.getElementById('descripcionEditar').value = d.desc;
+          document.getElementById('montoEditar').value = d.monto;
+
+          const selectCat = document.getElementById('categoriaEditar');
+          const cats = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
+          selectCat.innerHTML = cats.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
+
+          const selectMet = document.getElementById('metodoPagoEditar');
+          selectMet.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
+
+          document.getElementById('modalEditarTransaccion').classList.remove('hidden');
+        });
+      });
+
+      lista.querySelectorAll('.btn-delete-mov').forEach(btn => {
+        btn.addEventListener('click', function() {
+          if (confirm('¿Eliminar este movimiento?')) {
+            App.eliminarTransaccion(this.dataset.id);
+          }
+        });
+      });
+    }
 
     function actualizarDashboard(transacciones) {
       const hoy = new Date();
@@ -633,66 +745,8 @@
       if (elGastos) elGastos.textContent = '$' + App.formatearMonto(gastosPeriodo);
 
       // 5. RENDERIZAR LISTA DE MOVIMIENTOS
-      const lista = document.getElementById('listaTransacciones');
-      if (lista) {
-        if (filtradasPorFecha.length === 0) {
-          lista.innerHTML = '<p class="texto-secundario text-center">No hay movimientos en este período</p>';
-        } else {
-          const fragment = document.createDocumentFragment();
-          const ordenadas = [...filtradasPorFecha].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-          
-          ordenadas.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'movimiento-item';
-            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 12px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
-            
-            div.innerHTML = `
-              <div style="flex: 1; min-width: 0;">
-                <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize;">${t.categoria}</span>
-                <small style="color: var(--text-secondary); font-size: 11px;">${t.descripcion && t.descripcion !== 'Sin descripción' ? t.descripcion + ' • ' : ''}${t.fecha}</small>
-              </div>
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-weight: 700; font-size: 14px; color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
-                  ${t.tipo === 'ingreso' ? '+' : '-'}$${App.formatearMonto(t.monto)}
-                </span>
-                <button class="btn-edit-mov" data-id="${t.id}" data-tipo="${t.tipo}" data-cat="${t.categoria}" data-subcat="${t.subcategoria || ''}" data-desc="${t.descripcion}" data-monto="${t.monto}" data-fecha="${t.fecha}" data-metodo="${t.metodoPago || ''}" style="background: none; border: none; cursor: pointer; color: #666;"><i class="ph ph-pencil"></i></button>
-                <button class="btn-delete-mov" data-id="${t.id}" style="background: none; border: none; cursor: pointer; color: #ef4444;"><i class="ph ph-trash"></i></button>
-              </div>
-            `;
-            fragment.appendChild(div);
-          });
-          
-          lista.innerHTML = '';
-          lista.appendChild(fragment);
-
-          lista.querySelectorAll('.btn-edit-mov').forEach(btn => {
-            btn.addEventListener('click', function() {
-              const d = this.dataset;
-              document.getElementById('idTransaccionEditar').value = d.id;
-              document.getElementById('fechaEditar').value = d.fecha;
-              document.getElementById('descripcionEditar').value = d.desc;
-              document.getElementById('montoEditar').value = d.monto;
-              
-              const selectCat = document.getElementById('categoriaEditar');
-              const cats = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
-              selectCat.innerHTML = cats.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
-              
-              const selectMet = document.getElementById('metodoPagoEditar');
-              selectMet.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
-              
-              document.getElementById('modalEditarTransaccion').classList.remove('hidden');
-            });
-          });
-
-          lista.querySelectorAll('.btn-delete-mov').forEach(btn => {
-            btn.addEventListener('click', function() {
-              if (confirm('¿Eliminar este movimiento?')) {
-                App.eliminarTransaccion(this.dataset.id);
-              }
-            });
-          });
-        }
-      }
+      movimientosDelPeriodo = filtradasPorFecha;
+      renderizarListaMovimientos();
 
       if (ocultarMontos) {
         [elIngresos, elGastos, elBalanceHeader].forEach(el => {
