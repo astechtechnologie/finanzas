@@ -382,7 +382,10 @@
     // ==================== GUARDAR TRANSACCIÓN ====================
     addListener('btnCerrarModalX', () => modal?.classList.add('hidden'));
     
-    function guardarTransaccion() {
+    async function guardarTransaccion() {
+      const btnGuardar = document.getElementById('btnGuardarModalQuick');
+      if (btnGuardar?.disabled) return; // Evitar doble envío.
+
       const chipActivo = document.querySelector('#chipsCategorias .chip-categoria.activo');
       const cat = chipActivo ? chipActivo.dataset.nombre : '';
       const subcat = document.getElementById('subcategoria').value || null;
@@ -393,14 +396,32 @@
       const metodoPago = document.getElementById('metodoPago').value || null;
 
       if (!cat) { alert('Por favor, selecciona una categoría.'); return; }
-      if (!monto || monto <= 0) { alert('Por favor, escribe un monto mayor a 0.'); return; }
+      if (!Number.isFinite(monto) || monto <= 0) { alert('Por favor, escribe un monto mayor a 0.'); return; }
+      if (!fecha) { alert('Por favor, selecciona una fecha.'); return; }
 
-      App.agregarTransaccion(tipoTransaccion, cat, subcat, desc || 'Sin descripción', monto, fecha, metodoPago, App.cuentaActual);
-      
-      if (modal) modal.classList.add('hidden');
-      document.getElementById('descripcion').value = '';
-      document.getElementById('monto').value = '';
-      document.getElementById('categoria').value = '';
+      const iconoOriginal = btnGuardar?.innerHTML;
+      if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.setAttribute('aria-busy', 'true');
+        btnGuardar.textContent = '...';
+      }
+
+      try {
+        await App.agregarTransaccion(tipoTransaccion, cat, subcat, desc || 'Sin descripción', monto, fecha, metodoPago, App.cuentaActual);
+        if (modal) modal.classList.add('hidden');
+        document.getElementById('descripcion').value = '';
+        document.getElementById('monto').value = '';
+        document.getElementById('categoria').value = '';
+      } catch (error) {
+        console.error('No se pudo guardar el movimiento:', error);
+        alert('No se pudo guardar el movimiento. Revisa la conexión y los permisos de Firebase. Puedes volver a intentarlo sin perder el formulario.');
+      } finally {
+        if (btnGuardar) {
+          btnGuardar.disabled = false;
+          btnGuardar.removeAttribute('aria-busy');
+          btnGuardar.innerHTML = iconoOriginal;
+        }
+      }
     }
 
     addListener('btnGuardarModalQuick', guardarTransaccion);
@@ -470,12 +491,20 @@
         subcats.map(sub => `<option value="${sub}">${sub}</option>`).join('');
     }
 
+    // Fecha local: evitar desfases por convertir a UTC con toISOString().
+    function fechaLocalHoy() {
+      const hoy = new Date();
+      return hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0');
+    }
+
     const fechaInput = document.getElementById('fecha');
-    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+    if (fechaInput) fechaInput.value = fechaLocalHoy();
 
     // ==================== EDITAR TRANSACCIÓN ====================
     addListener('btnCancelarEditar', () => modalEditar?.classList.add('hidden'));
-    addListener('btnGuardarEditar', function() {
+    addListener('btnGuardarEditar', async function() {
+      const boton = this;
+      if (boton.disabled) return;
       const id = document.getElementById('idTransaccionEditar').value;
       const cat = document.getElementById('categoriaEditar').value;
       const subcat = document.getElementById('subcategoriaEditar').value || null;
@@ -485,9 +514,23 @@
       const fecha = document.getElementById('fechaEditar').value;
       const metodoPago = document.getElementById('metodoPagoEditar').value || null;
 
-      if (!id || !cat || isNaN(monto)) return;
-      App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc || 'Sin descripción', monto, fecha, metodoPago });
-      modalEditar?.classList.add('hidden');
+      if (!id || !cat || !fecha || !Number.isFinite(monto) || monto <= 0) {
+        alert('Revisa la categoría, el monto y la fecha antes de guardar.');
+        return;
+      }
+      const textoOriginal = boton.textContent;
+      boton.disabled = true;
+      boton.textContent = 'Guardando...';
+      try {
+        await App.actualizarTransaccion(id, { categoria: cat, subcategoria: subcat, descripcion: desc || 'Sin descripción', monto, fecha, metodoPago });
+        modalEditar?.classList.add('hidden');
+      } catch (error) {
+        console.error('No se pudo editar el movimiento:', error);
+        alert('No se pudo guardar la edición. Verifica tu conexión o permisos. Los datos siguen en el formulario.');
+      } finally {
+        boton.disabled = false;
+        boton.textContent = textoOriginal;
+      }
     });
 
     // ==================== EXPORTAR CSV ====================
@@ -624,10 +667,11 @@
             <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize;">${escaparHTML(t.categoria || 'Sin categoría')}</span>
             <small style="color: var(--text-secondary); font-size: 11px;">${escaparHTML(subtitulo)}</small>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
             <span style="font-weight: 700; font-size: 14px; color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
               ${t.tipo === 'ingreso' ? '+' : '-'}$${App.formatearMonto(t.monto)}
             </span>
+            <button class="btn-duplicar-mov" data-id="${escaparHTML(t.id)}" data-tipo="${escaparHTML(t.tipo)}" data-cat="${escaparHTML(t.categoria)}" data-subcat="${escaparHTML(t.subcategoria || '')}" data-desc="${escaparHTML(t.descripcion || '')}" data-monto="${escaparHTML(t.monto)}" data-metodo="${escaparHTML(t.metodoPago || '')}" style="background: none; border: none; cursor: pointer; color: var(--text-secondary);" title="Duplicar movimiento" aria-label="Duplicar movimiento"><i class="ph ph-copy"></i></button>
             <button class="btn-edit-mov" data-id="${escaparHTML(t.id)}" data-tipo="${escaparHTML(t.tipo)}" data-cat="${escaparHTML(t.categoria)}" data-subcat="${escaparHTML(t.subcategoria || '')}" data-desc="${escaparHTML(t.descripcion || '')}" data-monto="${escaparHTML(t.monto)}" data-fecha="${escaparHTML(t.fecha)}" data-metodo="${escaparHTML(t.metodoPago || '')}" style="background: none; border: none; cursor: pointer; color: #666;" aria-label="Editar movimiento"><i class="ph ph-pencil"></i></button>
             <button class="btn-delete-mov" data-id="${escaparHTML(t.id)}" style="background: none; border: none; cursor: pointer; color: #ef4444;" aria-label="Eliminar movimiento"><i class="ph ph-trash"></i></button>
           </div>
@@ -645,16 +689,63 @@
           document.getElementById('idTransaccionEditar').value = d.id;
           document.getElementById('fechaEditar').value = d.fecha;
           document.getElementById('descripcionEditar').value = d.desc;
-          document.getElementById('montoEditar').value = d.monto;
+          // El formulario interpreta la coma como separador decimal.
+          document.getElementById('montoEditar').value = String(d.monto).replace('.', ',');
 
           const selectCat = document.getElementById('categoriaEditar');
           const cats = (App.categoriasState || []).filter(c => c.tipo === d.tipo);
           selectCat.innerHTML = cats.map(c => `<option value="${c.nombre}" ${c.nombre === d.cat ? 'selected' : ''}>${c.nombre}</option>`).join('');
 
+          // Conservar la subcategoría actual al abrir la edición.
+          function actualizarSubcategoriasEdicion(cat, seleccionada = '') {
+            const selectSub = document.getElementById('subcategoriaEditar');
+            if (!selectSub) return;
+            const opciones = [...(App.subcategoriasPorCategoria[cat] || [])];
+            if (seleccionada && !opciones.includes(seleccionada)) opciones.push(seleccionada);
+            selectSub.innerHTML = '<option value="">Sin subcategoría</option>' +
+              opciones.map(sub => `<option value="${escaparHTML(sub)}">${escaparHTML(sub)}</option>`).join('');
+            selectSub.value = seleccionada;
+          }
+          actualizarSubcategoriasEdicion(d.cat, d.subcat);
+          selectCat.onchange = function() { actualizarSubcategoriasEdicion(this.value); };
+
           const selectMet = document.getElementById('metodoPagoEditar');
           selectMet.innerHTML = '<option value="">Sin método</option>' + metodosPago.map(m => `<option value="${m.nombre}" ${m.nombre === d.metodo ? 'selected' : ''}>${m.nombre}</option>`).join('');
 
           document.getElementById('modalEditarTransaccion').classList.remove('hidden');
+        });
+      });
+
+      // Duplicar no escribe en Firestore: abre un formulario para revisar y confirmar.
+      lista.querySelectorAll('.btn-duplicar-mov').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const d = this.dataset;
+          const categoriaExiste = (App.categoriasState || []).some(c => c.tipo === d.tipo && c.nombre === d.cat);
+          if (!categoriaExiste) {
+            alert('Esta categoría ya no existe. Crea la categoría antes de duplicar el movimiento.');
+            return;
+          }
+
+          abrirModalTransaccion(d.tipo);
+          const contChips = document.getElementById('chipsCategorias');
+          const chipOriginal = Array.from(contChips?.querySelectorAll('.chip-categoria') || []).find(chip => chip.dataset.nombre === d.cat);
+          if (chipOriginal) {
+            contChips.querySelectorAll('.chip-categoria').forEach(chip => chip.classList.remove('activo'));
+            chipOriginal.classList.add('activo');
+            document.getElementById('categoria').value = d.cat;
+          }
+          llenarSelectSubcategorias();
+          const selectSubDuplicado = document.getElementById('subcategoria');
+          if (selectSubDuplicado && d.subcat) {
+            if (!Array.from(selectSubDuplicado.options).some(op => op.value === d.subcat)) {
+              selectSubDuplicado.add(new Option(d.subcat, d.subcat));
+            }
+            selectSubDuplicado.value = d.subcat;
+          }
+          document.getElementById('descripcion').value = d.desc === 'Sin descripción' ? '' : d.desc;
+          document.getElementById('monto').value = String(d.monto).replace('.', ',');
+          document.getElementById('fecha').value = fechaLocalHoy();
+          document.getElementById('metodoPago').value = d.metodo || '';
         });
       });
 
