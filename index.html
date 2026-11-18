@@ -168,6 +168,19 @@
         <div class="movimientos-container mt-4">
           <div class="movimientos-header">
             <h2>Movimientos</h2>
+            <span id="contadorMovimientos" class="texto-secundario" aria-live="polite"></span>
+          </div>
+          <!-- Búsqueda y filtros de movimientos: solo afectan la lista, no los saldos -->
+          <div class="filtros-movimientos">
+            <input id="buscarMovimiento" class="input-field" type="search"
+              placeholder="Buscar movimientos" aria-label="Buscar movimientos"
+              autocomplete="off" style="min-width: 0; flex: 2; margin-bottom: 0;">
+            <select id="filtroTipoMov" class="input-field" aria-label="Filtrar por tipo"
+              style="min-width: 0; flex: 1; margin-bottom: 0;">
+              <option value="">Todos</option>
+              <option value="ingreso">Ingresos</option>
+              <option value="gasto">Gastos</option>
+            </select>
           </div>
           <div class="filtros-movimientos">
             <select id="filtroCategoriaMov" class="input-field" aria-label="Filtrar por categoría">
