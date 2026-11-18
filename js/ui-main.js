@@ -648,8 +648,8 @@
             
             div.innerHTML = `
               <div style="flex: 1; min-width: 0;">
-                <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.descripcion}</span>
-                <small style="color: var(--text-secondary); font-size: 11px;">${t.categoria} • ${t.fecha}</small>
+                <span style="font-weight: 500; font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize;">${t.categoria}</span>
+                <small style="color: var(--text-secondary); font-size: 11px;">${t.descripcion && t.descripcion !== 'Sin descripción' ? t.descripcion + ' • ' : ''}${t.fecha}</small>
               </div>
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-weight: 700; font-size: 14px; color: ${t.tipo === 'ingreso' ? '#10b981' : '#ef4444'};">
