@@ -303,11 +303,34 @@
           </div>
 
           <div class="ajuste-item">
-            <span>Recordatorio diario de gastos</span>
+            <span>Notificaciones push (Firebase)</span>
             <label class="switch">
               <input type="checkbox" id="toggleNotificaciones">
               <span class="slider round"></span>
             </label>
+          </div>
+
+          <!-- Recordatorios diarios locales (independientes de Firebase Messaging) -->
+          <div class="ajuste-item">
+            <div style="flex: 1; padding-right: 12px;">
+              <strong style="font-size: 14px;">Recordarme registrar mis movimientos</strong>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 3px;">
+                Aviso diario cuando Finora esté abierta.
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggleRecordatorioMovimientos" aria-label="Activar recordatorio diario de movimientos">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div id="configRecordatorioMovimientos" class="cuentas-box" style="padding: 12px; margin-bottom: 12px;">
+            <label for="horaRecordatorioMovimientos" style="display:block; margin-bottom: 7px; font-size: 13px;">Hora del recordatorio</label>
+            <input id="horaRecordatorioMovimientos" type="time" value="20:00" class="input-field" style="max-width: 180px;">
+            <p id="estadoRecordatorioMovimientos" aria-live="polite" style="margin: 8px 0; font-size: 12px; color: var(--text-secondary);"></p>
+            <button id="btnPermisoRecordatorios" type="button" class="btn btn-outline-small">Permitir avisos del dispositivo</button>
+            <p style="font-size: 11px; margin: 8px 0 0; color: var(--text-secondary);">
+              Los avisos del dispositivo pueden aparecer si la pestaña sigue abierta en segundo plano. No se garantizan con la app cerrada.
+            </p>
           </div>
 
           <div class="ajuste-item ajuste-item-no-border" style="margin-top: 15px;">
@@ -537,6 +560,22 @@
 
   </div> <!-- /appShell -->
 
+  <!-- Aviso local al registrar gastos: independiente de FCM -->
+  <div id="avisoRecordatorioMovimientos" class="hidden" role="status" aria-live="polite"
+       style="position: fixed; bottom: 86px; left: 12px; right: 12px; max-width: 420px; margin: 0 auto;
+              z-index: 9999; background: var(--bg-card); color: var(--text-color);
+              border: 1px solid var(--border-color); border-left: 5px solid #e8c84c;
+              border-radius: 14px; padding: 14px; box-shadow: 0 6px 30px rgba(0,0,0,.2);">
+    <strong style="display: block; margin-bottom: 5px;">🔔 ¿Ya registraste tus movimientos de hoy?</strong>
+    <p style="margin: 0 0 10px; font-size: 13px; color: var(--text-secondary);">
+      Anota tus ingresos y gastos para mantener tus finanzas al día.
+    </p>
+    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+      <button id="btnCerrarRecordatorioMovimientos" type="button" class="btn btn-outline-small">Ahora no</button>
+      <button id="btnRegistrarDesdeRecordatorio" type="button" class="btn btn-primario">Registrar gasto</button>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS ==================== -->
   <script src="js/firebase-config.js"></script>
   <script src="js/storage.js"></script>
@@ -546,6 +585,7 @@
   <script src="js/ui-main.js"></script>
   <script src="js/ui-presupuesto.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/recordatorios.js"></script>
 
   <!-- ==================== SERVICE WORKER PWA Y PUSH ==================== -->
   <script>
