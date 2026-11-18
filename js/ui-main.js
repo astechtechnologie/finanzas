@@ -58,6 +58,53 @@
       );
     }
 
+    // ==================== ELIMINACIÓN SEGURA Y DESHACER ====================
+    function mostrarOpcionDeshacerEliminacion(respaldo) {
+      let contenedor = document.getElementById('avisosMovimientosEliminados');
+      if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'avisosMovimientosEliminados';
+        contenedor.style.cssText = 'position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); left: 12px; right: 12px; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column-reverse; gap: 8px; z-index: 9999; pointer-events: none;';
+        document.body.appendChild(contenedor);
+      }
+
+      const aviso = document.createElement('div');
+      aviso.setAttribute('role', 'status');
+      aviso.style.cssText = 'display: flex; gap: 12px; align-items: center; justify-content: space-between; background: #1f2937; color: #fff; padding: 12px 14px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.25); pointer-events: auto;';
+      const mensaje = document.createElement('span');
+      mensaje.textContent = '«' + respaldo.categoria + '» eliminado.';
+      mensaje.style.cssText = 'font-size: 13px; line-height: 1.35;';
+      const botonDeshacer = document.createElement('button');
+      botonDeshacer.type = 'button';
+      botonDeshacer.textContent = 'Deshacer';
+      botonDeshacer.style.cssText = 'border: none; background: transparent; color: #e8c84c; font-weight: 700; cursor: pointer; padding: 8px;';
+      aviso.appendChild(mensaje);
+      aviso.appendChild(botonDeshacer);
+      contenedor.appendChild(aviso);
+
+      function cerrarAviso() {
+        aviso.remove();
+        if (!contenedor.childElementCount) contenedor.remove();
+      }
+      let temporizador = setTimeout(cerrarAviso, 15000);
+      botonDeshacer.addEventListener('click', async function() {
+        if (this.disabled) return;
+        clearTimeout(temporizador);
+        this.disabled = true;
+        this.textContent = 'Restaurando...';
+        try {
+          await respaldo.restaurar();
+          cerrarAviso();
+        } catch (error) {
+          console.error('Error al deshacer la eliminación:', error);
+          alert('No se pudo restaurar el movimiento: ' + (error.message || error));
+          this.disabled = false;
+          this.textContent = 'Reintentar';
+          temporizador = setTimeout(cerrarAviso, 15000);
+        }
+      });
+    }
+
     // ==================== SALUDO ====================
     const horaActual = new Date().getHours();
     let saludo = 'Buenos días';
@@ -750,9 +797,29 @@
       });
 
       lista.querySelectorAll('.btn-delete-mov').forEach(btn => {
-        btn.addEventListener('click', function() {
-          if (confirm('¿Eliminar este movimiento?')) {
-            App.eliminarTransaccion(this.dataset.id);
+        btn.addEventListener('click', async function() {
+          if (this.disabled) return;
+          const boton = this;
+          const id = boton.dataset.id;
+          const movimiento = ordenadas.find(t => t.id === id);
+          const nombre = movimiento?.categoria || 'Sin categoría';
+          const monto = movimiento ? App.formatearMonto(movimiento.monto) : 'desconocido';
+          if (!confirm('¿Eliminar el movimiento de «' + nombre + '» por $' + monto + '?\n\nPodrás deshacerlo durante 15 segundos, siempre que mantengas esta pestaña abierta.')) return;
+
+          const iconoAnterior = boton.innerHTML;
+          boton.disabled = true;
+          boton.textContent = '...';
+          try {
+            const respaldo = await App.eliminarTransaccionConDeshacer(id);
+            mostrarOpcionDeshacerEliminacion(respaldo);
+          } catch (error) {
+            console.error('Error al eliminar movimiento:', error);
+            alert('No se pudo eliminar el movimiento. Revisa la conexión y los permisos de Firebase. ' + (error.message || ''));
+          } finally {
+            if (boton.isConnected) {
+              boton.disabled = false;
+              boton.innerHTML = iconoAnterior;
+            }
           }
         });
       });
