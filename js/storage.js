@@ -88,6 +88,51 @@
     return obtenerRutaTransacciones().doc(id).delete();
   };
 
+  // ===== ELIMINAR CON OPCIÓN TEMPORAL DE DESHACER =====
+  // Conserva el documento y su ruta original solo en memoria mientras la pestaña está abierta.
+  // No altera el comportamiento de App.eliminarTransaccion, utilizado por otros módulos.
+  App.eliminarTransaccionConDeshacer = function(id) {
+    const usuarioOriginal = uid();
+    const refOriginal = obtenerRutaTransacciones().doc(id);
+
+    // La transacción lee y elimina el mismo documento de forma atómica.
+    // Sin conexión no confirma la eliminación, evitando mostrar un falso éxito.
+    return db.runTransaction(function(transaction) {
+      return transaction.get(refOriginal).then(function(snapshot) {
+        if (!snapshot.exists) throw new Error('Este movimiento ya no existe.');
+        const datosOriginales = snapshot.data();
+        transaction.delete(refOriginal);
+        return datosOriginales;
+      });
+    }).then(function(datosOriginales) {
+      let restaurado = false;
+      return {
+        id: id,
+        categoria: datosOriginales.categoria || 'Movimiento',
+        monto: datosOriginales.monto || 0,
+        restaurar: function() {
+          // No restaurar con otra sesión ni sobrescribir un documento recreado por otro usuario.
+          if (!App.auth.currentUser || App.auth.currentUser.uid !== usuarioOriginal) {
+            return Promise.reject(new Error('Inicia sesión con la cuenta original para restaurar este movimiento.'));
+          }
+          if (restaurado) {
+            return Promise.reject(new Error('Este movimiento ya fue restaurado.'));
+          }
+          return db.runTransaction(function(transaction) {
+            return transaction.get(refOriginal).then(function(snapshot) {
+              if (snapshot.exists) {
+                throw new Error('Ya existe un movimiento con este identificador; no se sobrescribió.');
+              }
+              transaction.set(refOriginal, datosOriginales);
+            });
+          }).then(function() {
+            restaurado = true;
+          });
+        }
+      };
+    });
+  };
+
   // ===== CATEGORÍAS (AHORA COMPARTIDAS) =====
   App.obtenerCategorias = function(callback) {
     return obtenerRutaCategorias().onSnapshot(
