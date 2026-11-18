@@ -145,7 +145,7 @@
   // ===== ESPACIOS COMPARTIDOS =====
   App.crearEspacioCompartido = function(nombre, callback) {
     const userId = uid();
-    const codigoInvitacion = 'PAREJA-' + Math.floor(1000 + Math.random() * 9000);
+    const codigoInvitacion = 'PAREJA-' + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
     
     return db.collection('espacios').doc(codigoInvitacion).set({
       nombre: nombre,
