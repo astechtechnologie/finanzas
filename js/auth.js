@@ -1,3 +1,4 @@
+// auth.js – Autenticación de Finora (Firebase Auth + Firestore)
 (function() {
   const App = window.App;
   const auth = App.auth;
@@ -41,8 +42,9 @@
       } else {
         auth.createUserWithEmailAndPassword(email, password).then(function(userCredential) {
           const user = userCredential.user;
-          const admins = ['tucorreo@gmail.com']; // ← Reemplaza con tu correo
-          const rol = admins.includes(user.email) ? 'admin' : 'normal';
+          // Por seguridad, todas las cuentas nuevas comienzan con rol normal.
+          // Los roles de administrador se asignan desde una operación privilegiada.
+          const rol = 'normal';
           return db.collection('usuarios').doc(user.uid).set({
             rol: rol,
             email: user.email
