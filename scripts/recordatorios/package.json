@@ -1,0 +1,13 @@
+{
+  "name": "finora-recordatorios-actions",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Recordatorios FCM de Finora ejecutados por GitHub Actions",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test horario.test.js"
+  },
+  "dependencies": {
+    "firebase-admin": "14.5.1"
+  }
+}
