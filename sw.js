@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finora-cache-v12.88';
+const CACHE_NAME = 'finora-cache-v12.89';
 const urlsToCache = [
   './',
   './index.html',
