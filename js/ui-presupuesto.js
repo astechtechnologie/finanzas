@@ -1,6 +1,141 @@
 (function() {
   const App = window.App;
 
+  // ==================== PRESUPUESTOS INTELIGENTES ====================
+  // Solo lectura: utiliza los presupuestos y transacciones existentes.
+  let cancelarCategoriasPresupuesto = null;
+  let cancelarTransaccionesPresupuesto = null;
+  let versionPantallaPresupuesto = 0;
+  let revisionCategoriasPresupuesto = 0;
+
+  function detenerEscuchasPresupuesto() {
+    if (typeof cancelarCategoriasPresupuesto === 'function') cancelarCategoriasPresupuesto();
+    if (typeof cancelarTransaccionesPresupuesto === 'function') cancelarTransaccionesPresupuesto();
+    cancelarCategoriasPresupuesto = null;
+    cancelarTransaccionesPresupuesto = null;
+  }
+
+  function formatearDinero(numero) {
+    return '$' + App.formatearMonto(Math.max(0, Number(numero) || 0));
+  }
+
+  function calcularPresupuestoInteligente(mes, categorias, limitesGastos, transacciones, fechaActual) {
+    const hoy = fechaActual instanceof Date ? fechaActual : new Date();
+    const [ano, numeroMes] = mes.split('-').map(Number);
+    const fechaAnterior = new Date(ano, numeroMes - 2, 1);
+    const mesAnterior = fechaAnterior.getFullYear() + '-' + String(fechaAnterior.getMonth() + 1).padStart(2, '0');
+    const diaComparable = Math.min(hoy.getDate(), new Date(ano, numeroMes - 1, 0).getDate());
+    const gastosPorCategoria = {};
+    const gastosPorSubcategoria = {};
+    let gastosMes = 0;
+    let gastosActualComparable = 0;
+    let gastosAnteriorComparable = 0;
+
+    (transacciones || []).forEach(function(t) {
+      if (t.tipo !== 'gasto' || typeof t.fecha !== 'string') return;
+      const monto = Number(t.monto);
+      if (!Number.isFinite(monto) || monto <= 0) return;
+      if (t.fecha.startsWith(mes)) {
+        gastosMes += monto;
+        if (Number(t.fecha.slice(8, 10)) <= hoy.getDate()) gastosActualComparable += monto;
+        const cat = String(t.categoria || 'Sin categoría');
+        gastosPorCategoria[cat] = (gastosPorCategoria[cat] || 0) + monto;
+        if (t.subcategoria) {
+          const key = cat + '|' + t.subcategoria;
+          gastosPorSubcategoria[key] = (gastosPorSubcategoria[key] || 0) + monto;
+        }
+      }
+      if (t.fecha.startsWith(mesAnterior) && Number(t.fecha.slice(8, 10)) <= diaComparable) {
+        gastosAnteriorComparable += monto;
+      }
+    });
+
+    let presupuestoTotal = 0;
+    let gastosConLimite = 0;
+    let categoriasConLimite = 0;
+    const alertas = [];
+    (categorias || []).filter(c => c.tipo === 'gasto').forEach(function(c) {
+      const limite = Math.max(0, Number(limitesGastos[c.nombre]?.limite) || 0);
+      if (!limite) return;
+      const gastado = gastosPorCategoria[c.nombre] || 0;
+      const porcentaje = gastado / limite * 100;
+      presupuestoTotal += limite;
+      gastosConLimite += gastado;
+      categoriasConLimite++;
+      if (porcentaje >= 80) alertas.push({ categoria: c.nombre, porcentaje, gastado, limite, nivel: porcentaje >= 100 ? 'excedido' : 'alerta' });
+    });
+    alertas.sort((a, b) => b.porcentaje - a.porcentaje);
+
+    return {
+      mes,
+      mesAnterior,
+      diaComparable,
+      gastosPorCategoria,
+      gastosPorSubcategoria,
+      gastosMes,
+      gastosActualComparable,
+      gastosAnteriorComparable,
+      presupuestoTotal,
+      gastosConLimite,
+      gastosSinLimite: Math.max(0, gastosMes - gastosConLimite),
+      categoriasConLimite,
+      disponible: presupuestoTotal - gastosConLimite,
+      porcentajeGeneral: presupuestoTotal > 0 ? gastosConLimite / presupuestoTotal * 100 : 0,
+      alertas
+    };
+  }
+
+  // También expuesto para pruebas de cálculos, sin escribir en Firebase.
+  App.calcularPresupuestoInteligente = calcularPresupuestoInteligente;
+
+  function crearResumenInteligente(resumen) {
+    const tieneLimites = resumen.presupuestoTotal > 0;
+    const progreso = Math.min(100, Math.max(0, resumen.porcentajeGeneral));
+    const colorProgreso = resumen.porcentajeGeneral >= 100 ? '#ef4444' : resumen.porcentajeGeneral >= 80 ? '#f97316' : '#e8c84c';
+    const diferencia = resumen.gastosActualComparable - resumen.gastosAnteriorComparable;
+    const absDiferencia = formatearDinero(Math.abs(diferencia));
+    const textoComparacion = resumen.gastosAnteriorComparable > 0
+      ? (diferencia > 0 ? 'Más gastos: ' : diferencia < 0 ? 'Menos gastos: ' : 'Sin cambio: ') + absDiferencia +
+        ' (' + Math.abs(diferencia / resumen.gastosAnteriorComparable * 100).toFixed(1) + '%)'
+      : 'Sin gastos registrados el mes anterior para comparar';
+
+    let html = `
+      <section class="card" aria-label="Resumen de presupuesto inteligente" style="padding:16px; margin-bottom:16px; background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); border-radius:14px;">
+        <h3 style="margin:0 0 12px; font-size:16px;">Resumen inteligente</h3>
+        <div style="display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;">
+          <div><small style="color:var(--text-secondary);">Presupuesto asignado</small><div style="font-weight:700;">${formatearDinero(resumen.presupuestoTotal)}</div></div>
+          <div><small style="color:var(--text-secondary);">Gastado con límite</small><div style="font-weight:700;">${formatearDinero(resumen.gastosConLimite)}</div></div>
+          <div><small style="color:var(--text-secondary);">${resumen.disponible < 0 ? 'Excedido en total' : 'Disponible'}</small><div style="font-weight:700; color:${resumen.disponible < 0 ? '#ef4444' : 'var(--text-color)'};">${formatearDinero(Math.abs(resumen.disponible))}</div></div>
+          <div><small style="color:var(--text-secondary);">Gastos sin límite asignado</small><div style="font-weight:700;">${formatearDinero(resumen.gastosSinLimite)}</div></div>
+        </div>
+        ${tieneLimites ? `
+          <div style="margin-top:14px; display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary);"><span>Presupuesto utilizado</span><strong>${Math.round(resumen.porcentajeGeneral)}%</strong></div>
+          <div role="progressbar" aria-label="Porcentaje del presupuesto utilizado" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progreso)}" style="margin-top:5px; background:var(--border-color); height:9px; overflow:hidden; border-radius:9px;">
+            <div style="height:100%; width:${progreso}%; background:${colorProgreso};"></div>
+          </div>` : '<p style="margin:12px 0 0; font-size:12px; color:var(--text-secondary);">Define un límite en alguna categoría para calcular cuánto te queda disponible.</p>'}
+        <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-color); font-size:12px;">
+          <div style="color:var(--text-secondary);">Comparación de gastos: hasta el día ${resumen.diaComparable} del mes anterior (${resumen.mesAnterior})</div>
+          <strong>${textoComparacion}</strong>
+          <div style="color:var(--text-secondary); margin-top:4px;">Gastos actuales hasta hoy: ${formatearDinero(resumen.gastosActualComparable)} · Mes anterior comparable: ${formatearDinero(resumen.gastosAnteriorComparable)}</div>
+        </div>
+      </section>`;
+
+    if (resumen.alertas.length) {
+      const excedidas = resumen.alertas.filter(a => a.nivel === 'excedido').length;
+      html += `<section aria-live="polite" style="padding:12px; border-radius:12px; margin-bottom:16px; border:1px solid ${excedidas ? '#ef4444' : '#f97316'}; background:var(--bg-card); color:var(--text-color);">
+        <strong>${excedidas ? 'Atención: hay presupuestos excedidos' : 'Atención: cerca del límite'}</strong>
+        <div style="margin-top:5px; font-size:12px; color:var(--text-secondary);">${resumen.alertas.length} categoría(s) con 80% o más de su límite utilizado:</div>
+        <ul style="margin:8px 0 0; padding-left:19px; font-size:12px;">`;
+      resumen.alertas.slice(0, 5).forEach(function(a) {
+        const nombreSeguro = String(a.categoria).replace(/[&<>"']/g, function(c) {return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+        html += `<li>${nombreSeguro}: ${Math.round(a.porcentaje)}% (${a.nivel === 'excedido' ? 'límite alcanzado o excedido' : 'cerca del límite'})</li>`;
+      });
+      if (resumen.alertas.length > 5) html += `<li>Y ${resumen.alertas.length - 5} categoría(s) más.</li>`;
+      html += '</ul></section>';
+    }
+    return html;
+  }
+
   // ==================== ESTRUCTURA GENERAL ====================
   function crearEstructura() {
     var html = '';
@@ -19,11 +154,15 @@
     const cont = document.getElementById('presupuestoContenido');
     if (!cont) return;
 
+    const versionActual = ++versionPantallaPresupuesto;
+    detenerEscuchasPresupuesto();
     const mes = typeof App.obtenerMesActual === 'function' ? App.obtenerMesActual() : new Date().toISOString().slice(0, 7);
-    
+
     cont.innerHTML = '<p class="text-center texto-secundario">Cargando presupuesto...</p>';
 
-    App.obtenerCategorias(function(categorias) {
+    cancelarCategoriasPresupuesto = App.obtenerCategorias(function(categorias) {
+      if (versionActual !== versionPantallaPresupuesto) return;
+      const revisionActual = ++revisionCategoriasPresupuesto;
       const catGastos = categorias.filter(c => c.tipo === 'gasto');
 
       if (catGastos.length === 0) {
@@ -35,21 +174,15 @@
       }
 
       App.obtenerLimitesCategorias(mes, function(limites) {
+        if (versionActual !== versionPantallaPresupuesto || revisionActual !== revisionCategoriasPresupuesto) return;
         const limitesGastos = limites.gastos || {};
-        
-        App.obtenerTransacciones(function(transacciones) {
-          const gastosPorCategoria = {};
-          const gastosPorSubcategoria = {};
-          
-          transacciones.forEach(t => {
-            if (t.tipo === 'gasto' && t.fecha && t.fecha.startsWith(mes)) {
-              gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + t.monto;
-              if (t.subcategoria) {
-                const key = t.categoria + '|' + t.subcategoria;
-                gastosPorSubcategoria[key] = (gastosPorSubcategoria[key] || 0) + t.monto;
-              }
-            }
-          });
+
+        if (typeof cancelarTransaccionesPresupuesto === 'function') cancelarTransaccionesPresupuesto();
+        cancelarTransaccionesPresupuesto = App.obtenerTransacciones(function(transacciones) {
+          if (versionActual !== versionPantallaPresupuesto || revisionActual !== revisionCategoriasPresupuesto) return;
+          const resumen = calcularPresupuestoInteligente(mes, catGastos, limitesGastos, transacciones);
+          const gastosPorCategoria = resumen.gastosPorCategoria;
+          const gastosPorSubcategoria = resumen.gastosPorSubcategoria;
 
           let html = `
             <div class="card" style="padding: 20px; background: #1c1c1e; color: white; border-radius: 16px; margin-bottom: 20px;">
@@ -63,6 +196,7 @@
                 </button>
               </div>
             </div>
+            ${crearResumenInteligente(resumen)}
             <div class="card" style="padding: 15px;">
           `;
 
@@ -100,6 +234,10 @@
                 <div class="barra-presupuesto">
                   <div class="barra-presupuesto-fill" style="width: ${Math.min(porcentaje, 100)}%; background: ${colorBarra};"></div>
                 </div>
+                ${limite > 0 ? `<div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-top:6px; font-size:11px; color:var(--text-secondary);">
+                  <span>${gastado > limite ? 'Excedido:' : 'Disponible:'} ${formatearDinero(Math.abs(limite - gastado))}</span>
+                  <span style="color:${porcentaje >= 100 ? '#ef4444' : porcentaje >= 80 ? '#f97316' : 'var(--text-secondary)'}; font-weight:600;">${porcentaje >= 100 ? 'Límite alcanzado o excedido' : porcentaje >= 80 ? 'Aviso: 80% o más utilizado' : 'Dentro del presupuesto'}</span>
+                </div>` : ''}
 
                 <!-- SECCIÓN DE SUBCATEGORÍAS -->
                 <div style="margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--border-color);">
@@ -131,6 +269,7 @@
                   <div class="barra-presupuesto" style="height: 4px; margin-top: 4px;">
                     <div class="barra-presupuesto-fill" style="width: ${Math.min(subPorcentaje, 100)}%; background: ${subColor};"></div>
                   </div>
+                  ${subLimite > 0 ? `<small style="color:${subPorcentaje >= 100 ? '#ef4444' : subPorcentaje >= 80 ? '#f97316' : 'var(--text-secondary)'}; display:block; margin-top:4px;">${subGastado > subLimite ? 'Excedido:' : 'Disponible:'} ${formatearDinero(Math.abs(subLimite - subGastado))}${subPorcentaje >= 80 ? ' · Atención al límite' : ''}</small>` : ''}
                 </div>
               `;
             });
@@ -394,14 +533,20 @@
         renderizarPresupuestoMensual();
       });
       document.getElementById('tabMetasAhorro').addEventListener('click', function() {
+        ++versionPantallaPresupuesto;
+        detenerEscuchasPresupuesto();
         setActiveTab('tabMetasAhorro');
         renderizarMetas();
       });
       document.getElementById('tabSuscripciones').addEventListener('click', function() {
+        ++versionPantallaPresupuesto;
+        detenerEscuchasPresupuesto();
         setActiveTab('tabSuscripciones');
         renderizarSuscripciones();
       });
       document.getElementById('tabPrestamos').addEventListener('click', function() {
+        ++versionPantallaPresupuesto;
+        detenerEscuchasPresupuesto();
         setActiveTab('tabPrestamos');
         renderizarPrestamos();
       });
