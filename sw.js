@@ -6,7 +6,7 @@
  */
 'use strict';
 
-const CACHE_NAME = 'finora-pwa-v14';
+const CACHE_NAME = 'finora-pwa-v15';
 const APP_SCOPE = self.registration.scope;
 const ROOT_URL = new URL(APP_SCOPE);
 
