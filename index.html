@@ -31,7 +31,7 @@
   
   <!-- Estilos -->
   <!-- Todos los estilos de Finora están consolidados en este archivo. -->
-  <link rel="stylesheet" href="css/styles.css?v=20261121-2">
+  <link rel="stylesheet" href="css/styles.css?v=20261121-inicio2">
 </head>
 <body>
 
@@ -180,7 +180,8 @@
         </section>
 
         
-        <div class="inicio-header-verde">
+        <div class="inicio-header-verde fi-inicio-hero">
+          <div class="fi-hero-kicker"><span class="fi-kicker-dot" aria-hidden="true"></span> TU PANORAMA FINANCIERO</div>
           <div class="inicio-top-bar">
             <button class="btn-icon-white" aria-label="Menú"><i class="ph ph-list"></i></button>
             <div class="inicio-balance-central">
@@ -196,7 +197,14 @@
           </div>
         </div>
 
-        <div class="inicio-card-blanca">
+        <div class="inicio-card-blanca fi-analitica-inicio">
+          <div class="fi-seccion-cabecera">
+            <div>
+              <span class="fi-seccion-sobretitulo">ANÁLISIS VISUAL</span>
+              <h2 class="fi-seccion-titulo">Tus movimientos en el tiempo</h2>
+            </div>
+            <span class="fi-seccion-insignia"><i class="ph ph-chart-donut" aria-hidden="true"></i> Distribución</span>
+          </div>
           <div class="filtros-tiempo">
             <button class="filtro-tiempo" data-filtro="dia">Día</button>
             <button class="filtro-tiempo" data-filtro="semana">Semana</button>
@@ -234,7 +242,7 @@
 
         <div class="movimientos-container mt-4">
           <div class="movimientos-header">
-            <h2>Movimientos</h2>
+            <h2><i class="ph ph-arrows-left-right" aria-hidden="true"></i> Movimientos</h2>
             <span id="contadorMovimientos" class="texto-secundario" aria-live="polite"></span>
           </div>
           <!-- Búsqueda y filtros de movimientos: solo afectan la lista, no los saldos -->
