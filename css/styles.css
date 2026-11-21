@@ -1526,3 +1526,55 @@ body.fi-modal-open { overflow:hidden; }
 .fi-categoria-card .btn-editar-cat, .fi-categoria-card .btn-delete-cat {width:35px;height:35px;border-radius:11px!important;display:grid;place-items:center;background:var(--bg-body,#f5f5f5)!important;}
 .fi-categoria-card .btn-editar-cat:hover, .fi-categoria-card .btn-delete-cat:hover {filter:brightness(.94);}
 .fi-categoria-card .btn-editar-cat:focus-visible, .fi-categoria-card .btn-delete-cat:focus-visible {outline:3px solid #e8c84c;outline-offset:2px;}
+/* Finora / Panel compartido. Clases prefijadas fc-; no altera el inicio personal. */
+#panelFinancieroCompartido[hidden],#panelFinancieroCompartido [hidden]{display:none!important}
+#panelFinancieroCompartido{margin:16px 12px 20px; color:var(--text-color,#202327);box-sizing:border-box}
+.fc-panel *{box-sizing:border-box}
+.fc-cabecera{background:linear-gradient(120deg,#293f36,#436557);color:#fff;border-radius:22px;padding:19px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 8px 25px rgba(24,50,39,.14)}
+.fc-etiqueta{font-size:10px;letter-spacing:1.25px;font-weight:800;display:flex;align-items:center;gap:6px;color:#dbe7dc}
+.fc-cabecera h2{font-size:23px;margin:5px 0 4px;color:#fff;line-height:1.2;overflow-wrap:anywhere}
+.fc-cabecera p{margin:0;font-size:12px;color:#e3ede5}
+.fc-mes-controles{display:flex;align-items:center;gap:5px;padding:5px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+.fc-mes-controles input{appearance:none;min-width:0;width:138px;font-family:inherit;font-size:13px;border:none;outline:none;background:transparent;color:white;color-scheme:dark;text-align:center;padding:7px 1px}
+.fc-boton-mes{min-width:32px;height:33px;cursor:pointer;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:16px}
+.fc-boton-mes:hover{background:rgba(255,255,255,.25)}
+.fc-estado{padding:14px;margin-top:13px;border-radius:12px;border:1px solid var(--border-color,#ddd);font-size:13px;background:var(--bg-card,#fff);color:var(--text-secondary,#6b7280)}
+.fc-estado.fc-error{color:#b42318;border-color:#e9a49e;background:#fff2f0}
+.fc-contenido{margin-top:13px;display:flex;flex-direction:column;gap:13px}
+.fc-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fc-kpi,.fc-tarjeta{background:var(--bg-card,#fff);border:1px solid var(--border-color,#e3e7e5);border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.035)}
+.fc-kpi{min-width:0;padding:15px 15px 12px;display:flex;flex-direction:column;gap:6px}
+.fc-kpi>span{font-size:12px;color:var(--text-secondary,#6b7280);display:flex;align-items:center;gap:6px}
+.fc-kpi strong{font-size:clamp(15px,2.8vw,21px);line-height:1.25;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fc-kpi small{color:var(--text-secondary,#6b7280);font-size:10px}
+.fc-kpi-saldo{background:rgba(232,200,76,.10);border-color:rgba(199,168,50,.28)}
+.fc-negativo{color:#df554b!important}
+.fc-dos-columnas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fc-tarjeta{padding:15px;min-width:0}
+.fc-tarjeta-cabecera{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:12px}
+.fc-tarjeta h3{margin:0;font-size:14px;font-weight:750;display:flex;gap:7px;align-items:center}
+.fc-chip{border-radius:40px;padding:5px 8px;background:var(--bg-body,#eef0ef);font-size:10px;color:var(--text-secondary,#666);white-space:nowrap}
+.fc-lista{display:flex;flex-direction:column;gap:11px}
+.fc-miembro{padding:11px 12px;border-radius:12px;background:var(--bg-body,#f6f7f7)}
+.fc-miembro-cabecera,.fc-categoria-cabecera{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px}
+.fc-miembro-cabecera small{font-size:10px;color:var(--text-secondary,#666)}
+.fc-miembro-cifras{display:flex;gap:6px 16px;flex-wrap:wrap;margin-top:8px;color:var(--text-secondary,#666);font-size:11px}
+.fc-nota{margin:11px 0 0;line-height:1.5;color:var(--text-secondary,#777);font-size:10px}
+.fc-categoria{padding:2px 0}
+.fc-categoria-nombre{overflow-wrap:anywhere}
+.fc-barra{margin-top:7px;height:8px;border-radius:10px;background:var(--bg-body,#ebeeed);overflow:hidden}
+.fc-barra-relleno{display:block;height:100%;border-radius:10px}
+.fc-movimiento{padding:10px 0;border-bottom:1px solid var(--border-color,#ececec);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fc-movimiento:last-child{border-bottom:none}
+.fc-movimiento-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fc-movimiento-info strong{font-size:13px;overflow-wrap:anywhere}
+.fc-movimiento-info small{font-size:11px;color:var(--text-secondary,#777);overflow-wrap:anywhere}
+.fc-movimiento>strong{font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.fc-ingreso{color:#20a278}
+.fc-gasto{color:#df645a}
+.fc-boton-gasto{border:0;background:#e8c84c;color:#231e0b;padding:9px 11px;white-space:nowrap;border-radius:11px;font-size:12px;font-weight:750;cursor:pointer;display:flex;align-items:center;gap:5px}
+.fc-boton-gasto:hover{filter:brightness(.95)}
+.fc-boton-gasto:focus-visible,.fc-boton-mes:focus-visible,.fc-mes-controles input:focus-visible{outline:3px solid #e8c84c;outline-offset:3px}
+.fc-vacio{margin:5px 0;color:var(--text-secondary,#888);font-size:12px}
+@media(max-width:650px){#panelFinancieroCompartido{margin:12px 10px 18px}.fc-cabecera{padding:16px}.fc-cabecera h2{font-size:19px}.fc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.fc-kpi-saldo{grid-column:1/-1}.fc-dos-columnas{grid-template-columns:1fr}.fc-kpi{padding:12px}.fc-kpi strong{font-size:18px}}
+@media(max-width:360px){.fc-mes-controles{width:100%;justify-content:center}.fc-tarjeta-cabecera{flex-wrap:wrap}.fc-movimiento>strong{font-size:12px}}
