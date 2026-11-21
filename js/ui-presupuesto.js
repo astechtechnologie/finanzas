@@ -214,7 +214,7 @@
               <div class="presupuesto-item" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 18px; color: ${cat.color};"><i class="ph ${cat.icono}"></i></span>
+                    <span style="font-size: 18px; color: ${cat.color};">${App.Iconos.html(cat.icono)}</span>
                     <strong style="text-transform: capitalize; color: var(--text-color);">${cat.nombre}</strong>
                   </div>
                   <div style="display: flex; align-items: center; gap: 5px;">
