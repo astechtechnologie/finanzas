@@ -1898,3 +1898,113 @@ body.fm-abierto {overflow:hidden;}
   .finora-topbar__select--account { max-width: 82px; }
   .finora-topbar__select--profile { max-width: 102px; }
 }
+
+/* ================================================================
+   FINORA · REPARACIÓN DE ESTILOS CONSOLIDADOS V2
+   Las secciones anteriores se han conservado íntegramente.
+   Corrige el encabezado y contrastes al cargar todos los módulos
+   desde un único css/styles.css. No modifica datos ni eventos.
+   ================================================================ */
+
+/* Unifica los nombres de variables usados por módulos añadidos:
+   Mercado usa --text-primary / --bg-main, mientras que Finora base
+   usa --text-color / --bg-body. Sin aliases, Mercado falla en dark. */
+:root {
+  --text-primary: var(--text-color);
+  --bg-main: var(--bg-body);
+}
+
+/* Asegura que el encabezado nunca se salga del ancho disponible. */
+.app-header.finora-topbar {
+  max-width: 100%;
+  min-width: 0;
+}
+.finora-topbar__brand,
+.finora-topbar__heading,
+.finora-topbar__actions,
+.finora-topbar__field,
+.finora-topbar__select-box {
+  min-width: 0;
+}
+
+/* El modo oscuro del CSS base fuerza backgrounds a todos los select.
+   Aquí los selectores deben ser transparentes sobre sus cápsulas,
+   para conservar visible el perfil dorado y la cuenta del usuario. */
+[data-theme="dark"] .finora-topbar #selectorPerfil.finora-topbar__select,
+[data-theme="dark"] .finora-topbar #selectorCuenta.finora-topbar__select {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+[data-theme="dark"] .finora-topbar .finora-topbar__select-box--profile {
+  color: #26200c;
+}
+[data-theme="dark"] .finora-topbar #selectorPerfil.finora-topbar__select {
+  color: #26200c !important;
+}
+
+/* Los controles de la barra no se contraen hasta hacerse ilegibles. */
+.finora-topbar .finora-topbar__select-box:focus-within {
+  outline: 2px solid rgba(206, 164, 26, .35);
+  outline-offset: 1px;
+}
+.finora-topbar__logo-frame { overflow: hidden; }
+.finora-topbar .finora-topbar__logo {
+  object-fit: contain;
+  object-position: center;
+}
+.finora-topbar__field--account[hidden],
+.finora-topbar__field--profile[hidden] {
+  display: none !important;
+}
+
+/* Mejor legibilidad en los módulos al cambiar al tema oscuro. */
+[data-theme="dark"] #selectorIconosModal .fi-item-circle {
+  color: #a4c7b4;
+  background: #263a34;
+  border-color: #486052;
+}
+[data-theme="dark"] #selectorIconosModal .fi-item.fi-selected .fi-item-circle {
+  color: #24200e;
+  background: #e8c84c;
+}
+[data-theme="dark"] .fc-estado.fc-error {
+  color: #ffb4ae;
+  background: #341f20;
+  border-color: #84464b;
+}
+
+/* Distribución legible en teléfonos pequeños. */
+@media (max-width: 600px) {
+  .app-header.finora-topbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    gap: 9px 12px;
+  }
+  .finora-topbar .header-actions.finora-topbar__actions {
+    min-width: 0;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .finora-topbar__field {
+    max-width: min(42vw, 185px);
+  }
+  .finora-topbar__select-box { min-width: 0; }
+  .finora-topbar__heading { overflow-wrap: anywhere; }
+}
+@media (max-width: 350px) {
+  .finora-topbar__brand-tagline { display: none; }
+  .finora-topbar__brand-name { font-size: 16px; }
+  .finora-topbar .titulo-seccion.finora-topbar__title { font-size: 18px; }
+  .finora-topbar__actions { gap: 5px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finora-topbar__select-box,
+  #selectorIconosModal .fi-item,
+  .fm-acceso,
+  .fc-kpi,
+  .fd-card {
+    transition-duration: 0.01ms !important;
+  }
+}
