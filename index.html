@@ -69,19 +69,36 @@
   <div id="appShell" class="hidden app-shell">
     
     <!-- HEADER -->
-    <header class="app-header">
-      <div class="header-logo">
-        <img src="logo-192.png" alt="Finora" class="logo-header">
-      </div>
-      <h1 id="tituloSeccion" class="titulo-seccion">Inicio</h1>
-      <div class="header-actions">
-        <select id="selectorPerfil" class="input-mes" title="Cambiar perfil" aria-label="Seleccionar perfil" style="font-weight: bold; background: var(--primary-color); color: black;">
-          <option value="personal">👤 Personal</option>
-        </select>
-        <select id="selectorCuenta" class="input-mes" title="Cambiar cuenta" aria-label="Seleccionar cuenta"></select>
-        <button id="btnNuevaCuenta" class="btn btn-outline-small" title="Nueva cuenta" aria-label="Crear nueva cuenta">+</button>
-      </div>
-    </header>
+    <header class="topbar-finora">
+  <!-- IZQUIERDA: marca -->
+  <div class="topbar-brand">
+    <img src="icon.svg" alt="Finora" class="topbar-logo">
+    <div class="topbar-brand-text">
+      <span class="topbar-brand-name">Finora</span>
+      <span class="topbar-brand-sub">Control financiero</span>
+    </div>
+  </div>
+
+  <!-- CENTRO: título -->
+  <div class="topbar-center">
+    <h1 class="topbar-title" id="tituloVistaActual">Inicio</h1>
+    <p class="topbar-description">Resumen de tus finanzas</p>
+  </div>
+
+  <!-- DERECHA: selector de cuenta -->
+  <div class="topbar-account">
+    <label for="selectorCuenta" class="topbar-account-label">Cuenta activa</label>
+    <div class="topbar-select-wrapper">
+      <span class="topbar-select-icon">🏠</span>
+      <select id="selectorCuenta" class="topbar-select">
+        <option value="personal">Hogar</option>
+        <option value="trabajo">Trabajo</option>
+        <option value="ahorros">Ahorros</option>
+      </select>
+      <span class="topbar-select-arrow">⌄</span>
+    </div>
+  </div>
+</header>
 
     <!-- CONTENEDOR DE VISTAS -->
     <main class="vistas-container">
