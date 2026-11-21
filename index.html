@@ -32,6 +32,7 @@
   <!-- Estilos -->
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/iconos.css">
+  <link rel="stylesheet" href="css/panel-compartido.css">
 </head>
 <body>
 
@@ -113,6 +114,45 @@
 
       <!-- ==================== VISTA INICIO ==================== -->
       <div id="vistaInicio" class="vista activa">
+        <!-- PANEL COMPARTIDO: se muestra solo con el perfil Espacio -->
+        <section id="panelFinancieroCompartido" class="fc-panel" hidden aria-labelledby="fcTitulo">
+          <div class="fc-cabecera">
+            <div>
+              <div class="fc-etiqueta"><i class="ph ph-users-three" aria-hidden="true"></i> FINANZAS COMPARTIDAS</div>
+              <h2 id="fcTitulo">Nuestro espacio</h2>
+              <p id="fcSubtitulo">Resumen de los movimientos compartidos</p>
+            </div>
+            <div class="fc-mes-controles" aria-label="Mes del panel compartido">
+              <button id="fcMesAnterior" type="button" class="fc-boton-mes" aria-label="Mes anterior"><i class="ph ph-caret-left"></i></button>
+              <input id="fcMes" type="month" aria-label="Mes a consultar" />
+              <button id="fcMesSiguiente" type="button" class="fc-boton-mes" aria-label="Mes siguiente"><i class="ph ph-caret-right"></i></button>
+            </div>
+          </div>
+          <div id="fcEstado" class="fc-estado" role="status" aria-live="polite">Cargando resumen compartido…</div>
+          <div class="fc-contenido" id="fcContenido" hidden>
+            <div class="fc-kpis">
+              <div class="fc-kpi"><span><i class="ph ph-arrow-circle-down" aria-hidden="true"></i> Ingresos</span><strong id="fcIngresos">$0</strong><small>Este mes</small></div>
+              <div class="fc-kpi"><span><i class="ph ph-arrow-circle-up" aria-hidden="true"></i> Gastos</span><strong id="fcGastos">$0</strong><small>Este mes</small></div>
+              <div class="fc-kpi fc-kpi-saldo"><span><i class="ph ph-wallet" aria-hidden="true"></i> Balance</span><strong id="fcBalance">$0</strong><small>Ingresos menos gastos del mes</small></div>
+            </div>
+            <div class="fc-dos-columnas">
+              <article class="fc-tarjeta">
+                <div class="fc-tarjeta-cabecera"><h3><i class="ph ph-users" aria-hidden="true"></i> Actividad por integrante</h3><span id="fcNumeroMiembros" class="fc-chip">0 integrantes</span></div>
+                <div id="fcIntegrantes" class="fc-lista"></div>
+                <p class="fc-nota">Los importes indican quién <strong>registró</strong> cada movimiento, no quién lo pagó.</p>
+              </article>
+              <article class="fc-tarjeta">
+                <div class="fc-tarjeta-cabecera"><h3><i class="ph ph-chart-pie-slice" aria-hidden="true"></i> Gastos por categoría</h3></div>
+                <div id="fcCategorias" class="fc-lista"></div>
+              </article>
+            </div>
+            <article class="fc-tarjeta fc-recientes">
+              <div class="fc-tarjeta-cabecera"><h3><i class="ph ph-clock-counter-clockwise" aria-hidden="true"></i> Movimientos recientes</h3><button id="fcRegistrarGasto" type="button" class="fc-boton-gasto"><i class="ph ph-plus" aria-hidden="true"></i> Registrar gasto</button></div>
+              <div id="fcRecientes" class="fc-lista"></div>
+            </article>
+          </div>
+        </section>
+
         
         <div class="inicio-header-verde">
           <div class="inicio-top-bar">
@@ -588,6 +628,7 @@
   <script src="js/ui-presupuesto.js"></script>
   <script src="js/app.js"></script>
   <script src="js/recordatorios.js"></script>
+  <script src="js/panel-compartido.js"></script>
 
   <!-- ==================== SERVICE WORKER PWA Y PUSH ==================== -->
   <script>
