@@ -2415,3 +2415,57 @@ body.fm-abierto {overflow:hidden;}
 @media (prefers-reduced-motion: reduce) {
   #vistaInicio .resumen-card, #vistaInicio .btn-icon-white { transition: none !important; }
 }
+
+/* ========== FINORA · AVISO DE ACTUALIZACIÓN DE LA PWA ========== */
+.finora-pwa-update[hidden] { display: none !important; }
+.finora-pwa-update {
+  position: fixed;
+  z-index: 15000;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  max-width: 440px;
+  margin-inline: auto;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  color: var(--text-color, #171717);
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-left: 4px solid var(--primary-color, #e8c84c);
+  border-radius: 17px;
+  box-shadow: 0 15px 50px rgba(0,0,0,.24);
+}
+.finora-pwa-update__icon {
+  width: 42px; height: 42px; flex: 0 0 42px;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: rgba(232,200,76,.2);
+  color: var(--text-color, #171717);
+  font-size: 29px; font-weight: 700;
+}
+.finora-pwa-update__content { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.finora-pwa-update__content strong { font-size: 15px; line-height: 1.25; }
+.finora-pwa-update__content span {
+  color: var(--text-secondary, #666); font-size: 12px; line-height: 1.45;
+}
+.finora-pwa-update__buttons { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.finora-pwa-update__buttons button {
+  min-height: 37px; padding: 9px 12px; border-radius: 10px;
+  cursor: pointer; font: 700 12px/1.2 Inter, sans-serif;
+}
+#finoraActualizarAhora { background: #e8c84c; border: 1px solid #dfc03d; color: #1d1d1d; }
+#finoraActualizarDespues {
+  background: var(--input-bg, #fff);
+  color: var(--text-color, #171717);
+  border: 1px solid var(--border-color, #dedede);
+}
+.finora-pwa-update__buttons button:focus-visible { outline: 3px solid #e8c84c; outline-offset: 2px; }
+@media (min-width: 760px) {
+  .finora-pwa-update { left: auto; right: 24px; bottom: 24px; margin: 0; }
+}
+@media (max-width: 370px) {
+  .finora-pwa-update { padding: 12px; gap: 9px; }
+  .finora-pwa-update__icon { width: 34px; height: 34px; flex-basis: 34px; font-size: 24px; }
+}
