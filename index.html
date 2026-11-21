@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="css/panel-compartido.css">
   <link rel="stylesheet" href="css/division-gastos.css">
   <link rel="stylesheet" href="css/mercado-inteligente.css">
+  <link rel="stylesheet" href="css/encabezado-finora.css">
 </head>
 <body>
 
@@ -68,37 +69,47 @@
   <!-- ==================== APP SHELL ==================== -->
   <div id="appShell" class="hidden app-shell">
     
-    <!-- HEADER -->
-    <header class="topbar-finora">
-  <!-- IZQUIERDA: marca -->
-  <div class="topbar-brand">
-    <img src="icon.svg" alt="Finora" class="topbar-logo">
-    <div class="topbar-brand-text">
-      <span class="topbar-brand-name">Finora</span>
-      <span class="topbar-brand-sub">Control financiero</span>
-    </div>
-  </div>
+    <!-- HEADER FINORA V1: conserva los ID usados por la aplicación -->
+    <header class="app-header finora-topbar" aria-label="Barra superior de Finora">
+      <div class="header-logo finora-topbar__brand">
+        <span class="finora-topbar__logo-frame">
+          <img src="logo-192.png" alt="Logotipo de Finora" class="logo-header finora-topbar__logo" width="48" height="48">
+        </span>
+        <span class="finora-topbar__brand-text">
+          <strong class="finora-topbar__brand-name">Finora</strong>
+          <small class="finora-topbar__brand-tagline">Tus finanzas, claras.</small>
+        </span>
+      </div>
 
-  <!-- CENTRO: título -->
-  <div class="topbar-center">
-    <h1 class="topbar-title" id="tituloVistaActual">Inicio</h1>
-    <p class="topbar-description">Resumen de tus finanzas</p>
-  </div>
+      <div class="finora-topbar__heading" aria-live="polite" aria-atomic="true">
+        <span id="contextoSeccion" class="finora-topbar__eyebrow">MI ESPACIO</span>
+        <h1 id="tituloSeccion" class="titulo-seccion finora-topbar__title">Inicio</h1>
+        <p id="subtituloSeccion" class="finora-topbar__subtitle">Tu dinero, bajo control.</p>
+      </div>
 
-  <!-- DERECHA: selector de cuenta -->
-  <div class="topbar-account">
-    <label for="selectorCuenta" class="topbar-account-label">Cuenta activa</label>
-    <div class="topbar-select-wrapper">
-      <span class="topbar-select-icon">🏠</span>
-      <select id="selectorCuenta" class="topbar-select">
-        <option value="personal">Hogar</option>
-        <option value="trabajo">Trabajo</option>
-        <option value="ahorros">Ahorros</option>
-      </select>
-      <span class="topbar-select-arrow">⌄</span>
-    </div>
-  </div>
-</header>
+      <div class="header-actions finora-topbar__actions">
+        <div class="finora-topbar__field finora-topbar__field--profile">
+          <label for="selectorPerfil" class="finora-topbar__label">Perfil activo</label>
+          <div class="finora-topbar__select-box finora-topbar__select-box--profile">
+            <select id="selectorPerfil" class="input-mes finora-topbar__select finora-topbar__select--profile" title="Cambiar perfil" aria-label="Cambiar perfil personal o compartido">
+              <option value="personal">👤 Personal</option>
+            </select>
+            <span class="finora-topbar__caret" aria-hidden="true">⌄</span>
+          </div>
+        </div>
+        <div id="envolturaSelectorCuenta" class="finora-topbar__field finora-topbar__field--account">
+          <label for="selectorCuenta" class="finora-topbar__label">Cuenta</label>
+          <div class="finora-topbar__select-box finora-topbar__select-box--account">
+            <span class="finora-topbar__field-icon" aria-hidden="true">▤</span>
+            <select id="selectorCuenta" class="input-mes finora-topbar__select finora-topbar__select--account" title="Cambiar cuenta" aria-label="Seleccionar cuenta financiera"></select>
+            <span class="finora-topbar__caret" aria-hidden="true">⌄</span>
+          </div>
+        </div>
+        <button id="btnNuevaCuenta" type="button" class="btn btn-outline-small finora-topbar__add" title="Nueva cuenta" aria-label="Crear nueva cuenta">
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
+    </header>
 
     <!-- CONTENEDOR DE VISTAS -->
     <main class="vistas-container">
@@ -152,7 +163,7 @@
             <div class="fc-kpis">
               <div class="fc-kpi"><span><i class="ph ph-arrow-circle-down" aria-hidden="true"></i> Ingresos</span><strong id="fcIngresos">$0</strong><small>Este mes</small></div>
               <div class="fc-kpi"><span><i class="ph ph-arrow-circle-up" aria-hidden="true"></i> Gastos</span><strong id="fcGastos">$0</strong><small>Este mes</small></div>
-              <div class="fc-kpi fc-kpi-saldo"><span><i class="ph ph-wallet" aria-hidden="true"></i> Balance</span><strong id="fcBalance">$0</strong><small>Ingresos menos gastos del mes</small></div>
+              <div class="fc-kpi fc-kpi-saldo"><span><span class="finora-topbar__field-icon" aria-hidden="true">▤</span> Balance</span><strong id="fcBalance">$0</strong><small>Ingresos menos gastos del mes</small></div>
             </div>
             <div class="fc-dos-columnas">
               <article class="fc-tarjeta">
@@ -651,6 +662,7 @@
   <script src="js/division-gastos.js"></script>
   <script src="js/mercado-motor.js"></script>
   <script src="js/mercado-inteligente.js"></script>
+  <script src="js/encabezado-finora.js"></script>
 
   <!-- ==================== SERVICE WORKER PWA Y PUSH ==================== -->
   <script>
