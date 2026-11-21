@@ -2008,3 +2008,410 @@ body.fm-abierto {overflow:hidden;}
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ===================================================================
+   FINORA | INICIO MODERNO V2 - 21 NOV 2026
+   Diseño de la vista Inicio. Conserva IDs, eventos, filtros y Firebase.
+   Aplica únicamente cuando #vistaInicio está activo. NO cambia
+   el panel compartido ni los formularios ni las vistas secundarias.
+   =================================================================== */
+
+:root {
+  --fi2-radius-lg: 24px;
+  --fi2-shadow: 0 10px 32px rgba(28, 38, 42, .075);
+  --fi2-gold: #e8c84c;
+  --fi2-dark: #262a2e;
+}
+
+/* Orden exclusivamente visual. El acceso a Mercado es insertado por
+   mercado-inteligente.js después de #panelFinancieroCompartido.
+   Flex/order lo sitúa después de los resumenes SIN mover el nodo ni
+   destruir sus listeners. El panel Compartido queda primero. */
+#vistaInicio.vista.activa {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  width: 100%;
+  padding: clamp(5px, 1vw, 12px) 0 20px;
+}
+#vistaInicio > #panelFinancieroCompartido { order: 0; }
+#vistaInicio > .inicio-header-verde { order: 1; }
+#vistaInicio > .resumen-grid { order: 2; }
+#vistaInicio > .inicio-card-blanca { order: 3; }
+#vistaInicio > .fm-acceso { order: 4; }
+#vistaInicio > .movimientos-container { order: 5; }
+#vistaInicio > #fabAgregar { order: 6; }
+#vistaInicio > .hidden { order: 7; }
+#vistaInicio > :is(.inicio-header-verde, .resumen-grid, .inicio-card-blanca, .fm-acceso, .movimientos-container) {
+  width: min(100%, 1080px);
+  max-width: 1080px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Hero principal */
+#vistaInicio > .inicio-header-verde.fi-inicio-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--fi2-radius-lg);
+  padding: clamp(22px, 4vw, 34px) clamp(18px, 4vw, 35px) 18px;
+  background: linear-gradient(128deg, #282d32 0%, #25292c 52%, #37473f 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .09);
+  box-shadow: 0 14px 32px rgba(28, 35, 36, .15);
+}
+#vistaInicio > .fi-inicio-hero::before {
+  content: "";
+  position: absolute;
+  inset: -55% -25% auto auto;
+  width: min(60vw, 410px);
+  height: min(60vw, 410px);
+  min-width: 210px;
+  min-height: 210px;
+  background: radial-gradient(circle, rgba(232,200,76,.17), transparent 68%);
+  pointer-events: none;
+  z-index: -1;
+}
+#vistaInicio .fi-hero-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #cfdbc8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  margin-bottom: 12px;
+}
+#vistaInicio .fi-kicker-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--fi2-gold);
+  box-shadow: 0 0 0 4px rgba(232,200,76,.15);
+}
+#vistaInicio .inicio-top-bar {
+  display: grid;
+  grid-template-columns: 40px minmax(0,1fr) 40px;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+#vistaInicio .inicio-balance-central { min-width: 0; text-align: center; }
+#vistaInicio .balance-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d7dedb;
+  gap: 7px;
+  letter-spacing: .02em;
+}
+#vistaInicio .balance-total-verde {
+  color: #fff;
+  font-size: clamp(30px, 4.4vw, 44px);
+  line-height: 1.22;
+  font-weight: 800;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  margin: 9px 0 4px;
+}
+#vistaInicio .btn-icon-white {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 13px;
+  background: rgba(255,255,255,.065);
+  color: #f4f7f4;
+  font-size: 20px;
+  transition: background .18s, transform .18s;
+}
+#vistaInicio .btn-icon-white:hover { background: rgba(255,255,255,.16); }
+#vistaInicio .btn-icon-white:active { transform: scale(.97); }
+#vistaInicio .inicio-tabs-verde {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 5px;
+  padding: 5px;
+  margin-top: 22px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+}
+#vistaInicio .tab-verde {
+  display: grid;
+  place-items: center;
+  min-height: 41px;
+  padding: 10px 12px;
+  background: transparent;
+  color: rgba(255,255,255,.75);
+  border: 0;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+#vistaInicio .tab-verde.active {
+  background: var(--fi2-gold);
+  color: #222018;
+  border: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,.12);
+}
+#vistaInicio .tab-verde:focus-visible,
+#vistaInicio .filtro-tiempo:focus-visible,
+#vistaInicio .btn-flecha-fecha:focus-visible,
+#vistaInicio .btn-icon-white:focus-visible,
+#vistaInicio #fabAgregar:focus-visible,
+#vistaInicio .fm-acceso:focus-visible {
+  outline: 3px solid #e8c84c;
+  outline-offset: 3px;
+}
+
+/* Resúmenes: primero ingresos y gastos, después la gráfica */
+#vistaInicio > .resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+#vistaInicio > .resumen-grid .resumen-card {
+  min-width: 0;
+  min-height: 136px;
+  border-radius: 20px;
+  padding: clamp(16px, 2.2vw, 24px);
+  gap: 8px;
+  box-shadow: var(--fi2-shadow);
+  border: 1px solid rgba(0,0,0,.04);
+  transition: transform .18s, box-shadow .18s;
+}
+#vistaInicio > .resumen-grid .resumen-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 32px rgba(28, 38, 42, .11);
+}
+#vistaInicio > .resumen-grid .ingreso-card { background: linear-gradient(132deg, #f3db79, #d5ad2e); color: #252111; }
+#vistaInicio > .resumen-grid .gasto-card { background: linear-gradient(135deg, #44494d, #272a2e); color: #fff; }
+#vistaInicio > .resumen-grid .resumen-card i {font-size: 24px; margin: 0 0 5px;}
+#vistaInicio > .resumen-grid .resumen-card span { font-size: 13px; font-weight: 600; }
+#vistaInicio > .resumen-grid .resumen-card strong {
+  font-size: clamp(19px, 2.5vw, 29px);
+  line-height: 1.2;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+/* Gráfico de dona y selector de período */
+#vistaInicio > .inicio-card-blanca.fi-analitica-inicio {
+  background: var(--bg-card);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--fi2-shadow);
+  border-radius: var(--fi2-radius-lg);
+  padding: clamp(18px, 2.8vw, 28px);
+}
+#vistaInicio .fi-seccion-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 23px;
+}
+#vistaInicio .fi-seccion-sobretitulo {
+  color: #7b886e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+#vistaInicio .fi-seccion-titulo {
+  font-size: clamp(16px, 2vw, 21px);
+  letter-spacing: -.02em;
+  line-height: 1.3;
+  margin-top: 5px;
+  font-weight: 800;
+}
+#vistaInicio .fi-seccion-insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#vistaInicio .filtros-tiempo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-bottom: 17px;
+  overflow: visible;
+}
+#vistaInicio .filtro-tiempo {
+  border: 1px solid var(--border-color);
+  background: var(--bg-body);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 9px 14px;
+  min-height: 38px;
+}
+#vistaInicio .filtro-tiempo.active {
+  background: #e8c84c;
+  color: #27210e;
+  border-color: #e8c84c;
+  box-shadow: 0 2px 10px rgba(232,200,76,.2);
+}
+#vistaInicio .selector-rango-fechas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px,2vw,20px);
+  margin: 0 auto 10px;
+}
+#vistaInicio .btn-flecha-fecha {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-body);
+  color: var(--text-color);
+}
+#vistaInicio .texto-rango { color: var(--text-color); font-size: 13px; border: 0; }
+#vistaInicio .grafico-dona-container { height: clamp(210px, 29vw, 285px); }
+#vistaInicio .grafica-dona-centro { color: var(--text-secondary); }
+
+/* Acceso compacto a Mercado, sin cambiar su JS ni sus datos */
+#vistaInicio > .fm-acceso {
+  display: flex;
+  max-width: 1080px;
+  min-height: 72px;
+  gap: 13px;
+  border-radius: 19px;
+  padding: 12px 17px;
+  box-shadow: 0 5px 20px rgba(26,38,31,.06);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-color);
+}
+#vistaInicio > .fm-acceso .fm-acceso-icono {
+  width: 45px;
+  height: 45px;
+  background: #e4eee8;
+  border-radius: 14px;
+  font-size: 24px;
+}
+#vistaInicio > .fm-acceso .fm-acceso-texto strong { font-size: 14px; }
+#vistaInicio > .fm-acceso .fm-acceso-texto small { font-size: 11px; }
+#vistaInicio > .fm-acceso .fm-acceso-contador { flex: none; }
+
+/* Búsqueda, filtros y tarjetas de movimientos */
+#vistaInicio > .movimientos-container {
+  min-width: 0;
+  padding: 0 2px;
+  margin-bottom: 60px;
+}
+#vistaInicio .movimientos-header { margin-bottom: 13px; gap: 10px; }
+#vistaInicio .movimientos-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(21px, 2.7vw, 27px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+#vistaInicio .movimientos-header h2 i { color: #8ca89b; font-size: 23px; }
+#vistaInicio .filtros-movimientos { gap: 9px; margin-bottom: 9px; }
+#vistaInicio .filtros-movimientos .input-field {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-color) !important;
+  border-radius: 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 7px rgba(20, 26, 32, .025);
+}
+#vistaInicio .filtros-movimientos .input-field:focus-visible {
+  outline: 2px solid rgba(218,181,42,.65);
+  outline-offset: 1px;
+}
+#vistaInicio .movimiento-item {
+  min-height: 76px;
+  padding: 15px 16px;
+  margin-bottom: 9px;
+  border: 1px solid var(--border-color);
+  border-radius: 17px;
+  box-shadow: 0 3px 14px rgba(28,37,31,.045);
+  gap: 12px;
+}
+#vistaInicio .movimiento-item .info span { font-size: 14px; font-weight: 700; }
+#vistaInicio .movimiento-item .info small { font-size: 11px; margin-top: 4px; display: block; }
+#vistaInicio .movimiento-item .acciones { gap: 4px; }
+#vistaInicio .movimiento-item .acciones button { min-width: 32px; min-height: 32px; }
+#vistaInicio #fabAgregar {
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(255,255,255,.75);
+  box-shadow: 0 8px 28px rgba(194,152,25,.32);
+  color: #29220a;
+  background: #f0cd4d;
+}
+
+/* Contrastes en modo oscuro. Los selectores conservan el tema del usuario. */
+/* El CSS base usa !important para textos de las tarjetas en modo oscuro.
+   Restablecemos contraste adecuado sobre el dorado y el grafito. */
+[data-theme="dark"] #vistaInicio > .resumen-grid .ingreso-card {
+  color: #252111 !important;
+}
+[data-theme="dark"] #vistaInicio > .resumen-grid .gasto-card {
+  color: #ffffff !important;
+}
+[data-theme="dark"] #vistaInicio > .resumen-grid .resumen-card strong,
+[data-theme="dark"] #vistaInicio > .resumen-grid .resumen-card span {
+  color: inherit !important;
+}
+[data-theme="dark"] #vistaInicio .fi-seccion-sobretitulo { color: #cbb767; }
+[data-theme="dark"] #vistaInicio .filtro-tiempo { background: #2a2d30; }
+[data-theme="dark"] #vistaInicio .filtro-tiempo.active { background: #e8c84c; color:#1b1b18; }
+[data-theme="dark"] #vistaInicio .fi-seccion-insignia { color: #cacaca; }
+[data-theme="dark"] #vistaInicio > .fm-acceso .fm-acceso-icono { color: #d4eadf; background: #30463b; }
+[data-theme="dark"] #vistaInicio .grafica-dona-centro { color: #d6d6d6; }
+
+/* Tablets y teléfonos */
+@media (max-width: 720px) {
+  #vistaInicio.vista.activa { gap: 13px; }
+  #vistaInicio > .inicio-header-verde.fi-inicio-hero { padding: 19px 17px 15px; border-radius: 19px; }
+  #vistaInicio > .resumen-grid { gap: 10px; }
+  #vistaInicio > .resumen-grid .resumen-card { min-height: 122px; padding: 15px; border-radius: 17px; }
+  #vistaInicio > .inicio-card-blanca.fi-analitica-inicio { padding: 17px 14px; border-radius: 18px; }
+  #vistaInicio .fi-seccion-cabecera { margin-bottom: 17px; }
+  #vistaInicio .fi-seccion-insignia { display: none; }
+  #vistaInicio .filtros-tiempo { gap: 6px; }
+  #vistaInicio .filtro-tiempo { flex: 1 1 auto; padding: 8px 10px; }
+  #vistaInicio > .fm-acceso { padding: 11px 13px; min-height: 67px; border-radius: 17px; }
+  #vistaInicio .movimiento-item { padding: 12px; }
+}
+@media (max-width: 420px) {
+  #vistaInicio .balance-total-verde { font-size: clamp(25px, 8vw, 36px); }
+  #vistaInicio .btn-icon-white { width: 35px; height: 35px; font-size: 17px; }
+  #vistaInicio .inicio-top-bar { grid-template-columns: 35px minmax(0,1fr) 35px; }
+  #vistaInicio > .resumen-grid .resumen-card strong { font-size: clamp(16px, 4.9vw, 20px); }
+  #vistaInicio > .resumen-grid .resumen-card i { font-size: 22px; }
+  #vistaInicio .fi-seccion-titulo { font-size: 17px; }
+  #vistaInicio .filtros-movimientos .input-field { font-size: 11px; padding: 8px; }
+  #vistaInicio .movimiento-item .acciones button { min-width: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #vistaInicio .resumen-card, #vistaInicio .btn-icon-white { transition: none !important; }
+}
