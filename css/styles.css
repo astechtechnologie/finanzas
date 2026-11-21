@@ -1707,3 +1707,194 @@ body.fm-abierto {overflow:hidden;}
 .fm-cuadro .fm-ayuda {margin:0; font-size:11px; color:var(--text-secondary,#667); line-height:1.5;}
 .fm-cuadro .fm-acciones {display:flex; justify-content:flex-end; gap:9px; margin-top:4px;}
 @media(max-width:540px) { .fm-acceso{width:calc(100% - 22px);} .fm-cabecera{gap:7px;padding-left:10px;padding-right:10px;} .fm-titulo h2{font-size:16px;} .fm-cabecera>.fm-btn{font-size:11px;padding:10px 8px;} .fm-cuerpo{padding-left:11px;padding-right:11px;} .fm-pestaña{font-size:11px;} .fm-config{display:block;} .fm-config-campos{margin-top:15px;} }
+/* ==============================================================
+   FINORA · ENCABEZADO MODERNO V1
+   CSS acotado a .finora-topbar: no altera el resto de pantallas.
+   Conserva el selector de perfil, selector de cuenta y crear cuenta.
+   ============================================================== */
+
+.app-header.finora-topbar {
+  --fh-surface: var(--bg-card, #fff);
+  --fh-ink: var(--text-color, #101828);
+  --fh-muted: var(--text-secondary, #667085);
+  --fh-edge: var(--border-color, #e8ebed);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) minmax(170px, auto) minmax(260px, 1fr);
+  align-items: center;
+  gap: 22px;
+  min-height: 88px;
+  width: 100%;
+  margin: 0;
+  padding: 12px clamp(16px, 3vw, 40px);
+  background: var(--fh-surface);
+  color: var(--fh-ink);
+  border-bottom: 1px solid var(--fh-edge);
+  box-shadow: 0 5px 22px rgba(16, 24, 40, .045);
+  isolation: isolate;
+}
+.app-header.finora-topbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: clamp(16px, 3vw, 40px);
+  width: 72px;
+  height: 2px;
+  background: linear-gradient(90deg, #e8c84c, #a9c3b6);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.finora-topbar .finora-topbar__brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.finora-topbar .finora-topbar__logo-frame {
+  display: grid;
+  place-items: center;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  padding: 6px;
+  border: 1px solid rgba(232, 200, 76, .35);
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(232,200,76,.16), rgba(169,195,182,.12));
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .055);
+}
+.finora-topbar .finora-topbar__logo { display: block; width: 100%; height: 100%; max-width: none; object-fit: contain; }
+.finora-topbar__brand-text { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
+.finora-topbar__brand-name { color: var(--fh-ink); font-size: 20px; font-weight: 800; letter-spacing: -.7px; line-height: 1.1; }
+.finora-topbar__brand-tagline { color: var(--fh-muted); font-size: 11px; letter-spacing: .04em; line-height: 1.25; }
+
+.finora-topbar__heading { min-width: 0; text-align: center; }
+.finora-topbar__eyebrow { display: block; margin-bottom: 3px; font-size: 9px; font-weight: 800; letter-spacing: .17em; color: #8b9078; }
+.finora-topbar .titulo-seccion.finora-topbar__title {
+  display: block;
+  margin: 0;
+  color: var(--fh-ink);
+  font-size: clamp(21px, 2.2vw, 27px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.6px;
+  white-space: normal;
+}
+.finora-topbar__subtitle { margin: 4px 0 0; color: var(--fh-muted); font-size: 11px; line-height: 1.3; }
+
+.finora-topbar .header-actions.finora-topbar__actions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 9px;
+  min-width: 0;
+}
+.finora-topbar__field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.finora-topbar__label { font-size: 10px; font-weight: 700; letter-spacing: .03em; color: var(--fh-muted); }
+.finora-topbar__select-box {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--fh-edge);
+  border-radius: 13px;
+  background: var(--input-bg, #fff);
+  color: var(--fh-ink);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.finora-topbar__select-box:focus-within {
+  border-color: #d3ad25;
+  box-shadow: 0 0 0 3px rgba(232, 200, 76, .17);
+}
+.finora-topbar__select-box--profile {
+  border-color: rgba(199, 157, 20, .35);
+  background: linear-gradient(135deg, #f9e79c, #e8c84c);
+  color: #26200c;
+  box-shadow: 0 5px 16px rgba(195, 152, 31, .14);
+}
+.finora-topbar__field-icon { flex: 0 0 auto; font-size: 15px; line-height: 1; }
+.finora-topbar .input-mes.finora-topbar__select,
+.finora-topbar #selectorCuenta.finora-topbar__select {
+  flex: 1 1 auto;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 40px;
+  padding: 0 18px 0 0;
+  margin: 0;
+  border: 0;
+  outline: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  box-shadow: none;
+}
+.finora-topbar__select option { background: var(--bg-card, #fff); color: var(--text-color, #111); }
+.finora-topbar__select--profile { min-width: 96px; max-width: 160px; }
+.finora-topbar__select--account { min-width: 95px; max-width: 170px; }
+.finora-topbar__caret { position: absolute; right: 11px; pointer-events: none; font-size: 13px !important; }
+.finora-topbar .btn.finora-topbar__add {
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  border: 1px solid var(--fh-edge);
+  border-radius: 13px;
+  background: var(--fh-surface);
+  color: var(--fh-ink);
+  box-shadow: none;
+}
+.finora-topbar .btn.finora-topbar__add:hover { background: rgba(232,200,76,.10); border-color: #e8c84c; }
+.finora-topbar .btn.finora-topbar__add span { font-size: 22px; font-weight: 400; line-height: 1; }
+.finora-topbar .btn.finora-topbar__add:focus-visible { outline: 3px solid rgba(232,200,76,.45); outline-offset: 2px; }
+
+/* En espacio compartido, el JS anterior oculta el selectorCuenta.
+   Estas reglas mantienen oculto también su contenedor. */
+.finora-topbar__field--account[hidden] { display: none !important; }
+
+[data-theme="dark"] .app-header.finora-topbar { box-shadow: 0 5px 22px rgba(0,0,0,.2); }
+[data-theme="dark"] .finora-topbar__eyebrow { color: #d4ba64; }
+[data-theme="dark"] .finora-topbar__logo-frame { background: rgba(232, 200, 76, .07); }
+[data-theme="dark"] .finora-topbar__select-box--profile { color: #242008; }
+
+@media (max-width: 900px) {
+  .app-header.finora-topbar { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 14px; min-height: 75px; }
+  .finora-topbar__brand { grid-column: 1; grid-row: 1; }
+  .finora-topbar__actions { grid-column: 2; grid-row: 1; }
+  .finora-topbar__heading { grid-column: 1 / -1; grid-row: 2; text-align: left; padding-top: 2px; }
+  .finora-topbar .titulo-seccion.finora-topbar__title { font-size: 21px; }
+  .finora-topbar__subtitle { font-size: 11px; }
+}
+@media (max-width: 600px) {
+  .app-header.finora-topbar { padding: 10px 13px 12px; gap: 10px; }
+  .finora-topbar .finora-topbar__brand { grid-column: 1; grid-row: 1; }
+  .finora-topbar__heading { grid-column: 2; grid-row: 1; text-align: right; padding-top: 0; }
+  .finora-topbar .header-actions.finora-topbar__actions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; gap: 6px; }
+  .finora-topbar .finora-topbar__logo-frame { flex-basis: 42px; width: 42px; height: 42px; border-radius: 12px; padding: 5px; }
+  .finora-topbar__brand-name { font-size: 17px; }
+  .finora-topbar__brand-tagline, .finora-topbar__subtitle { display: none; }
+  .finora-topbar__label { display: none; }
+  .finora-topbar__select-box { min-height: 37px; border-radius: 11px; gap: 5px; padding: 0 7px; }
+  .finora-topbar .input-mes.finora-topbar__select,
+  .finora-topbar #selectorCuenta.finora-topbar__select { height: 35px; font-size: 11px; }
+  .finora-topbar__field-icon { font-size: 13px; }
+  .finora-topbar__select--profile { min-width: 80px; max-width: 120px; }
+  .finora-topbar__select--account { min-width: 72px; max-width: 96px; }
+  .finora-topbar .btn.finora-topbar__add { width: 36px; height: 36px; min-width: 36px; flex-basis: 36px; border-radius: 11px; }
+  .finora-topbar .titulo-seccion.finora-topbar__title { font-size: 20px; }
+  .finora-topbar__eyebrow { font-size: 8px; }
+}
+@media (max-width: 380px) {
+  .finora-topbar__brand-text { display: flex; }
+  .finora-topbar__select--account { max-width: 82px; }
+  .finora-topbar__select--profile { max-width: 102px; }
+}
