@@ -288,79 +288,10 @@
       btnMenu.addEventListener('click', function() { App.cambiarVista('vistaAjustes'); });
     }
 
-    // ==================== ICONOS Y COLORES ====================
-    const iconosConNombre = [
-      { icon: 'ph-fork-knife', name: 'Comida' }, { icon: 'ph-bowl-food', name: 'Alimentación' },
-      { icon: 'ph-coffee', name: 'Café' }, { icon: 'ph-cooking-pot', name: 'Olla' },
-      { icon: 'ph-beer-bottle', name: 'Cerveza' }, { icon: 'ph-wine', name: 'Vino' },
-      { icon: 'ph-hamburger', name: 'Hamburguesa' }, { icon: 'ph-pizza', name: 'Pizza' },
-      { icon: 'ph-cake', name: 'Pastel' }, { icon: 'ph-cookie', name: 'Galleta' },
-      { icon: 'ph-carrot', name: 'Verdura' }, { icon: 'ph-apple-logo', name: 'Manzana' },
-      { icon: 'ph-car', name: 'Auto' }, { icon: 'ph-bus', name: 'Transporte' },
-      { icon: 'ph-bicycle', name: 'Bicicleta' }, { icon: 'ph-motorbike', name: 'Moto' },
-      { icon: 'ph-airplane', name: 'Viajes' }, { icon: 'ph-train', name: 'Tren' },
-      { icon: 'ph-taxi', name: 'Taxi' }, { icon: 'ph-gas-pump', name: 'Gasolina' },
-      { icon: 'ph-ship', name: 'Barco' }, { icon: 'ph-truck', name: 'Camión' },
-      { icon: 'ph-house', name: 'Casa' }, { icon: 'ph-shopping-cart', name: 'Súper' },
-      { icon: 'ph-shopping-bag', name: 'Compras' }, { icon: 'ph-t-shirt', name: 'Ropa' },
-      { icon: 'ph-sneaker', name: 'Zapatos' }, { icon: 'ph-washing-machine', name: 'Lavadora' },
-      { icon: 'ph-couch', name: 'Muebles' }, { icon: 'ph-lightbulb', name: 'Servicios' },
-      { icon: 'ph-drop', name: 'Agua' }, { icon: 'ph-fire', name: 'Luz/Gas' },
-      { icon: 'ph-heartbeat', name: 'Salud' }, { icon: 'ph-first-aid', name: 'Botiquín' },
-      { icon: 'ph-pill', name: 'Medicinas' }, { icon: 'ph-stethoscope', name: 'Médico' },
-      { icon: 'ph-tooth', name: 'Dentista' }, { icon: 'ph-scissors', name: 'Peluquería' },
-      { icon: 'ph-barbell', name: 'Gimnasio' }, { icon: 'ph-person-simple-run', name: 'Correr' },
-      { icon: 'ph-devices', name: 'Tecnología' }, { icon: 'ph-laptop', name: 'Computadora' },
-      { icon: 'ph-device-mobile', name: 'Celular' }, { icon: 'ph-game-controller', name: 'Juegos' },
-      { icon: 'ph-music-notes', name: 'Música' }, { icon: 'ph-film-slate', name: 'Cine' },
-      { icon: 'ph-tv', name: 'Televisión' }, { icon: 'ph-headphones', name: 'Audífonos' },
-      { icon: 'ph-camera', name: 'Cámara' }, { icon: 'ph-book-open', name: 'Educación' },
-      { icon: 'ph-money', name: 'Salario' }, { icon: 'ph-credit-card', name: 'Tarjeta' },
-      { icon: 'ph-bank', name: 'Banco' }, { icon: 'ph-wallet', name: 'Billetera' },
-      { icon: 'ph-briefcase', name: 'Trabajo' }, { icon: 'ph-chart-line-up', name: 'Inversión' },
-      { icon: 'ph-piggy-bank', name: 'Ahorro' }, { icon: 'ph-receipt', name: 'Factura' },
-      { icon: 'ph-hand-coins', name: 'Préstamo' }, { icon: 'ph-coin', name: 'Moneda' },
-      { icon: 'ph-users', name: 'Familia' }, { icon: 'ph-baby', name: 'Bebé' },
-      { icon: 'ph-dog', name: 'Perro' }, { icon: 'ph-cat', name: 'Gato' },
-      { icon: 'ph-paw-print', name: 'Mascota' }, { icon: 'ph-gift', name: 'Regalos' },
-      { icon: 'ph-tag', name: 'Otros' }, { icon: 'ph-target', name: 'Metas' },
-      { icon: 'ph-star', name: 'Favorito' }, { icon: 'ph-flag', name: 'Bandera' },
-      { icon: 'ph-trophy', name: 'Logro' }, { icon: 'ph-medal', name: 'Medalla' },
-      { icon: 'ph-tent', name: 'Camping' }, { icon: 'ph-tree', name: 'Naturaleza' },
-      { icon: 'ph-umbrella', name: 'Lluvia' }, { icon: 'ph-sun', name: 'Sol' }
-    ];
-
-    function generarListaIconos(filtro = '') {
-      const cont = document.getElementById('listaIconosCategoria');
-      if (!cont) return;
-      const filtrados = iconosConNombre.filter(i => i.name.toLowerCase().includes(filtro.toLowerCase()) || i.icon.toLowerCase().includes(filtro.toLowerCase()));
-      if (filtrados.length === 0) {
-        cont.innerHTML = '<p style="color: #666; text-align: center; grid-column: span 4; margin-top: 20px;">No se encontraron iconos</p>';
-        return;
-      }
-      cont.innerHTML = filtrados.map(i => `
-        <div class="icono-item" data-icono="${i.icon}" data-nombre="${i.name}">
-          <div class="circulo"><i class="ph ${i.icon}"></i></div>
-          <span>${i.name}</span>
-        </div>`).join('');
-      cont.querySelectorAll('.icono-item').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const icono = this.dataset.icono;
-          document.getElementById('iconoCategoria').value = icono;
-          document.getElementById('btnMostrarIconos').innerHTML = `<i class="ph ${icono}"></i>`;
-          document.getElementById('selectorIconosModal').classList.add('hidden');
-        });
-      });
-    }
-
-    addListener('btnMostrarIconos', function() {
-      document.getElementById('selectorIconosModal').classList.remove('hidden');
-      generarListaIconos();
-    });
-    addListener('btnCerrarSelectorIconos', function() {
-      document.getElementById('selectorIconosModal').classList.add('hidden');
-    });
-
+    // ==================== ICONOS SVG MODERNOS ====================
+    // El selector vive en js/iconos.js. Conserva compatibilidad con iconos antiguos.
+    // No se cambian IDs, nombres de categorias ni datos guardados en Firebase.
+    
     const coloresDisponibles = ['#4a148c', '#e8c84c', '#f48fb1', '#66bb6a', '#d4e157', '#ec407a', '#ef9a9a', '#42a5f5', '#ff7043', '#26a69a', '#8d6e63', '#9e9e9e'];
     const contenedorColores = document.getElementById('contenedorColores');
 
@@ -381,7 +312,7 @@
           this.classList.add('active');
           document.getElementById('colorCategoria').value = this.dataset.color;
           const btn = document.getElementById('btnMostrarIconos');
-          if (btn) btn.style.background = this.dataset.color;
+          if (btn) App.Iconos.actualizarColor(this.dataset.color);
         });
       });
 
@@ -394,7 +325,7 @@
           this.parentElement.style.background = nuevoColor;
           this.parentElement.classList.add('active');
           const btn = document.getElementById('btnMostrarIconos');
-          if (btn) btn.style.background = nuevoColor;
+          if (btn) App.Iconos.actualizarColor(nuevoColor);
         });
       }
     }
@@ -513,7 +444,7 @@
 
       cont.innerHTML = cats.map((c, index) => `
         <div class="chip-categoria ${index === 0 ? 'activo' : ''}" data-nombre="${c.nombre}">
-          <i class="ph ${c.icono}"></i><span>${c.nombre}</span>
+          ${App.Iconos.html(c.icono)}<span>${c.nombre}</span>
         </div>`).join('');
 
       if (cats.length > 0) selectHidden.value = cats[0].nombre;
@@ -963,20 +894,20 @@
       const fragment = document.createDocumentFragment();
       catsFiltradas.forEach(c => {
         const div = document.createElement('div');
-        div.className = 'cat-card';
-        div.style.cssText = 'background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;';
+        div.className = 'cat-card fi-categoria-card';
+        // El diseño de la tarjeta ahora se controla en css/iconos.css.
         div.innerHTML = `
           <div style="display: flex; align-items: center; gap: 15px;">
             <div style="width: 45px; height: 45px; border-radius: 50%; background: ${c.color || '#e8c84c'}; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
-              <i class="ph ${c.icono}"></i>
+              ${App.Iconos.html(c.icono)}
             </div>
             <div style="display: flex; flex-direction: column;">
-              <span style="font-weight: 600; font-size: 15px; color: #333; text-transform: capitalize;">${c.nombre}</span>
+              <span style="font-weight: 650; font-size: 15px; color: var(--text-color); text-transform: capitalize;">${c.nombre}</span>
               <span style="font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-top: 3px; width: fit-content; background: ${c.tipo === 'ingreso' ? '#fef3c7; color: #92400e;' : '#e5e7eb; color: #374151;'}">${c.tipo.toUpperCase()}</span>
             </div>
           </div>
           <div style="display: flex; gap: 10px; color: #888;">
-            <button class="btn-editar-cat" data-id="${c.id}" data-nombre="${c.nombre}" data-icono="${c.icono}" data-color="${c.color}" data-tipo="${c.tipo}" style="background: none; border: none; cursor: pointer; color: #f97316; font-size: 18px;"><i class="ph ph-pencil-simple"></i></button>
+            <button class="btn-editar-cat" data-id="${c.id}" data-nombre="${c.nombre}" data-icono="fi:${App.Iconos.normalizar(c.icono)}" data-color="${c.color}" data-tipo="${c.tipo}" style="background: none; border: none; cursor: pointer; color: #f97316; font-size: 18px;"><i class="ph ph-pencil-simple"></i></button>
             <button class="btn-delete-cat" data-id="${c.id}" style="background: none; border: none; cursor: pointer; color: #888; font-size: 18px;"><i class="ph ph-x"></i></button>
           </div>`;
         fragment.appendChild(div);
@@ -1016,8 +947,8 @@
       const icono = datos.icono || 'ph-tag';
       document.getElementById('iconoCategoria').value = icono;
       const btnMostrar = document.getElementById('btnMostrarIconos');
-      btnMostrar.innerHTML = `<i class="ph ${icono}"></i>`;
-      btnMostrar.style.background = datos.color || '#e8c84c';
+      App.Iconos.actualizarVistaPrevia(icono);
+      App.Iconos.actualizarColor(datos.color || '#e8c84c');
 
       const color = datos.color || '#e8c84c';
       document.getElementById('colorCategoria').value = color;
@@ -1041,8 +972,8 @@
       document.getElementById('colorCategoria').value = '#e8c84c';
       document.getElementById('iconoCategoria').value = 'ph-tag';
       const btnMostrar = document.getElementById('btnMostrarIconos');
-      btnMostrar.innerHTML = '<i class="ph ph-tag"></i>';
-      btnMostrar.style.background = '#b0c4c0';
+      App.Iconos.actualizarVistaPrevia('ph-tag');
+      App.Iconos.actualizarColor('#e8c84c');
     });
 
     const formCat = document.getElementById('formCategoria');
