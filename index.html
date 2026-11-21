@@ -31,7 +31,7 @@
   
   <!-- Estilos -->
   <!-- Todos los estilos de Finora están consolidados en este archivo. -->
-  <link rel="stylesheet" href="css/styles.css?v=20261121-inicio2">
+  <link rel="stylesheet" href="css/styles.css?v=20261120-pwa13">
 </head>
 <body>
 
@@ -667,13 +667,12 @@
   <script src="js/mercado-motor.js"></script>
   <script src="js/mercado-inteligente.js"></script>
   <script src="js/encabezado-finora.js"></script>
+  <script src="js/pwa-actualizaciones.js"></script>
 
   <!-- ==================== SERVICE WORKER PWA Y PUSH ==================== -->
   <script>
-    // 1. Registrar el Service Worker de la PWA (para funcionar offline)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(function(reg) { reg.update(); });
-    }
+    // La PWA se registra desde js/pwa-actualizaciones.js para ofrecer actualizaciones seguras.
+    // Mantener aquí únicamente el registro independiente de Firebase Messaging.
 
     // 2. Registrar el Service Worker de Firebase Messaging (para notificaciones)
     // Le decimos explícitamente la ruta de GitHub Pages
