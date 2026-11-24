@@ -102,3 +102,34 @@ body.fm-abierto {overflow:hidden;}
 }
 [data-theme="dark"] .fm-resumen-v2 {border-color:rgba(232,200,76,.35);background:linear-gradient(125deg,rgba(232,200,76,.13),rgba(137,175,163,.08));}
 [data-theme="dark"] .fm-producto-info .fm-motivo {color:#efd18a;}
+
+/* ==========================================================
+   FINORA MERCADO V3 — comparador de precios por tienda
+   Se agrega al final de V2; no reemplaza estilos de otros módulos.
+   ========================================================== */
+.fm-pestañas {grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+.fm-pestaña {overflow-wrap:anywhere;}
+.fm-comparador-v3 {background:var(--bg-card,#fff); border:1px solid var(--border-color,#e5e7eb); padding:16px; border-radius:18px; margin:0 0 17px; box-shadow:0 5px 18px rgba(0,0,0,.035);}
+.fm-comparador-v3[hidden] {display:none !important;}
+.fm-comparador-v3 h3 {font-size:16px; margin:0 0 7px; font-weight:800;}
+.fm-v3-nota,.fm-v3-vacio {font-size:12px;line-height:1.55;color:var(--text-secondary,#667);margin:0 0 12px;}
+.fm-v3-mejor {display:flex;flex-direction:column;gap:7px;background:rgba(232,200,76,.14);border:1px solid rgba(200,160,30,.25);border-radius:14px;padding:14px;margin:10px 0 14px;}
+.fm-v3-mejor strong {font-size:16px;overflow-wrap:anywhere;}
+.fm-v3-mejor small {font-size:12px;color:var(--text-secondary,#667);}
+.fm-v3-desglose {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px;margin-top:8px;font-size:12px;}
+.fm-v3-desglose>div {background:var(--bg-card,#fff);padding:8px 10px;border-radius:9px;overflow-wrap:anywhere;}
+.fm-v3-tiendas {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:11px;}
+.fm-v3-tienda {display:flex;flex-direction:column;gap:5px;padding:13px;border-radius:13px;border:1px solid var(--border-color,#e6e8e5);background:var(--bg-body,#f8f9f9);}
+.fm-v3-tienda-mejor {border-color:rgba(186,146,34,.65);}
+.fm-v3-tienda strong {font-size:14px;overflow-wrap:anywhere;}
+.fm-v3-cobertura,.fm-v3-tienda small {font-size:11px;color:var(--text-secondary,#667);}
+.fm-v3-total {font-size:14px;font-weight:750;margin-top:5px;font-variant-numeric:tabular-nums;}
+.fm-producto-info .fm-v3-cotizacion {color:var(--text-color,#26352a);font-size:11px;font-weight:600;}
+@media (max-width:560px){
+  .fm-pestañas {grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;}
+  .fm-pestaña {font-size:10px;padding:10px 1px;line-height:1.4;}
+  .fm-comparador-v3 {padding:13px;}
+  .fm-v3-desglose {grid-template-columns:1fr;}
+}
+[data-theme=dark] .fm-v3-tienda {background:var(--input-bg,#2c2c2c);}
+[data-theme=dark] .fm-v3-mejor {background:rgba(232,200,76,.08);}
