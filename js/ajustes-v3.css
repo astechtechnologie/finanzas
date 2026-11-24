@@ -1,0 +1,134 @@
+/* FINORA · AJUSTES V3. Todos los estilos están limitados a #vistaAjustes. */
+#vistaAjustes.av3-ready {
+  width:100%; max-width:none; min-width:0;
+}
+#vistaAjustes.av3-ready > .ajustes-panel {
+  margin:0 auto; padding:0; max-width:1320px; width:100%;
+  background:transparent; border:0; box-shadow:none; min-width:0;
+}
+#vistaAjustes.av3-ready .av3-original-heading { position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+#vistaAjustes .av3 { --av3-line:var(--border-color,#e5e7eb); --av3-card:var(--bg-card,#fff); --av3-ink:var(--text-color,#191b1e); --av3-muted:var(--text-secondary,#727681); --av3-yellow:#e8c84c; color:var(--av3-ink); font-family:inherit; width:100%; min-width:0; scroll-margin-top:85px; padding:clamp(10px,2.5vw,27px) clamp(8px,2.5vw,25px) 32px; }
+#vistaAjustes .av3 * { box-sizing:border-box; }
+#vistaAjustes .av3 [hidden] { display:none!important; }
+#vistaAjustes .av3 button, #vistaAjustes .av3 input { font-family:inherit; }
+#vistaAjustes .av3 button:focus-visible, #vistaAjustes .av3 input:focus-visible, #vistaAjustes .av3 select:focus-visible { outline:3px solid var(--av3-yellow); outline-offset:2px; }
+#vistaAjustes .av3-portada {display:flex;align-items:center;gap:18px;padding:23px clamp(17px,3vw,33px);border:1px solid rgba(232,200,76,.18);border-radius:23px;background:linear-gradient(116deg,#22252a,#343537);box-shadow:0 12px 28px rgba(20,22,26,.09);color:white;margin-bottom:22px;min-width:0;overflow:hidden;position:relative;}
+#vistaAjustes .av3-portada::after {content:"";position:absolute;pointer-events:none;width:260px;height:260px;border-radius:50%;border:1px solid rgba(232,200,76,.16);top:-175px;right:-85px;box-shadow:0 0 0 38px rgba(232,200,76,.035),0 0 0 88px rgba(232,200,76,.022);}
+#vistaAjustes .av3-portada__icono {display:grid;place-items:center;width:57px;height:57px;flex:0 0 57px;border:1px solid #e2c45d;border-radius:18px;color:#e8c84c;font-size:32px;background:rgba(232,200,76,.1);}
+#vistaAjustes .av3-portada__texto {min-width:0;flex:1;}
+#vistaAjustes .av3-eyebrow {font-size:10px;letter-spacing:1.8px;font-weight:800;color:#b7a15d;margin:0 0 6px;}
+#vistaAjustes .av3-portada__texto .av3-eyebrow {color:#ecd276;}
+#vistaAjustes .av3-portada h2 {color:#fff;font-size:clamp(21px,2.7vw,30px);line-height:1.14;margin:0 0 6px;letter-spacing:-.6px;font-weight:800;}
+#vistaAjustes .av3-portada p:last-child {color:#dadbdd;font-size:13px;line-height:1.4;margin:0;}
+#vistaAjustes .av3-portada__sesion {display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:152px;padding:12px 15px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.1);border-radius:14px;position:relative;z-index:1;font-size:12px;font-weight:700;color:#fff;}
+#vistaAjustes #av3ConexionSuperior {display:inline-flex;align-items:center;gap:8px;}
+#vistaAjustes .av3-punto {position:absolute;left:6px;top:18px;width:7px;height:7px;border-radius:50%;background:#72d6a8;}
+#vistaAjustes .av3-punto.av3-offline {background:#ed9d88;}
+#vistaAjustes #av3ConexionSuperior {padding-left:6px;}
+#vistaAjustes .av3-portada__sesion small {font-size:10px;line-height:1.3;color:#bdbfc4;font-weight:500;max-width:180px;overflow-wrap:anywhere;}
+#vistaAjustes .av3-grid {display:grid;grid-template-columns:248px minmax(0,1fr);align-items:start;gap:20px;min-width:0;}
+#vistaAjustes .av3-sidebar {background:var(--av3-card);border:1px solid var(--av3-line);border-radius:20px;padding:14px;min-width:0;box-shadow:0 4px 15px rgba(25,27,29,.035);position:sticky;top:90px;}
+#vistaAjustes .av3-busqueda {display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--bg-body,#f5f6f8);border:1px solid var(--av3-line);border-radius:12px;min-height:44px;color:var(--av3-muted);}
+#vistaAjustes .av3-busqueda>span {font-size:23px;line-height:1;}
+#vistaAjustes #av3Buscar {height:40px;width:100%;min-width:0;border:0;background:transparent;color:var(--av3-ink);outline:0;box-shadow:none;font-size:12px;}
+#vistaAjustes #av3Buscar::placeholder {color:var(--av3-muted);opacity:.85;}
+#vistaAjustes .av3-menu {display:grid;gap:5px;margin:15px 0 11px;}
+#vistaAjustes .av3-nav {display:grid;grid-template-columns:31px minmax(0,1fr) 14px;align-items:center;gap:9px;width:100%;min-height:47px;padding:7px 10px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--av3-ink);cursor:pointer;text-align:left;font-size:13px;font-weight:650;transition:background .15s,border-color .15s;}
+#vistaAjustes .av3-nav:hover {background:var(--bg-body,#f3f4f6);}
+#vistaAjustes .av3-nav.av3-activo {background:rgba(232,200,76,.16);border-color:rgba(210,175,51,.35);color:var(--av3-ink);}
+#vistaAjustes .av3-nav-icono {display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:var(--bg-body,#f4f5f7);font-size:17px;}
+#vistaAjustes .av3-nav.av3-activo .av3-nav-icono {background:#e8c84c;color:#171717;}
+#vistaAjustes .av3-nav-texto {white-space:normal;line-height:1.25;}
+#vistaAjustes .av3-nav-arrow {font-size:23px;font-weight:400;color:var(--av3-muted);text-align:center;}
+#vistaAjustes .av3-sidebar-nota {border-top:1px solid var(--av3-line);padding:12px 6px 2px;margin:8px 0 0;color:var(--av3-muted);font-size:11px;line-height:1.5;}
+#vistaAjustes .av3-area {background:transparent;min-width:0;}
+#vistaAjustes .av3-area-header {display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:4px 0 19px;padding:0 4px;}
+#vistaAjustes .av3-area-header h2 {margin:0;font-size:clamp(22px,2.6vw,29px);letter-spacing:-.6px;font-weight:800;line-height:1.2;color:var(--av3-ink);}
+#vistaAjustes .av3-area-header p:not(.av3-eyebrow) {margin:6px 0 0;color:var(--av3-muted);font-size:13px;line-height:1.5;}
+#vistaAjustes .av3-version {color:#5b4c14;background:rgba(232,200,76,.23);border:1px solid rgba(201,166,44,.35);font-weight:850;font-size:11px;padding:7px 12px;border-radius:999px;}
+#vistaAjustes .av3-panel {display:grid;gap:15px;min-width:0;}
+#vistaAjustes .av3-card {padding:clamp(16px,2.5vw,24px);background:var(--av3-card);border:1px solid var(--av3-line);border-radius:19px;box-shadow:0 5px 18px rgba(21,24,28,.045);min-width:0;}
+#vistaAjustes .av3-card-head {display:flex;flex-direction:column;gap:6px;padding-bottom:15px;margin-bottom:13px;border-bottom:1px solid var(--av3-line);}
+#vistaAjustes .av3-card-head h3 {color:var(--av3-ink);font-weight:800;font-size:16px;margin:0;letter-spacing:-.3px;}
+#vistaAjustes .av3-card-head p {color:var(--av3-muted);font-size:12px;line-height:1.5;margin:0;}
+#vistaAjustes .av3-card .ajuste-item {display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--av3-line);margin:0;min-height:51px;padding:13px 0;}
+#vistaAjustes .av3-card .ajuste-item:last-child {border-bottom:0;}
+#vistaAjustes .av3-card .ajuste-item span {max-width:100%;overflow-wrap:anywhere;}
+#vistaAjustes .av3-card .ajuste-item .input-field, #vistaAjustes .av3-card select {max-width:100%;width:auto;margin-bottom:0;min-height:38px;}
+#vistaAjustes .av3-card .cuentas-box {padding:15px;background:var(--bg-body,#f5f6f8)!important;border:1px solid var(--av3-line)!important;border-radius:13px;margin:12px 0 0;min-width:0;}
+#vistaAjustes .av3-card .cuentas-input-group {display:flex;gap:9px;flex-wrap:wrap;}
+#vistaAjustes .av3-card .cuentas-input-group .input-field {flex:1 1 165px;min-width:0;}
+#vistaAjustes .av3-card .cuentas-input-group button {flex:0 0 auto;}
+#vistaAjustes .av3-card .ajuste-item-no-border {padding-top:17px;font-weight:750;border:0;}
+#vistaAjustes .av3-card #btnLogout {width:100%;margin-top:19px;}
+#vistaAjustes .av3-card .switch {flex-shrink:0;}
+#vistaAjustes .av3-card #panelCambioPassword,
+#vistaAjustes .av3-card #panelMetodosPago {padding:14px 0 3px;}
+#vistaAjustes .av3-card .input-field {max-width:100%;}
+#vistaAjustes .av3-card #configRecordatorioMovimientos .input-field {width:160px;max-width:100%;}
+#vistaAjustes .av3-card .btn {min-height:36px;}
+#vistaAjustes .av3-control {display:flex;gap:16px;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--av3-line);}
+#vistaAjustes .av3-control:last-child {border-bottom:0;}
+#vistaAjustes .av3-control>div:first-child {min-width:0;flex:1;}
+#vistaAjustes .av3-control strong {display:block;color:var(--av3-ink);font-weight:700;font-size:13px;margin:0 0 5px;}
+#vistaAjustes .av3-control small {display:block;font-size:11px;color:var(--av3-muted);line-height:1.4;max-width:360px;}
+#vistaAjustes .av3-control input[type=checkbox] {accent-color:#d7b33a;width:19px;height:19px;flex:0 0 19px;}
+#vistaAjustes .av3-segmentos {display:inline-flex;flex-shrink:0;gap:4px;background:var(--bg-body,#f3f4f6);border:1px solid var(--av3-line);padding:4px;border-radius:12px;}
+#vistaAjustes .av3-segmentos button {min-height:35px;padding:6px 12px;border:0;border-radius:9px;background:transparent;color:var(--av3-ink);font-size:12px;font-weight:650;cursor:pointer;}
+#vistaAjustes .av3-segmentos button.av3-selected {background:#e8c84c;color:#1e1b0e;box-shadow:0 2px 5px rgba(0,0,0,.06);}
+#vistaAjustes .av3-acciones {display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
+#vistaAjustes .av3-boton {display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 16px;border-radius:11px;border:1px solid var(--av3-line);cursor:pointer;font-weight:700;font-size:12px;line-height:1.3;}
+#vistaAjustes .av3-boton:disabled {opacity:.55;cursor:wait;}
+#vistaAjustes .av3-boton--primario {background:#e8c84c;color:#242016;border-color:#e8c84c;}
+#vistaAjustes .av3-boton--secundario {background:var(--bg-body,#f5f6f8);color:var(--av3-ink);}
+#vistaAjustes .av3-boton--peligro {background:transparent;color:#bb4949;border-color:rgba(187,73,73,.45);}
+#vistaAjustes .av3-nota {margin:12px 0 0;font-size:11px;color:var(--av3-muted);line-height:1.6;}
+#vistaAjustes .av3-resumen-linea {display:flex;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid var(--av3-line);font-size:12px;}
+#vistaAjustes .av3-resumen-linea span {color:var(--av3-muted);}
+#vistaAjustes .av3-resumen-linea strong {text-align:right;color:var(--av3-ink);overflow-wrap:anywhere;}
+#vistaAjustes .av3-estado {font-size:12px;color:#346d50;margin:16px 4px;min-height:20px;line-height:1.5;}
+#vistaAjustes .av3-estado[data-error=true] {color:#ba4c4c;}
+#vistaAjustes .av3-panel #fpPerfilV2 {max-width:none;width:100%;margin:0;}
+#vistaAjustes[data-av3-densidad=compacta] .av3-card {padding:14px;}
+#vistaAjustes[data-av3-densidad=compacta] .av3-panel {gap:9px;}
+#vistaAjustes[data-av3-densidad=compacta] .av3-card .ajuste-item {min-height:42px;padding:8px 0;}
+#vistaAjustes[data-av3-texto=grande] .av3-nav {font-size:15px;}
+#vistaAjustes[data-av3-texto=grande] .av3-card-head h3 {font-size:19px;}
+#vistaAjustes[data-av3-texto=grande] .av3-control strong,
+#vistaAjustes[data-av3-texto=grande] .av3-card .ajuste-item span {font-size:16px;}
+#vistaAjustes[data-av3-texto=grande] .av3-control small,
+#vistaAjustes[data-av3-texto=grande] .av3-card-head p {font-size:14px;}
+#vistaAjustes.av3-reduce-motion *, #vistaAjustes.av3-reduce-motion *::before, #vistaAjustes.av3-reduce-motion *::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+[data-theme=dark] #vistaAjustes .av3-version {color:#f6d87e;background:rgba(232,200,76,.15);}
+[data-theme=dark] #vistaAjustes .av3-boton--peligro {color:#ff9b99;}
+[data-theme=dark] #vistaAjustes .av3-busqueda {background:var(--bg-card);}
+@media(max-width:990px) {
+  #vistaAjustes .av3-grid {grid-template-columns:210px minmax(0,1fr);gap:13px;}
+  #vistaAjustes .av3-sidebar {padding:10px;}
+}
+@media(max-width:760px) {
+  #vistaAjustes .av3 {padding:9px 3px 24px;}
+  #vistaAjustes .av3-portada {margin-bottom:13px;border-radius:17px;padding:15px;gap:11px;flex-wrap:wrap;}
+  #vistaAjustes .av3-portada__icono {width:43px;height:43px;flex-basis:43px;border-radius:12px;font-size:25px;}
+  #vistaAjustes .av3-portada__texto {flex:1 1 200px;}
+  #vistaAjustes .av3-portada__sesion {flex:1 1 100%;flex-direction:row;align-items:center;justify-content:space-between;min-width:0;padding:8px 12px;}
+  #vistaAjustes .av3-punto {top:14px;}
+  #vistaAjustes .av3-grid {grid-template-columns:minmax(0,1fr);gap:11px;}
+  #vistaAjustes .av3-sidebar {position:static;border-radius:15px;}
+  #vistaAjustes .av3-menu {display:flex;overflow:auto;gap:6px;scrollbar-width:none;margin:11px 0 0;padding-bottom:3px;}
+  #vistaAjustes .av3-menu::-webkit-scrollbar {display:none;}
+  #vistaAjustes .av3-nav {flex:0 0 auto;width:auto;display:flex;min-height:40px;gap:6px;padding:5px 10px;white-space:nowrap;font-size:11px;}
+  #vistaAjustes .av3-nav-icono {height:25px;width:25px;font-size:14px;}
+  #vistaAjustes .av3-nav-arrow, #vistaAjustes .av3-sidebar-nota {display:none;}
+  #vistaAjustes .av3-area-header {padding:0 3px;margin:4px 0 12px;}
+  #vistaAjustes .av3-card {border-radius:15px;padding:15px;}
+  #vistaAjustes .av3-portada h2 {font-size:21px;}
+}
+@media(max-width:450px) {
+  #vistaAjustes .av3-control {flex-wrap:wrap;gap:11px;}
+  #vistaAjustes .av3-control .av3-segmentos {width:100%;display:grid;grid-template-columns:1fr 1fr;}
+  #vistaAjustes .av3-acciones>* {flex:1 1 145px;}
+  #vistaAjustes .av3-area-header h2 {font-size:22px;}
+  #vistaAjustes .av3-card .ajuste-item {gap:8px;}
+  #vistaAjustes .av3-card .ajuste-item .input-field {max-width:100%;}
+}
