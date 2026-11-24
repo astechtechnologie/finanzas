@@ -49,9 +49,11 @@
           <button class="fm-pestaña" type="button" data-fm-pestana="despensa">🏠 Despensa</button>
           <button class="fm-pestaña" type="button" data-fm-pestana="revisar">🔔 Revisar <span id="fmNumRevisar">0</span></button>
           <button class="fm-pestaña" type="button" data-fm-pestana="plan">✨ Plan V2</button>
+          <button class="fm-pestaña" type="button" data-fm-pestana="tiendas">🏷️ Tiendas V3</button>
         </div>
         <div id="fmBarraMes" class="fm-barra-mes"><label for="fmMes" id="fmEtiquetaMes">Lista para el mes</label><input type="month" id="fmMes"></div>
         <section id="fmResumenV2" class="fm-resumen-v2" aria-live="polite" hidden></section>
+        <section id="fmComparadorV3" class="fm-comparador-v3" aria-live="polite" hidden></section>
         <div class="fm-busqueda"><input id="fmBuscar" type="search" placeholder="Buscar aceite, arroz, leche..." aria-label="Buscar productos"></div>
         <div id="fmLista" class="fm-tarjetas" aria-live="polite"></div>
         <article class="fm-config"><div><strong>🔔 Avisos de mercado en tu celular</strong><p>Finora te recordará revisar productos próximos a agotarse. También verás los avisos aquí, sin activar push.</p></div>
@@ -70,6 +72,7 @@
           <label>Unidad <select id="fmUnidad"><option>unidad</option><option>litro</option><option>kg</option><option>gramos</option><option>paquete</option><option>botella</option><option>bolsa</option><option>caja</option></select></label></div>
           <label>Última compra (opcional) <input id="fmFechaCompra" type="date"></label>
           <label>Precio total del producto (COP, opcional) <input id="fmPrecioNuevo" type="number" min="0.01" max="1000000000" step="0.01" inputmode="decimal" placeholder="Ej. 22000"></label>
+          <label>Tienda donde lo compraste (opcional, solo con precio y fecha) <input id="fmTiendaNueva" maxlength="60" placeholder="Ej. Tienda del barrio"></label>
           <label>Duración aproximada, en días <input id="fmDuracion" type="number" min="1" max="365" value="30" required></label>
           <p class="fm-ayuda">Si ya lo compraste, usa la fecha. Finora calculará cuándo revisarlo. Si aún no lo compraste, irá a la lista del mes seleccionado.</p>
           <div class="fm-acciones"><button id="fmCancelarEditor" type="button" class="fm-btn fm-btn-secundario">Cancelar</button><button type="submit" class="fm-btn fm-btn-primario">Guardar producto</button></div>
@@ -79,6 +82,7 @@
         <form id="fmFechaFormulario" class="fm-cuadro">
           <h3 id="fmFechaTitulo">Registrar fecha</h3><label>Fecha <input type="date" id="fmFechaValor" required></label>
           <label id="fmPrecioCompraGrupo">Precio total pagado (COP, opcional) <input type="number" id="fmPrecioCompra" min="0.01" max="1000000000" step="0.01" inputmode="decimal" placeholder="Ej. 22000"></label>
+          <label id="fmTiendaCompraGrupo">Tienda (opcional, solo al registrar precio) <input id="fmTiendaCompra" maxlength="60" placeholder="Ej. Supermercado A"></label>
           <div class="fm-acciones"><button type="button" id="fmCancelarFecha" class="fm-btn fm-btn-secundario">Cancelar</button><button type="submit" class="fm-btn fm-btn-primario">Confirmar</button></div>
         </form>
       </div>
@@ -88,6 +92,23 @@
           <div id="fmHistoricoLista" class="fm-historico-lista"></div>
           <button type="button" class="fm-btn fm-btn-secundario" id="fmCerrarHistorico">Cerrar</button>
         </section>
+      </div>
+      <div id="fmRegistrarPrecioTienda" class="fm-capa" hidden>
+        <form id="fmTiendaFormulario" class="fm-cuadro">
+          <h3 id="fmTiendaTitulo">Registrar precio de tienda</h3>
+          <p class="fm-ayuda">Anota un precio visto en una tienda, aunque no hayas comprado. No cambia tu despensa ni registra gastos.</p>
+          <label>Nombre de la tienda <input id="fmTiendaNombre" maxlength="60" required placeholder="Ej. Supermercado A"></label>
+          <div class="fm-form-grid">
+            <label>Fecha del precio <input id="fmTiendaFecha" type="date" required></label>
+            <label>Cantidad a la que corresponde <input id="fmTiendaCantidad" type="number" min="0.01" max="9999" step="0.01" required></label>
+          </div>
+          <label>Precio total (COP) <input id="fmTiendaTotal" type="number" min="0.01" max="1000000000" step="0.01" required></label>
+          <p id="fmTiendaUnidadNota" class="fm-ayuda"></p>
+          <div class="fm-acciones">
+            <button id="fmTiendaCancelar" type="button" class="fm-btn fm-btn-secundario">Cancelar</button>
+            <button class="fm-btn fm-btn-primario" type="submit">Guardar precio</button>
+          </div>
+        </form>
       </div>`;
     app.appendChild(pantalla);
     $('fmMes').value = mesLista;
@@ -97,6 +118,8 @@
     $('fmCancelarEditor').addEventListener('click', () => { $('fmEditor').hidden = true; });
     $('fmCancelarFecha').addEventListener('click', () => { $('fmAccionFecha').hidden = true; });
     $('fmCerrarHistorico').addEventListener('click', () => { $('fmHistorico').hidden = true; });
+    $('fmTiendaCancelar').addEventListener('click', () => { $('fmRegistrarPrecioTienda').hidden = true; });
+    $('fmTiendaFormulario').addEventListener('submit', guardarPrecioTienda);
     $('fmFormulario').addEventListener('submit', guardarProducto);
     $('fmFechaFormulario').addEventListener('submit', confirmarFecha);
     $('fmGuardarPush').addEventListener('click', guardarAvisosPush);
@@ -104,7 +127,7 @@
     $('fmMes').addEventListener('change', function () { if (/^\d{4}-(0[1-9]|1[0-2])$/.test(this.value)) { mesLista = this.value; pintar(); } });
     pantalla.querySelectorAll('[data-fm-pestana]').forEach(b => b.addEventListener('click', () => {
       pestaña = b.dataset.fmPestana;
-      if (pestaña === 'plan') {
+      if (pestaña === 'plan' || pestaña === 'tiendas') {
         mesLista = M.proximoMes(hoy().slice(0,7));
         $('fmMes').value = mesLista;
       }
@@ -116,6 +139,7 @@
       if (!$('fmEditor').hidden) $('fmEditor').hidden=true;
       else if (!$('fmAccionFecha').hidden) $('fmAccionFecha').hidden=true;
       else if (!$('fmHistorico').hidden) $('fmHistorico').hidden=true;
+      else if (!$('fmRegistrarPrecioTienda').hidden) $('fmRegistrarPrecioTienda').hidden=true;
       else cerrar();
     }});
   }
@@ -131,7 +155,7 @@
     pintar(); $('fmBuscar').focus();
   }
   function cerrar() {
-    $('fmEditor').hidden = true; $('fmAccionFecha').hidden = true; $('fmHistorico').hidden = true;
+    $('fmEditor').hidden = true; $('fmAccionFecha').hidden = true; $('fmHistorico').hidden = true; $('fmRegistrarPrecioTienda').hidden = true;
     $('fmPantalla').hidden = true; document.body.classList.remove('fm-abierto');
     $('fmAbrirMercado')?.focus();
   }
@@ -193,8 +217,8 @@
   function pintar() {
     const lista=$('fmLista'); if (!lista) return;
     lista.replaceChildren();
-    $('fmBarraMes').hidden = !['lista','plan'].includes(pestaña);
-    $('fmEtiquetaMes').textContent = pestaña==='plan' ? 'Planificar las compras de' : 'Lista para el mes';
+    $('fmBarraMes').hidden = !['lista','plan','tiendas'].includes(pestaña);
+    $('fmEtiquetaMes').textContent = pestaña==='plan' || pestaña==='tiendas' ? 'Comparar compras de' : 'Lista para el mes';
     $('fmPantalla').querySelectorAll('[data-fm-pestana]').forEach(b => b.classList.toggle('active',b.dataset.fmPestana===pestaña));
     const pendientes=productos.filter(p => p.mesLista === mesLista);
     const vencidos=productos.filter(p => M.debeRevisarse(p,hoy()));
@@ -207,11 +231,14 @@
     aviso.hidden = vencidos.length === 0;
     if (vencidos.length) aviso.textContent = '🔔 ' + vencidos.length + ' producto(s) podrían estar por agotarse. Revísalos antes del próximo mercado.';
     const resumen=$('fmResumenV2');
-    resumen.hidden = !['lista','plan'].includes(pestaña);
+    resumen.hidden = !['lista','plan','tiendas'].includes(pestaña);
     if (!resumen.hidden) pintarResumen(resumen, mesLista);
+    $('fmComparadorV3').hidden = pestaña !== 'tiendas';
+    if (pestaña === 'tiendas') pintarComparador();
     const buscar=String($('fmBuscar').value||'').trim().toLocaleLowerCase('es');
     let items = pestaña==='lista' ? pendientes : pestaña==='revisar' ? vencidos :
-      pestaña==='plan' ? M.sugerencias(productos,mesLista,hoy()) : productos;
+      pestaña==='plan' ? M.sugerencias(productos,mesLista,hoy()) :
+      pestaña==='tiendas' ? pendientes : productos;
     items=items.filter(p => !buscar || String(p.nombre||'').toLocaleLowerCase('es').includes(buscar))
       .slice().sort((a,b)=>String(a.nombre||'').localeCompare(String(b.nombre||''),'es'));
     if (!items.length) {
@@ -242,7 +269,10 @@
         (variacion>0?'↑ +':variacion<0?'↓ ':'= ')+variacion+' % respecto a la compra anterior (por unidad)'));
       fila.append(icono,info); tarjeta.appendChild(fila);
       const acciones=elemento('div','fm-producto-acciones');
-      if (pestaña === 'lista') {
+      if (pestaña === 'tiendas') {
+        acciones.append(boton('cotizar','+ Registrar precio de tienda','fm-btn-primario',p.id));
+        if (M.historialDePrecios(p).length || M.ofertasValidas(p).length) acciones.append(boton('historial-precios','Ver precios guardados','fm-btn-secundario',p.id));
+      } else if (pestaña === 'lista') {
         acciones.append(boton('comprar','✓ Compré','fm-btn-primario',p.id),boton('sacar','Quitar de lista','fm-btn-secundario',p.id));
       } else if (pestaña === 'plan') {
         acciones.append(boton('agregar-plan','+ Añadir al mes elegido','fm-btn-primario',p.id));
@@ -258,8 +288,15 @@
         acciones.appendChild(boton('editar','Editar','fm-btn-suave',p.id));
         acciones.appendChild(boton('borrar','Eliminar','fm-btn-peligro',p.id));
       }
-      acciones.append(boton('favorito',p.favorito?'★ Favorito':'☆ Favorito','fm-btn-suave',p.id));
-      if (M.historialDePrecios(p).length) acciones.append(boton('historial-precios','Historial de precios','fm-btn-secundario',p.id));
+      if (pestaña !== 'tiendas') acciones.append(boton('cotizar','🏷️ Precio en tienda','fm-btn-suave',p.id));
+      if (pestaña !== 'tiendas') acciones.append(boton('favorito',p.favorito?'★ Favorito':'☆ Favorito','fm-btn-suave',p.id));
+      if (pestaña !== 'tiendas' && (M.historialDePrecios(p).length || M.ofertasValidas(p).length)) acciones.append(boton('historial-precios','Historial de precios','fm-btn-secundario',p.id));
+      if (pestaña === 'tiendas') {
+        const cot=M.cotizaciones(p,hoy());
+        info.appendChild(elemento('small','fm-v3-cotizacion',cot.length ?
+          cot.slice(0,2).map(x=>x.tienda+': '+moneda(x.estimado)+' ('+x.fecha+')').join(' · ') :
+          'Sin precios recientes por tienda (últimos 90 días).'));
+      }
       tarjeta.appendChild(acciones); lista.appendChild(tarjeta);
     }
   }
@@ -268,7 +305,7 @@
     return '$'+Math.round(Number(n)||0).toLocaleString('es-CO',{maximumFractionDigits:0});
   }
   function pintarResumen(contenedor, mes) {
-    const datos=M.presupuestoMes(productos,mes);
+    const datos=M.presupuestoConTiendas(productos,mes,hoy());
     contenedor.replaceChildren();
     const titulo=elemento('div','fm-v2-titulo');
     titulo.append(elemento('strong','','Presupuesto estimado · '+mes), elemento('small','',
@@ -276,7 +313,7 @@
     const valor=elemento('div','fm-v2-valor',moneda(datos.total));
     const nota=elemento('p','fm-v2-nota', datos.sinPrecio
       ? datos.sinPrecio+' producto(s) sin precio. El total es parcial: registra precios para completar el cálculo.'
-      : 'Estimación basada en precios anteriores; puede variar en la tienda.');
+      : 'Estimación con tu historial y precios de tienda. Los precios pueden cambiar.');
     contenedor.append(titulo,valor,nota);
     if (pestaña==='plan') {
       const sugeridos=M.sugerencias(productos,mes,hoy());
@@ -284,14 +321,79 @@
       contenedor.appendChild(plan);
     }
   }
+  // V3: los precios de tiendas son referencias manuales, nunca movimientos de dinero.
+  let idPrecioTienda=null;
+  function abrirPrecioTienda(producto) {
+    idPrecioTienda=producto.id;
+    $('fmTiendaTitulo').textContent='Precio en tienda · '+String(producto.nombre||'Producto');
+    $('fmTiendaNombre').value='';
+    $('fmTiendaFecha').value=hoy();
+    $('fmTiendaCantidad').value=producto.cantidad||1;
+    $('fmTiendaTotal').value='';
+    $('fmTiendaUnidadNota').textContent='Indica el precio para esa cantidad de '+(producto.unidad||'unidad')+'. Se compara el precio por unidad.';
+    $('fmRegistrarPrecioTienda').hidden=false;
+    $('fmTiendaNombre').focus();
+  }
+  async function guardarPrecioTienda(e) {
+    e.preventDefault();
+    const id=idPrecioTienda, p=productos.find(x=>x.id===id);
+    if(!id||!p) { estado('No se encontró el producto.',true);return; }
+    const oferta={tienda:$('fmTiendaNombre').value.trim(),fecha:$('fmTiendaFecha').value,
+      cantidad:Number($('fmTiendaCantidad').value),total:Number($('fmTiendaTotal').value)};
+    if (!M.tiendaValida(oferta.tienda)||!M.leerFecha(oferta.fecha)||
+        M.diferenciaDias(oferta.fecha,hoy())<0 || !M.precioValido(oferta.cantidad)||!M.precioValido(oferta.total)) {
+      estado('Revisa tienda, fecha (no futura), cantidad y precio.',true);return;
+    }
+    await ejecutar(async()=>{
+      await actualizarAtomico(id,actual=>M.guardarOferta(actual,oferta));
+      $('fmRegistrarPrecioTienda').hidden=true;
+    });
+  }
+  function pintarComparador() {
+    const cont=$('fmComparadorV3');cont.replaceChildren();
+    const titulo=elemento('h3','','Comparador de tiendas · últimos 90 días');
+    const nota=elemento('p','fm-v3-nota','Precios introducidos por ti, no en tiempo real. Son valores proporcionales por unidad: un envase entero puede costar más. Un subtotal parcial NO es el costo completo.');
+    cont.append(titulo,nota);
+    const lista=productos.filter(p=>p.mesLista===mesLista);
+    if(!lista.length){cont.appendChild(elemento('p','fm-v3-vacio','Selecciona productos para este mes desde la pestaña Despensa o Plan V2.'));return;}
+    const optim=M.planMasEconomico(productos,mesLista,hoy());
+    const caja=elemento('div','fm-v3-mejor');
+    caja.append(elemento('strong','','Mejor combinación registrada: '+moneda(optim.total)),
+      elemento('small','',optim.sinPrecio ? 'Estimación PARCIAL: faltan precios de '+optim.sinPrecio+' producto(s).' :
+        'Estimación completa para '+optim.cantidad+' productos. Podría requerir visitar varias tiendas.'));
+    if(optim.conPrecio) {
+      const desglose=elemento('div','fm-v3-desglose');
+      optim.detalle.forEach(d=>desglose.appendChild(elemento('div','',d.nombre+' — '+(d.estimado===null?'Sin precio reciente':d.tienda+' · '+moneda(d.estimado)))));
+      caja.appendChild(desglose);
+    }
+    cont.appendChild(caja);
+    const grupos=M.compararTiendas(productos,mesLista,hoy());
+    if (!grupos.length){cont.appendChild(elemento('p','fm-v3-vacio','Aún no hay precios por tienda dentro de los últimos 90 días. Registra uno en cada producto de la lista.'));return;}
+    const agrupacion=elemento('div','fm-v3-tiendas');
+    grupos.forEach((t,i)=>{
+      const item=elemento('article','fm-v3-tienda');
+      item.append(elemento('strong','',t.tienda),elemento('span','fm-v3-cobertura',t.completos+'/'+t.cantidad+' productos con precio'));
+      item.append(elemento('div','fm-v3-total',moneda(t.total)+(t.esCompleta?' · TOTAL ESTIMADO':' · SUBTOTAL PARCIAL')));
+      if(t.faltantes)item.appendChild(elemento('small','',t.faltantes+' producto(s) sin precio en esta tienda.'));
+      if (i===0 && t.esCompleta) item.classList.add('fm-v3-tienda-mejor');
+      agrupacion.appendChild(item);
+    });
+    cont.appendChild(agrupacion);
+  }
   function mostrarPrecios(p) {
     const lista=$('fmHistoricoLista'); lista.replaceChildren();
     $('fmHistoricoTitulo').textContent='Precios · '+String(p.nombre||'Producto');
     const registros=M.historialDePrecios(p).slice().reverse();
-    if (!registros.length) lista.appendChild(elemento('p','','Todavía no hay compras con precio registrado.'));
-    registros.forEach(r=>{
+
+    const ofertas=M.ofertasValidas(p).map(r=>({...r,fuente:'Cotización'}));
+    const todas=registros.map(r=>({...r,fuente:'Compra'})).concat(ofertas)
+      .sort((a,b)=>b.fecha.localeCompare(a.fecha));
+    lista.replaceChildren();
+    if (!todas.length) lista.appendChild(elemento('p','','No hay compras ni precios de tiendas registrados.'));
+    todas.forEach(r=>{
       const linea=elemento('div','fm-precio-renglon');
-      linea.append(elemento('strong','',moneda(r.total)),elemento('span','',r.fecha+' · '+r.cantidad+' '+(p.unidad||'unidad')));
+      linea.append(elemento('strong','',moneda(r.total)),elemento('span','',
+        r.fecha+' · '+r.cantidad+' '+(r.unidad||p.unidad||'unidad')+' · '+(r.tienda||'Tienda no indicada')+' · '+r.fuente));
       lista.appendChild(linea);
     });
     $('fmHistorico').hidden=false;
@@ -317,6 +419,7 @@
     $('fmFechaCompra').value=producto?.fechaUltimaCompra||'';
     $('fmDuracion').value=producto?.duracionManual||30;
     $('fmPrecioNuevo').value = producto?.precioReferencia ?? '';
+    $('fmTiendaNueva').value = '';
     $('fmEditor').hidden=false; $('fmNombre').focus();
   }
   async function ejecutar(operacion) {
@@ -336,6 +439,8 @@
     const duracion=Number($('fmDuracion').value);
     const precioTexto=$('fmPrecioNuevo').value.trim();
     const precio=precioTexto ? Number(precioTexto) : null;
+    const tienda=$('fmTiendaNueva').value.trim();
+    if (tienda && !M.tiendaValida(tienda)) { estado('El nombre de la tienda no es válido.',true); return; }
     if (!nombre || nombre.length>70 || !Number.isFinite(cantidad) || cantidad<=0 || cantidad>9999 || !Number.isInteger(duracion) || duracion<1 || duracion>365 || (compra&&!M.leerFecha(compra)) || (precio!==null&&!M.precioValido(precio))) { estado('Revisa nombre, cantidad, duración, fecha y precio.',true); return; }
     if (!editarId && productos.some(p=>String(p.nombre||'').toLocaleLowerCase('es')===nombre.toLocaleLowerCase('es'))) { estado('Ya tienes un producto con ese nombre. Edítalo desde Despensa.',true); return; }
     await ejecutar(async()=>{
@@ -345,7 +450,7 @@
           let cambios={nombre,cantidad,unidad,duracionManual:duracion};
           if (compra && compra!==original.fechaUltimaCompra) {
             cambios={...cambios,...M.alComprar(original,compra)};
-            if (precio!==null) cambios={...cambios,...M.guardarPrecioDeCompra({...original,cantidad},compra,precio,cantidad)};
+            if (precio!==null) cambios={...cambios,...M.guardarPrecioDeCompra({...original,cantidad,unidad},compra,precio,cantidad,tienda)};
           } else {
             // Una referencia editada no inventa un evento de compra.
             if (precio!==null) cambios.precioReferencia=precio;
@@ -360,7 +465,7 @@
           estado:'agotado', fechaUltimaCompra:null,fechaUltimoAgotado:null,fechaRevision:null,mesLista:mesLista,
           creadoPor:uid,creadoEn:ahora(),actualizadoEn:ahora() };
         let producto = compra ? {...base,...M.alComprar(base,compra)} : base;
-        if (compra&&precio!==null) producto={...producto,...M.guardarPrecioDeCompra(base,compra,precio,cantidad)};
+        if (compra&&precio!==null) producto={...producto,...M.guardarPrecioDeCompra(base,compra,precio,cantidad,tienda)};
         await coleccion.add(producto);
       }
       $('fmEditor').hidden=true;
@@ -373,6 +478,8 @@
     $('fmFechaTitulo').textContent=accion==='comprar'?'¿Cuándo lo compraste?':'¿Cuándo se terminó?';
     $('fmFechaValor').value=hoy();
     $('fmPrecioCompraGrupo').hidden=accion!=='comprar';
+    $('fmTiendaCompraGrupo').hidden=accion!=='comprar';
+    $('fmTiendaCompra').value='';
     $('fmPrecioCompra').value='';
     $('fmAccionFecha').hidden=false; $('fmFechaValor').focus();
   }
@@ -382,6 +489,8 @@
     const {accion,id}=accionFecha; const fecha=$('fmFechaValor').value;
     const precioTexto=accion==='comprar' ? $('fmPrecioCompra').value.trim() : '';
     const precio=precioTexto ? Number(precioTexto) : null;
+    const tienda=accion==='comprar' ? $('fmTiendaCompra').value.trim() : '';
+    if (tienda && !M.tiendaValida(tienda)) { estado('Escribe una tienda válida.',true);return; }
     if (!M.leerFecha(fecha) || (precio!==null&&!M.precioValido(precio))) { estado('Selecciona fecha y precio válidos.',true);return; }
     const p=productos.find(x=>x.id===id);
     if (!p) { estado('No se encontró el producto.',true);return; }
@@ -389,7 +498,7 @@
       await actualizarAtomico(id,actual=>{
         let cambios=accion==='comprar'?M.alComprar(actual,fecha):M.alAgotar(actual,fecha);
         if (accion==='comprar'&&precio!==null) cambios={...cambios,
-          ...M.guardarPrecioDeCompra(actual,fecha,precio,Number(actual.cantidad)||1)};
+          ...M.guardarPrecioDeCompra(actual,fecha,precio,Number(actual.cantidad)||1,tienda)};
         return cambios;
       });
       $('fmAccionFecha').hidden=true;
@@ -404,6 +513,7 @@
     const accion=b.dataset.accion;
     if (accion==='editar') return editarProducto(p);
     if (accion==='historial-precios') return mostrarPrecios(p);
+    if (accion==='cotizar') return abrirPrecioTienda(p);
     if (accion==='comprar' || accion==='agotar') return pedirFecha(accion,id);
     if (accion==='borrar' && !confirm('¿Eliminar «'+p.nombre+'» y su historial de consumo?')) return;
     ejecutar(async()=>{
@@ -484,3 +594,4 @@
     },1500);
   });
 })();
+
