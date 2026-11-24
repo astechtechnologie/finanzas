@@ -1,0 +1,38 @@
+/* Finora — Conciliación V1 (estilos encapsulados, no afectan otros módulos) */
+#fc1Panel { --fc1-borde: var(--border-color, #e1e5ea); --fc1-fondo: var(--bg-card, #fff); --fc1-texto: var(--text-color, #20242b); --fc1-secundario: var(--text-secondary, #5c6472); color: var(--fc1-texto); max-width: 1040px; margin: 18px auto; display: grid; gap: 16px; font-family: inherit; }
+#fc1Panel[hidden] { display: none !important; }
+#fc1Panel * { box-sizing: border-box; }
+#fc1Panel .fc1-cabecera { background: linear-gradient(125deg, #22262a, #343b35); color: #fff; padding: 23px 24px; border-radius: 20px; }
+#fc1Panel .fc1-cabecera h3 { color: #fff; font-size: clamp(19px, 2vw, 26px); margin: 8px 0; }
+#fc1Panel .fc1-cabecera p { color: #e3e7e6; font-size: 13px; line-height: 1.6; margin: 0; max-width: 70ch; }
+#fc1Panel .fc1-chispa { font-size: 10px; color: #e8c84c; font-weight: 800; letter-spacing: 1.1px; }
+#fc1Panel .fc1-cuadricula { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+#fc1Panel .fc1-tarjeta { background: var(--fc1-fondo); border: 1px solid var(--fc1-borde); padding: 20px; border-radius: 18px; box-shadow: 0 3px 16px rgba(0,0,0,.035); min-width: 0; }
+#fc1Panel .fc1-tarjeta h4 { font-weight: 750; font-size: 16px; color: var(--fc1-texto); margin: 0 0 14px; }
+#fc1Panel form.fc1-tarjeta { display: grid; grid-template-columns: 1fr; gap: 8px; align-content: start; }
+#fc1Panel label { font-size: 12px; color: var(--fc1-secundario); font-weight: 650; margin-top: 5px; }
+#fc1Panel input,#fc1Panel select { display: block; min-width: 0; width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--fc1-borde); border-radius: 10px; font: inherit; font-size: 14px; color: var(--fc1-texto); background: var(--fc1-fondo); }
+#fc1Panel input:focus-visible,#fc1Panel select:focus-visible,#fc1Panel button:focus-visible { outline: 3px solid #cfac28; outline-offset: 2px; }
+#fc1Panel button { border-radius: 10px; border: 1px solid var(--fc1-borde); font: inherit; font-size: 12px; font-weight: 700; min-height: 42px; padding: 10px 14px; cursor: pointer; }
+#fc1Panel button:disabled { opacity: .5; cursor: not-allowed; }
+#fc1Panel .fc1-botones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+#fc1Panel .fc1-primario { background: #e8c84c; color: #131313; border-color: #d0a820; }
+#fc1Panel .fc1-secundario { background: var(--fc1-fondo); color: var(--fc1-texto); }
+#fc1Panel .fc1-mutado { color: var(--fc1-secundario); font-size: 12px; line-height: 1.55; margin: 4px 0 0; }
+#fc1Panel .fc1-filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#fc1Panel .fc1-filtros input { width: 100px; }
+#fc1Panel .fc1-tabla-wrap { overflow-x: auto; max-width: 100%; margin-top: 16px; }
+#fc1Panel table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#fc1Panel th,#fc1Panel td { padding: 10px 8px; border-bottom: 1px solid var(--fc1-borde); text-align: right; white-space: nowrap; }
+#fc1Panel th:first-child,#fc1Panel td:first-child { text-align: left; }
+#fc1Panel .fc1-fila-advertencia { background: rgba(234,179,8,.09); }
+#fc1Panel .fc1-item { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--fc1-borde); }
+#fc1Panel .fc1-item strong { font-size: 13px; }
+#fc1Panel .fc1-item div { display: flex; flex-direction: column; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+#fc1Panel .fc1-item small { color: var(--fc1-secundario); font-size: 11px; }
+#fc1Panel .fc1-borrar { min-height: 34px; padding: 7px 10px; color: #b83235; border-color: rgba(190,40,45,.2); background: transparent; }
+#fc1Panel .fc1-estado { font-size: 13px; color: #08794b; margin: 0; min-height: 18px; }
+#fc1Panel .fc1-estado.fc1-error { color: #bd3b40; }
+#fc1EtiquetaSaldo.fc1-etiqueta-saldo { display: block; margin: 6px 0 0; color: #ece9db; font-size: 10px; line-height: 1.35; font-weight: 500; }
+#fc1EtiquetaSaldo[hidden] { display: none; }
+@media(max-width: 720px) { #fc1Panel .fc1-cuadricula { grid-template-columns: 1fr; } #fc1Panel .fc1-cabecera,#fc1Panel .fc1-tarjeta { padding: 16px; } #fc1Panel .fc1-item { grid-template-columns: minmax(0,1fr) auto; } #fc1Panel .fc1-borrar { grid-column: 2; } }
