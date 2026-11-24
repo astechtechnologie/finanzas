@@ -1,0 +1,128 @@
+/* FINORA ADMIN V2 — Todos los estilos limitados a #vistaAdmin */
+#vistaAdmin.fi-admin-v2--mounted { overflow: visible; }
+#vistaAdmin.fi-admin-v2--locked { display:none!important; }
+#vistaAdmin .admin-dashboard { max-width: none; margin: 0; padding: 0; }
+#vistaAdmin .fi-admin-v2 {
+  --av2-bg: #f4f6f8;
+  --av2-card: #fff;
+  --av2-ink: #1f2832;
+  --av2-muted: #667587;
+  --av2-line: #e5e9ed;
+  --av2-gold: #e8c84c;
+  display:grid; grid-template-columns: 234px minmax(0,1fr); min-height:calc(100vh - 140px);
+  background:var(--av2-bg); color:var(--av2-ink); font-family:inherit;
+}
+#vistaAdmin .fi-admin-v2 *,#vistaAdmin .fi-admin-v2 *::before,#vistaAdmin .fi-admin-v2 *::after { box-sizing:border-box; }
+#vistaAdmin .fi-admin-v2__sidebar { background:#22282e; color:#fff; padding:24px 13px; position:sticky; top:70px; align-self:start; min-height:calc(100vh - 74px); }
+#vistaAdmin .fi-admin-v2__brand { display:flex; align-items:center; gap:10px; padding:0 10px 20px; border-bottom:1px solid #424a51; margin-bottom:15px; }
+#vistaAdmin .fi-admin-v2__brand b { display:block; font-size:15px; }
+#vistaAdmin .fi-admin-v2__brand small { display:block; font-size:11px; color:#b7c0ca; padding-top:3px; }
+#vistaAdmin .fi-admin-v2__logo { width:37px; height:37px; display:grid; place-items:center; color:#15191c; background:var(--av2-gold); border-radius:12px; font-size:22px; }
+#vistaAdmin .fi-admin-v2__nav { display:flex; flex-direction:column; gap:6px; }
+#vistaAdmin .fi-admin-v2__nav-btn { appearance:none; border:0; width:100%; text-align:left; background:transparent; color:#e2e6ea; display:flex; gap:11px; align-items:center; border-radius:12px; padding:12px 13px; font-size:13px; font-weight:650; cursor:pointer; transition:background .15s ease,color .15s ease; }
+#vistaAdmin .fi-admin-v2__nav-btn i { font-size:19px; }
+#vistaAdmin .fi-admin-v2__nav-btn:hover { background:#39424b; color:#fff; }
+#vistaAdmin .fi-admin-v2__nav-btn.active { background:var(--av2-gold); color:#252523; }
+#vistaAdmin .fi-admin-v2__sidebar-help { font-size:11px; color:#c5cbd1; line-height:1.5; margin:24px 12px 0; }
+#vistaAdmin .fi-admin-v2__main { width:100%; min-width:0; max-width:1460px; margin:0 auto; padding:27px clamp(16px,3vw,38px) 120px; }
+#vistaAdmin .fi-admin-v2__top { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:23px; }
+#vistaAdmin .fi-admin-v2__top h2 { margin:4px 0 5px; font-size:clamp(23px,2.5vw,33px); font-weight:800; color:var(--av2-ink); }
+#vistaAdmin .fi-admin-v2__top p { margin:0; color:var(--av2-muted); font-size:13px; }
+#vistaAdmin .fi-admin-v2__eyebrow { text-transform:uppercase; color:#8c7324; font-size:10px; font-weight:850; letter-spacing:1.5px; }
+#vistaAdmin .fi-admin-v2__panel { padding:0; min-width:0; }
+#vistaAdmin .fi-admin-v2__panel[hidden] { display:none!important; }
+#vistaAdmin .fi-admin-v2__panel > h3 { font-size:18px; margin:0 0 14px; }
+#vistaAdmin .fi-admin-v2__panel > .admin-header { display:none; }
+#vistaAdmin .fi-admin-v2__panel .admin-header { display:none; }
+#vistaAdmin .fi-admin-v2__panel .admin-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+#vistaAdmin .fi-admin-v2__panel .admin-stats .stat-card {
+  background:var(--av2-card); border:1px solid var(--av2-line); border-radius:16px; padding:18px 16px;
+  display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:8px;
+  box-shadow:0 8px 23px rgba(32,47,66,.035); min-width:0;
+}
+#vistaAdmin .fi-admin-v2__panel .stat-card i { color:#b69632; font-size:23px; }
+#vistaAdmin .fi-admin-v2__panel .stat-numero { font-size:clamp(17px,2vw,25px); font-weight:800; max-width:100%; overflow-wrap:anywhere; color:var(--av2-ink); }
+#vistaAdmin .fi-admin-v2__panel .stat-etiqueta { color:var(--av2-muted); font-size:12px; font-weight:650; }
+#vistaAdmin .fi-admin-v2__info-strip { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 20px; border-radius:14px; background:#242e31; color:#f6f7f8; }
+#vistaAdmin .fi-admin-v2__info-strip span { font-size:12px; color:#d6dbe0; }
+#vistaAdmin .fi-admin-v2__info-strip strong { font-size:20px; }
+#vistaAdmin .fi-admin-v2__shortcuts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:20px; }
+#vistaAdmin .fi-admin-v2__shortcut { border:1px solid var(--av2-line); border-radius:16px; background:var(--av2-card); display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:7px; padding:18px 15px; cursor:pointer; color:var(--av2-ink); }
+#vistaAdmin .fi-admin-v2__shortcut i { background:#fff6d9; color:#846914; border-radius:12px; display:grid; place-items:center; font-size:21px; width:40px; height:40px; }
+#vistaAdmin .fi-admin-v2__shortcut b { font-size:13px; }
+#vistaAdmin .fi-admin-v2__shortcut small { font-size:11px; color:var(--av2-muted); }
+#vistaAdmin .fi-admin-v2__toolbar,#vistaAdmin .fi-admin-v2__security { background:var(--av2-card); border:1px solid var(--av2-line); border-radius:14px; padding:17px; margin:0 0 15px; }
+#vistaAdmin .fi-admin-v2__toolbar label,#vistaAdmin .fi-admin-v2__filters label { display:flex; flex-direction:column; gap:7px; color:var(--av2-muted); font-size:12px; font-weight:700; }
+#vistaAdmin .fi-admin-v2__input { display:block; width:100%; min-width:0; min-height:43px; padding:10px 12px; border-radius:10px; border:1px solid var(--av2-line); background:var(--av2-card); color:var(--av2-ink); font:inherit; font-size:13px; }
+#vistaAdmin .fi-admin-v2__input:focus-visible { outline:2px solid var(--av2-gold); outline-offset:1px; }
+#vistaAdmin .fi-admin-v2__button { border:0; background:var(--av2-gold); border-radius:10px; color:#1f2022; cursor:pointer; font:inherit; font-size:13px; font-weight:750; padding:12px 17px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+#vistaAdmin .fi-admin-v2__button--outline { border:1px solid var(--av2-line); background:var(--av2-card); }
+#vistaAdmin .fi-admin-v2__button:disabled { opacity:.5; cursor:not-allowed; }
+#vistaAdmin .fi-admin-v2__notice { font-size:12px; line-height:1.55; color:var(--av2-muted); margin:10px 0 16px; }
+#vistaAdmin .fi-admin-v2__feedback { color:var(--av2-muted); min-height:23px; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+#vistaAdmin .fi-admin-v2__feedback[data-error="true"] { color:#bf423e; }
+#vistaAdmin .fi-admin-v2__filters { display:grid; grid-template-columns:minmax(150px,1.3fr) repeat(2,minmax(138px,1fr)) auto; align-items:end; gap:12px; margin:16px 0; }
+#vistaAdmin .fi-admin-v2__table-wrap { overflow-x:auto; border-radius:14px; border:1px solid var(--av2-line); background:var(--av2-card); }
+#vistaAdmin .fi-admin-v2__table { border-collapse:collapse; width:100%; min-width:750px; font-size:12px; color:var(--av2-ink); }
+#vistaAdmin .fi-admin-v2__table th,#vistaAdmin .fi-admin-v2__table td { border-bottom:1px solid var(--av2-line); padding:12px; text-align:left; vertical-align:top; overflow-wrap:anywhere; }
+#vistaAdmin .fi-admin-v2__table th { color:var(--av2-muted); background:#f7f8fa; font-size:11px; }
+#vistaAdmin .fi-admin-v2__report-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:11px; margin-bottom:20px; }
+#vistaAdmin .fi-admin-v2__report-grid>div { border-radius:13px; padding:16px; border:1px solid var(--av2-line); background:var(--av2-card); display:flex; flex-direction:column; gap:9px; }
+#vistaAdmin .fi-admin-v2__report-grid small { color:var(--av2-muted); font-size:11px; }
+#vistaAdmin .fi-admin-v2__report-grid strong { font-size:17px; overflow-wrap:anywhere; }
+#vistaAdmin .fi-admin-v2__categories { border-radius:14px; background:var(--av2-card); padding:4px 16px 16px; margin-bottom:15px; }
+#vistaAdmin .fi-admin-v2__categories h4 { font-size:14px; margin:15px 0; }
+#vistaAdmin .fi-admin-v2__category { margin-bottom:13px; }
+#vistaAdmin .fi-admin-v2__category-head { display:flex; justify-content:space-between; gap:8px; font-size:12px; margin-bottom:6px; }
+#vistaAdmin .fi-admin-v2__bar { background:#eef0f2; border-radius:99px; height:9px; overflow:hidden; }
+#vistaAdmin .fi-admin-v2__bar span { background:linear-gradient(90deg,#cba629,#f1d666); display:block; height:100%; border-radius:99px; }
+#vistaAdmin .fi-admin-v2__option { display:flex; flex-direction:column; gap:8px; font-size:13px; font-weight:650; max-width:350px; margin:16px 0; }
+#vistaAdmin .fi-admin-v2__security { margin-top:20px; line-height:1.6; font-size:12px; color:var(--av2-muted); }
+#vistaAdmin .fi-admin-v2__security b { color:var(--av2-ink); font-size:14px; }
+#vistaAdmin .fi-admin-v2__panel .admin-seccion { border:1px solid var(--av2-line); background:var(--av2-card); border-radius:16px; padding:20px; margin-bottom:13px; box-shadow:none; }
+#vistaAdmin .fi-admin-v2__panel .admin-seccion-header { margin-bottom:13px; }
+#vistaAdmin .fi-admin-v2__panel .cliente-card { border-radius:12px; border:1px solid var(--av2-line); margin:8px 0; }
+#vistaAdmin .fi-admin-v2__panel .cliente-card[hidden],#vistaAdmin .fi-admin-v2__panel .org-item[hidden] { display:none!important; }
+#vistaAdmin .fi-admin-v2__panel .cliente-acciones { display:flex; gap:8px; flex-wrap:wrap; }
+#vistaAdmin .fi-admin-v2__panel .cliente-acciones button { cursor:pointer; border-radius:9px; min-height:33px; }
+#vistaAdmin .fi-admin-v2__panel #detalleUsuarioAdmin { max-width:100%; }
+#vistaAdmin .fi-admin-v2__panel .admin-detalle:empty { display:none; }
+#vistaAdmin .fi-admin-v2__panel .admin-detalle { margin-top:8px; }
+#vistaAdmin .fi-admin-v2__panel #listaOrganizaciones .org-item { border-bottom:1px solid var(--av2-line); padding:13px 8px; }
+#vistaAdmin .fi-admin-v2__panel #listaAuditoria { overflow-wrap:anywhere; }
+#vistaAdmin .fi-admin-v2__button:focus-visible,#vistaAdmin .fi-admin-v2__shortcut:focus-visible,#vistaAdmin .fi-admin-v2__nav-btn:focus-visible { outline:3px solid #b78d13; outline-offset:2px; }
+html[data-theme="dark"] #vistaAdmin .fi-admin-v2 {
+  --av2-bg:#15191d;--av2-card:#22282f;--av2-ink:#f1f4f6;--av2-muted:#b0bbc7;--av2-line:#3d4650;
+}
+html[data-theme="dark"] #vistaAdmin .fi-admin-v2__nav-btn.active { color:#202020; }
+html[data-theme="dark"] #vistaAdmin .fi-admin-v2__table th { background:#27313a; }
+html[data-theme="dark"] #vistaAdmin .fi-admin-v2__bar { background:#40484f; }
+html[data-theme="dark"] #vistaAdmin .fi-admin-v2__shortcut i { color:#e3bf43; background:#423b20; }
+@media (max-width:1100px) {
+  #vistaAdmin .fi-admin-v2__panel .admin-stats,#vistaAdmin .fi-admin-v2__shortcuts,#vistaAdmin .fi-admin-v2__report-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #vistaAdmin .fi-admin-v2__filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:780px) {
+  #vistaAdmin .fi-admin-v2 { display:block; }
+  #vistaAdmin .fi-admin-v2__sidebar { position:static; min-height:0; padding:13px; }
+  #vistaAdmin .fi-admin-v2__brand { margin-bottom:10px; padding-bottom:10px; }
+  #vistaAdmin .fi-admin-v2__sidebar-help { display:none; }
+  #vistaAdmin .fi-admin-v2__nav { flex-direction:row; overflow-x:auto; gap:7px; padding-bottom:5px; scrollbar-width:thin; }
+  #vistaAdmin .fi-admin-v2__nav-btn { white-space:nowrap; width:auto; padding:9px 11px; font-size:12px; flex-shrink:0; }
+  #vistaAdmin .fi-admin-v2__main { padding:20px 14px 110px; }
+  #vistaAdmin .fi-admin-v2__top { align-items:center; }
+  #vistaAdmin .fi-admin-v2__top .fi-admin-v2__button { padding:10px; font-size:11px; }
+  #vistaAdmin .fi-admin-v2__panel .admin-seccion { padding:14px; }
+}
+@media (max-width:490px) {
+  #vistaAdmin .fi-admin-v2__panel .admin-stats { gap:8px; }
+  #vistaAdmin .fi-admin-v2__panel .admin-stats .stat-card { padding:13px 11px; }
+  #vistaAdmin .fi-admin-v2__panel .stat-numero { font-size:16px; }
+  #vistaAdmin .fi-admin-v2__shortcuts,#vistaAdmin .fi-admin-v2__report-grid { gap:8px; }
+  #vistaAdmin .fi-admin-v2__shortcut { padding:13px 10px; }
+  #vistaAdmin .fi-admin-v2__filters { grid-template-columns:1fr; }
+  #vistaAdmin .fi-admin-v2__info-strip { align-items:flex-start; flex-direction:column; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #vistaAdmin .fi-admin-v2 * { transition:none!important; }
+}
