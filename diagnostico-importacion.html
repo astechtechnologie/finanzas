@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<title>Finora · Revisar importación</title>
+<style>
+:root{color-scheme:light;--bg:#f4f5f7;--card:#fff;--txt:#19232c;--muted:#5c6978;--line:#dfe4e9;--gold:#e8c84c;--bad:#a12727;--good:#116947}*{box-sizing:border-box}body{font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--txt);margin:0;padding:28px 14px 60px}.wrap{max-width:850px;margin:auto}h1{font-size:27px;margin:0 0 4px;letter-spacing:-.5px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted)}.tiny{font-size:13px}.card{border:1px solid var(--line);border-radius:18px;padding:23px;background:var(--card);margin:15px 0;box-shadow:0 9px 30px #00000008}label{display:block;font-weight:650;margin:12px 0 6px}input,select{font:inherit;color:var(--txt);width:100%;border:1px solid #ccd3db;border-radius:10px;padding:11px;background:#fff}.btn{border:1px solid #d3b439;background:var(--gold);border-radius:10px;color:#191919;font-weight:700;padding:12px 17px;cursor:pointer}.btn.subtle{background:white;border-color:var(--line)}.btn:disabled{opacity:.4;cursor:not-allowed}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#f8f9fa;border:1px solid #e7ebef;border-radius:12px;padding:12px}.stat strong{font-size:24px;display:block;line-height:1.2}.stat span{color:var(--muted);font-size:12px}.note{background:#fffbeb;border-left:4px solid var(--gold);border-radius:9px;padding:11px 14px;margin:12px 0}.error{color:var(--bad)}.ok{color:var(--good)}.hide{display:none!important}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;border-bottom:1px solid #eef0f3;padding:9px 4px}th{color:var(--muted)}#log{background:#19242e;color:#f6fafb;border-radius:12px;padding:15px;font:12px/1.5 Consolas,monospace;white-space:pre-wrap;max-height:260px;overflow:auto}progress{width:100%;accent-color:var(--gold)}a{color:#5d4b11}@media(max-width:560px){body{padding:12px}.card{padding:17px}.grid{grid-template-columns:1fr}.stat strong{font-size:20px}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+</head>
+<body><main class="wrap">
+<h1>💎 Finora · Diagnóstico de importación</h1><p class="muted">Averigua dónde quedaron los movimientos de tu aplicación anterior y, si lo decides, corrige únicamente la cuenta asignada.</p>
+<section class="card"><h2>1. Tu sesión Finora</h2><p id="sesion" class="muted">Comprobando sesión…</p><form id="login" class="hide"><div class="grid"><div><label for="email">Correo</label><input id="email" type="email" autocomplete="email" required></div><div><label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required></div></div><div class="row" style="margin-top:12px"><button class="btn" type="submit">Ingresar</button></div></form><p class="tiny muted">Se conecta directamente a tu Firebase. No utiliza servidores ni envía los movimientos a otra página.</p></section>
+<section class="card"><h2>2. Comprobar movimientos</h2><p class="muted tiny">Revisa solo tus datos personales, independientemente del perfil que estés viendo en Inicio.</p><button id="verificar" class="btn" disabled>Revisar mi importación</button><div id="resultados" class="hide"><div class="stats" style="margin-top:16px"><div class="stat"><strong id="total">0</strong><span>Registros migrados</span></div><div class="stat"><strong id="nov">0</strong><span>De noviembre 2026</span></div><div class="stat"><strong id="cuantas">0</strong><span>Cuentas con registros</span></div></div><h2 style="margin-top:20px">¿En qué cuenta están?</h2><table><thead><tr><th>Cuenta / ID</th><th>Movimientos</th><th>Noviembre</th></tr></thead><tbody id="tabla"></tbody></table><p id="diagnostico" class="note"></p></div></section>
+<section class="card"><h2>3. Reparación opcional</h2><p class="muted tiny">Esta operación <b>no crea ni elimina movimientos</b>. Actualiza solamente el campo <code>espacioId</code> de los registros importados que selecciones. No toca datos compartidos.</p><label for="cuenta">Cuenta de destino real</label><select id="cuenta" disabled><option>Primero comprueba los datos</option></select><p class="tiny muted">Selecciona la cuenta que deseas utilizar en el selector superior de Finora; por ejemplo, «Principal».</p><div class="row"><button id="reparar" class="btn" disabled>Asignar registros importados a esta cuenta</button></div><p class="tiny muted">Antes de escribir, se mostrará el número exacto de registros que cambiarán y se pedirá confirmación. Si se interrumpe, puedes repetirlo sin duplicar movimientos.</p><progress id="progreso" max="100" value="0" class="hide"></progress></section>
+<section class="card"><h2>Resultados</h2><div id="log">Todavía no se ha realizado ninguna consulta.</div><div class="row" style="margin-top:14px"><a href="./index.html">Volver a Inicio de Finora</a><a href="./importar-finora.html">Abrir importador original</a></div></section>
+</main>
+<script>
+'use strict';(function(){
+const el=id=>document.getElementById(id);
+const App=window.App||{};
+if(!App.auth||!App.db){el('sesion').textContent='No se cargó Firebase. Verifica js/firebase-config.js.';return;}
+const auth=App.auth,db=App.db;
+let user=null,docs=[],cuentas=[],working=false;
+const esMigracion=d=>/^mig_[a-f0-9]{16}_[gi]_\d{5,6}$/.test(d.id)&&d.data().origenMigracion?.sistema==='Exportación Excel';
+function log(t){el('log').textContent+='\n'+t;el('log').scrollTop=el('log').scrollHeight;}
+function toggle(){el('verificar').disabled=!user||working;el('reparar').disabled=!user||working||!docs.length||!el('cuenta').value;}
+function reset(){docs=[];cuentas=[];el('resultados').classList.add('hide');el('cuenta').innerHTML='<option value="">Revisa primero la importación</option>';el('cuenta').disabled=true;toggle();}
+function check(){if(!user)throw Error('Sesión no iniciada');if(auth.currentUser?.uid!==user.uid)throw Error('La sesión cambió');}
+async function consultar(){working=true;toggle();el('log').textContent='Consultando las transacciones de tu cuenta…';try{
+ check();const uid=user.uid,root=db.collection('usuarios').doc(uid);
+ const [tx,accountSnap]=await Promise.all([root.collection('transacciones').where('origenMigracion.sistema','==','Exportación Excel').get(),root.collection('cuentas').get()]);check();
+ docs=tx.docs.filter(esMigracion);cuentas=accountSnap.docs.map(d=>({id:d.id,nombre:String(d.get('nombre')||'Cuenta')}));
+ cuentas.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ const map=new Map();for(const d of docs){const x=d.data(),k=x.espacioId||'(sin cuenta)',g=map.get(k)||{total:0,nov:0};g.total++;if(String(x.fecha||'').startsWith('2026-11'))g.nov++;map.set(k,g);}
+ el('total').textContent=String(docs.length);el('nov').textContent=String(docs.filter(d=>String(d.get('fecha')||'').startsWith('2026-11')).length);el('cuantas').textContent=String(map.size);
+ const tbody=el('tabla');tbody.replaceChildren();for(const [id,v] of map){const tr=document.createElement('tr');const nombre=cuentas.find(x=>x.id===id)?.nombre||'ID sin cuenta real';for(const txt of [nombre+' ('+id+')',v.total,v.nov]){const td=document.createElement('td');td.textContent=String(txt);tr.appendChild(td);}tbody.appendChild(tr);}
+ el('resultados').classList.remove('hide');const diagnostic=el('diagnostico');
+ if(!docs.length){diagnostic.textContent='No se encontraron movimientos de esta migración. Es probable que aún no se haya completado la importación, o que se haya realizado con otro usuario.';}
+ else if([...map.keys()].some(k=>!cuentas.some(c=>c.id===k))){diagnostic.textContent='Hay movimientos asignados a un identificador que no corresponde a una cuenta real. Esa es una causa probable del saldo $0 en Inicio. Puedes reasignarlos a una cuenta existente usando el paso 3.';}
+ else {diagnostic.textContent='Los movimientos están asignados a una o más cuentas reales. Abre Finora, selecciona esa cuenta en la parte superior y comprueba los filtros de fecha.';}
+ const sel=el('cuenta');sel.replaceChildren();for(const c of cuentas)sel.add(new Option(c.nombre+' · '+c.id.slice(0,12),c.id));sel.disabled=!cuentas.length;
+ const preferred=cuentas.find(c=>c.nombre.toLocaleLowerCase('es-CO')==='principal')||cuentas.find(c=>c.nombre.toLocaleLowerCase('es-CO')==='personal')||cuentas[0];if(preferred)sel.value=preferred.id;
+ log(`Encontrados: ${docs.length} registros migrados; ${docs.filter(d=>String(d.get('fecha')||'').startsWith('2026-11')).length} de noviembre.`);if(!cuentas.length)log('No se encontraron cuentas financieras para asignar. Crea una cuenta desde Finora y vuelve a cargar.');
+ }catch(e){log('ERROR al consultar: '+(e.message||e));}finally{working=false;toggle();}}
+async function reparar(){if(working||!user||!docs.length)return;const id=el('cuenta').value,c=cuentas.find(x=>x.id===id);if(!c)return;
+ const pendientes=docs.filter(d=>d.get('espacioId')!==id);if(!pendientes.length){alert('Todos los movimientos importados ya están asignados a esa cuenta.');return;}
+ const msg='Vas a cambiar SOLO el identificador de cuenta de '+pendientes.length+' movimientos importados a «'+c.nombre+'».\n\nNO cambia fechas, importes, categorías ni movimientos compartidos.\n\n¿Confirmas?';if(!confirm(msg))return;
+ working=true;toggle();el('progreso').classList.remove('hide');el('progreso').value=0;let total=0;try{
+ check();for(let i=0;i<pendientes.length;i+=200){check();const chunk=pendientes.slice(i,i+200);const batch=db.batch();for(const d of chunk)batch.update(d.ref,{espacioId:id});await batch.commit();total+=chunk.length;el('progreso').value=Math.round(total/pendientes.length*100);log('Reasignados '+total+' / '+pendientes.length+' movimientos.');}
+ log('LISTO. No se han creado movimientos nuevos. Regresa a Finora, selecciona la cuenta «'+c.nombre+'» y recarga Inicio.');alert('Cuenta corregida para '+total+' movimientos. Comprueba ahora Finora.');
+ }catch(e){log('ERROR: '+(e.message||e)+'. Repite la revisión; los cambios ya completados no se repetirán.');}finally{working=false;toggle();await consultar();}}
+ el('login').addEventListener('submit',async e=>{e.preventDefault();try{await auth.signInWithEmailAndPassword(el('email').value.trim(),el('password').value);el('password').value='';}catch(err){el('sesion').textContent='Error de inicio de sesión: '+err.message;}});
+ el('verificar').addEventListener('click',consultar);el('reparar').addEventListener('click',reparar);el('cuenta').addEventListener('change',toggle);
+ auth.onAuthStateChanged(u=>{user=u||null;reset();el('sesion').textContent=u?'Conectado como '+(u.email||'usuario autenticado'):'Inicia sesión para revisar los movimientos.';el('login').classList.toggle('hide',!!u);toggle();});
+})();
+</script></body></html>
