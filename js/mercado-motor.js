@@ -87,7 +87,7 @@
     return (Array.isArray(producto?.historialPrecios) ? producto.historialPrecios : [])
       .filter(r => r && leerFecha(r.fecha) && precioValido(r.total) && precioValido(r.cantidad))
       .map(r => ({ fecha:r.fecha, cantidad:r.cantidad, total:r.total,
-        unitario: r.total / r.cantidad }))
+        unitario: r.total / r.cantidad, tienda:normalizarTienda(r.tienda), unidad:r.unidad||producto?.unidad||'unidad' }))
       .slice(-30);
   }
   function precioEstimado(producto) {
@@ -101,10 +101,11 @@
     const med=ultimos.length%2 ? ultimos[mitad] : (ultimos[mitad-1]+ultimos[mitad])/2;
     return Math.round(med*cantidad);
   }
-  function guardarPrecioDeCompra(producto, fecha, total, cantidad) {
+  function guardarPrecioDeCompra(producto, fecha, total, cantidad, tienda) {
     if (!leerFecha(fecha) || !precioValido(total) || !precioValido(cantidad)) throw new Error('Precio o fecha inválidos.');
     const historial=historialDePrecios(producto);
-    const actualizado=historial.concat({ fecha, cantidad, total, unitario:total/cantidad }).slice(-30);
+    const actualizado=historial.concat({ fecha, cantidad, total, unitario:total/cantidad,
+      tienda:normalizarTienda(tienda), unidad:producto.unidad||'unidad' }).slice(-30);
     return { historialPrecios:actualizado, precioUltimo:total, precioReferencia:null };
   }
   function cambioPrecio(producto) {
@@ -140,8 +141,105 @@
     });
     return {total,conPrecio,sinPrecio,cantidad:seleccionados.length};
   }
+  // V3 — comparador con precios aportados manualmente por el usuario.
+  // Nunca realiza consultas de comercios ni modifica transacciones financieras.
+  function normalizarTienda(valor) {
+    return typeof valor === 'string' ? valor.trim().replace(/\s+/g,' ').slice(0,60) : '';
+  }
+  function llaveTienda(valor) {
+    return normalizarTienda(valor).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+  }
+  function tiendaValida(valor) {
+    return typeof valor==='string' && valor.trim().length>=2 && valor.trim().length<=60 &&
+      !/[\u0000-\u001f<>]/.test(valor);
+  }
+  function ofertasValidas(producto) {
+    return (Array.isArray(producto?.ofertasTiendas) ? producto.ofertasTiendas : [])
+      .filter(r => r && tiendaValida(r.tienda) && leerFecha(r.fecha) && precioValido(r.total) && precioValido(r.cantidad))
+      .map(r=>({ tienda:normalizarTienda(r.tienda), fecha:r.fecha, cantidad:r.cantidad,
+        total:r.total, unitario:r.total/r.cantidad, unidad:r.unidad||producto?.unidad||'unidad',fuente:'cotización' }))
+      .slice(-40);
+  }
+  function guardarOferta(producto, oferta) {
+    const {tienda,fecha,total,cantidad} = oferta || {};
+    if (!tiendaValida(tienda) || !leerFecha(fecha) || !precioValido(total) || !precioValido(cantidad))
+      throw new Error('Ingresa una tienda, fecha, cantidad y precio válidos.');
+    const nueva={tienda:normalizarTienda(tienda),fecha,total,cantidad,
+      unidad:producto?.unidad||'unidad'};
+    return { ofertasTiendas: ofertasValidas(producto).concat(nueva).slice(-40) };
+  }
+  function cotizaciones(producto,fechaActual,diasVigencia=90) {
+    if (!leerFecha(fechaActual)) return [];
+    const limite=Number.isInteger(diasVigencia)&&diasVigencia>=1&&diasVigencia<=365 ? diasVigencia : 90;
+    const unidad=producto?.unidad||'unidad';
+    const historicas=historialDePrecios(producto).filter(r=>tiendaValida(r.tienda))
+      .map(r=>({...r,fuente:'compra'}));
+    const candidatas=historicas.concat(ofertasValidas(producto));
+    const ultimas=new Map();
+    for (const r of candidatas) {
+      if (r.unidad!==unidad || !precioValido(r.cantidad) || !precioValido(r.total)) continue;
+      const diferencia=diferenciaDias(r.fecha,fechaActual);
+      if(diferencia===null || diferencia<0 || diferencia>limite) continue;
+      const llave=llaveTienda(r.tienda);
+      const anterior=ultimas.get(llave);
+      if(!anterior || anterior.fecha<r.fecha ||
+        (anterior.fecha===r.fecha && anterior.fuente==='cotización' && r.fuente==='compra')) {
+        ultimas.set(llave,{...r,unitario:r.total/r.cantidad});
+      }
+    }
+    const cantidad=precioValido(producto?.cantidad)?producto.cantidad:1;
+    return [...ultimas.values()].map(r=>({...r,
+      estimado:Math.round(r.unitario*cantidad*100)/100}))
+      .sort((a,b)=>a.estimado-b.estimado || a.tienda.localeCompare(b.tienda,'es'));
+  }
+  function compararTiendas(productos,mes,fechaActual,diasVigencia=90) {
+    if(!RE_MES.test(mes)||!leerFecha(fechaActual)) return [];
+    const lista=(Array.isArray(productos)?productos:[]).filter(p=>p&&p.mesLista===mes);
+    const tiendas=new Map();
+    for(const producto of lista){
+      for(const precio of cotizaciones(producto,fechaActual,diasVigencia)){
+        const llave=llaveTienda(precio.tienda);
+        if(!tiendas.has(llave)) tiendas.set(llave,{tienda:precio.tienda,completos:0,total:0,productos:[],cantidad:lista.length});
+        const t=tiendas.get(llave);
+        t.completos++;t.total+=precio.estimado;
+        t.productos.push({id:producto.id||null,nombre:producto.nombre||'Producto',estimado:precio.estimado,
+          fecha:precio.fecha,fuente:precio.fuente});
+      }
+    }
+    return [...tiendas.values()].map(t=>({...t,total:Math.round(t.total*100)/100,
+      faltantes:t.cantidad-t.completos,esCompleta:t.completos===t.cantidad && t.cantidad>0}))
+      .sort((a,b)=>Number(b.esCompleta)-Number(a.esCompleta) ||
+        (a.esCompleta ? a.total-b.total : b.completos-a.completos) || a.tienda.localeCompare(b.tienda,'es'));
+  }
+  // Presupuesto general: conserva referencias V2 y aprovecha precios de tienda
+  // cuando un producto todavía no tiene historial de compra con precio.
+  function presupuestoConTiendas(productos,mes,fechaActual,diasVigencia=90) {
+    if(!RE_MES.test(mes)||!leerFecha(fechaActual)) return {total:0,conPrecio:0,sinPrecio:0,cantidad:0,conCotizacion:0};
+    const lista=(Array.isArray(productos)?productos:[]).filter(p=>p&&p.mesLista===mes);
+    let total=0,conPrecio=0,sinPrecio=0,conCotizacion=0;
+    for(const p of lista){
+      let precio=precioEstimado(p);
+      if(precio===null){const c=cotizaciones(p,fechaActual,diasVigencia);if(c.length){precio=c[0].estimado;conCotizacion++;}}
+      if(precio===null) sinPrecio++;else {total+=precio;conPrecio++;}
+    }
+    return {total:Math.round(total*100)/100,conPrecio,sinPrecio,cantidad:lista.length,conCotizacion};
+  }
+  function planMasEconomico(productos,mes,fechaActual,diasVigencia=90) {
+    if(!RE_MES.test(mes)||!leerFecha(fechaActual)) return {total:0,conPrecio:0,sinPrecio:0,detalle:[],cantidad:0};
+    const lista=(Array.isArray(productos)?productos:[]).filter(p=>p&&p.mesLista===mes);
+    let total=0,conPrecio=0,sinPrecio=0;
+    const detalle=lista.map(p=>{
+      const precios=cotizaciones(p,fechaActual,diasVigencia);
+      if(!precios.length){sinPrecio++;return {id:p.id||null,nombre:p.nombre||'Producto',estimado:null,tienda:null};}
+      const mejor=precios[0]; total+=mejor.estimado;conPrecio++;
+      return {id:p.id||null,nombre:p.nombre||'Producto',estimado:mejor.estimado,
+        tienda:mejor.tienda,fecha:mejor.fecha};
+    });
+    return {total:Math.round(total*100)/100,conPrecio,sinPrecio,cantidad:lista.length,detalle};
+  }
   return { fechaLocal, leerFecha, sumarDias, diferenciaDias, proximoMes,
     mediana, diasEstimados, fechaRevision, debeRevisarse, alComprar, alAgotar,
     precioValido, historialDePrecios, precioEstimado, guardarPrecioDeCompra, cambioPrecio,
-    ultimoDiaMes, sugerencias, presupuestoMes };
+    ultimoDiaMes, sugerencias, presupuestoMes, normalizarTienda, llaveTienda, tiendaValida,
+    ofertasValidas, guardarOferta, cotizaciones, compararTiendas, planMasEconomico, presupuestoConTiendas };
 });
